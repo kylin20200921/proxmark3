@@ -1,9 +1,9 @@
-commit c590befca9486f7b43044c6a13f7850d488f38d0
-Merge: 1fcd539bc 1b5c28b59
+commit d3d4e72f2c6e2fc0bae569e4b61d4d1bc8707514
+Merge: 195ad5215 5768ae939
 Author: Iceman <iceman@iuse.se>
-Date:   Tue Aug 10 19:31:22 2021 +0200
+Date:   Sat Aug 14 11:03:16 2021 +0200
 
-    Merge pull request #1445 from mh-/mh--patch-1
+    Merge pull request #1447 from AxisRay/fix-hf_mfcsim
     
-    Update cmdhfmf.c
+    hf_mfcsim refactored
 
