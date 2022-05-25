@@ -1,18 +1,36 @@
-commit 6173259a03d4c1b576df948d479c8362a47da50d
+commit ef8fbc68025a3c4de5542ea3040b39eff29db79f
 Author: iceman1001 <iceman@iuse.se>
-Date:   Mon Dec 13 18:45:40 2021 +0100
+Date:   Thu Dec 16 03:25:18 2021 +0100
 
-    removing unused cmds
+    textual
 
-diff --git a/client/src/rl_vocabulory.h b/client/src/rl_vocabulory.h
-index b3f6f86c2..f8878ac11 100644
---- a/client/src/rl_vocabulory.h
-+++ b/client/src/rl_vocabulory.h
-@@ -77,7 +77,6 @@ const static vocabulory_t vocabulory[] = {
-     { 1, "data fsktonrz" }, 
-     { 1, "data manrawdecode" }, 
-     { 1, "data modulation" }, 
--    { 1, "data pwmdemod" }, 
-     { 1, "data rawdemod" }, 
-     { 1, "data askedgedetect" }, 
-     { 1, "data autocorr" }, 
+diff --git a/.github/ISSUE_TEMPLATE/checklist-for-release.md b/.github/ISSUE_TEMPLATE/checklist-for-release.md
+index a3d8b2657..193516862 100644
+--- a/.github/ISSUE_TEMPLATE/checklist-for-release.md
++++ b/.github/ISSUE_TEMPLATE/checklist-for-release.md
+@@ -19,7 +19,6 @@ assignees: doegox, iceman1001
+ - [ ] `experimental_lib` compilation & tests
+ - [ ] `experimental_client_with_swig` compilation & tests
+ - [ ] GitHub Actions - green across the board ( MacOS, Ubuntu, Windows)
+-- [ ] [Appveyor](https://ci.appveyor.com/project/RfidResearchGroup/proxmark3/history) green (PS)
+ 
+ # OS compilation and tests
+ 
+@@ -60,7 +59,7 @@ make hitag2crack/clean && make hitag2crack && tools/pm3_tests.sh hitag2crack ||
+ 
+ - [ ] `make release RELEASE_NAME="ice awesome"`
+   - last line of output,  gives you next command to run.
+-  - Sample:  `git push && git push origin v4.15000`
++  - Sample:  `git push && git push origin v4.12345`
+ - [ ] CHANGELOG.md: edit title to add version info: `## [releasename.4.12345][YYYY-MM-DD]`
+ 
+ ## Step Github releases
+@@ -70,7 +69,7 @@ make hitag2crack/clean && make hitag2crack && tools/pm3_tests.sh hitag2crack ||
+ ## Step Homebrew updates
+ 
+ - [ ] update homebrew repo, file `proxmark3.rb`
+-  - with a SHA256 sum of the file `v4.15000.tar.gz`
++  - with a SHA256 sum of the file `v4.12345.tar.gz`
+   - with updated list of standalone modes
+ 
+ ## Step package maintains
