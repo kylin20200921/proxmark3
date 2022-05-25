@@ -1,36 +1,44 @@
-commit 436fedcbe41601cfdba1a2e29202f323af92b2b4
+commit b9bf84dbf14a2fc470dc7530f74a02667cb6d2af
 Author: iceman1001 <iceman@iuse.se>
-Date:   Thu May 20 10:11:41 2021 +0200
+Date:   Thu May 20 10:15:16 2021 +0200
 
-    fix coverity CID 344485, 344482, 344481
+    desfire readdata fct, now deals with both INS cases
 
-diff --git a/tools/fpga_compress/fpga_compress.c b/tools/fpga_compress/fpga_compress.c
-index f5f5fde49..cfbd30cbb 100644
---- a/tools/fpga_compress/fpga_compress.c
-+++ b/tools/fpga_compress/fpga_compress.c
-@@ -40,9 +40,13 @@ static bool all_feof(FILE *infile[], uint8_t num_infiles) {
+diff --git a/client/src/cmdhfmfdes.c b/client/src/cmdhfmfdes.c
+index 1f7689fb4..121108c62 100644
+--- a/client/src/cmdhfmfdes.c
++++ b/client/src/cmdhfmfdes.c
+@@ -1903,16 +1903,18 @@ static int handler_desfire_debit(mfdes_value_t *value, uint8_t cs) {
  }
  
- static int zlib_compress(FILE *infile[], uint8_t num_infiles, FILE *outfile) {
--    uint8_t *fpga_config;
- 
--    fpga_config = calloc(num_infiles * FPGA_CONFIG_SIZE, sizeof(uint8_t));
-+    uint8_t *fpga_config = calloc(num_infiles * FPGA_CONFIG_SIZE, sizeof(uint8_t));
-+    if (fpga_config == NULL) {
-+        fprintf(stderr, "failed to allocate memory");
-+        return (EXIT_FAILURE);
+ static int handler_desfire_readdata(mfdes_data_t *data, MFDES_FILE_TYPE_T type, uint8_t cs) {
+-    if (data->fileno > 0x1F) return PM3_EINVARG;
+-    sAPDU apdu = {0x90, MFDES_READ_DATA, 0x00, 0x00, 1 + 3 + 3, (uint8_t *)data}; // 0xBD
+-    if (type == MFDES_RECORD_FILE) apdu.INS = MFDES_READ_RECORDS; //0xBB
++    if (data->fileno > 0x1F) {
++        return PM3_EINVARG;
 +    }
-+
-     // read the input files. Interleave them into fpga_config[]
-     uint32_t total_size = 0;
-     do {
-@@ -99,6 +103,9 @@ static int zlib_compress(FILE *infile[], uint8_t num_infiles, FILE *outfile) {
-         int cmp_bytes = LZ4_compress_HC_continue(lz4_streamhc, ring_buffer, outbuf, bytes_to_copy, outsize_max);
-         if (cmp_bytes < 0 ){
-             fprintf(stderr, "(lz4 - zlib_compress) error,  got negative number of bytes from LZ4_compress_HC_continue call. got %d ", cmp_bytes);
-+            free(ring_buffer);
-+            free(outbuf);
-+            free(fpga_config);
-             return (EXIT_FAILURE);
-         }
-         fwrite(&cmp_bytes, sizeof(int), 1, outfile);
+ 
+-    uint16_t sw = 0;
+-    uint32_t resplen = 0;
++    sAPDU apdu = {0x90, MFDES_READ_DATA, 0x00, 0x00, 1 + 3 + 3, (uint8_t *)data}; // 0xBD
++    if (type == MFDES_RECORD_FILE) {
++        apdu.INS = MFDES_READ_RECORDS; //0xBB
++    } 
+ 
+     // we need the CMD 0xBD <data> to calc the CMAC
+     uint8_t tmp_data[8]; // Since the APDU is hardcoded to 7 bytes of payload 7+1 = 8 is enough.
+-    tmp_data[0] = 0xBD;
++    tmp_data[0] = apdu.INS;
+     memcpy(&tmp_data[1], data, 7);
+ 
+     // size_t plen = apdu.Lc;
+@@ -1926,6 +1928,8 @@ static int handler_desfire_readdata(mfdes_data_t *data, MFDES_FILE_TYPE_T type,
+     apdu.Lc =  7;
+     apdu.data = (uint8_t *)data;
+ 
++    uint16_t sw = 0;
++    uint32_t resplen = 0;
+     int res = send_desfire_cmd(&apdu, false, data->data, &resplen, &sw, 0, true);
+     if (res != PM3_SUCCESS) {
+         PrintAndLogEx(WARNING, _RED_("   Can't read data -> %s"), GetErrorString(res, &sw));
