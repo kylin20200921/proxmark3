@@ -1,73 +1,99 @@
-commit 16c43bea2deef0449537b83be731ae17337db1aa
+commit dfd07ccd698f9620e9cc5e2b7e73f59db3ad63d8
 Author: iceman1001 <iceman@iuse.se>
-Date:   Wed May 19 10:13:37 2021 +0200
+Date:   Wed May 19 10:15:10 2021 +0200
 
-    fix coverity CID 322671, 322668,  and time now is zero padded
+    fix coverity CID 322762
 
-diff --git a/tools/fpga_compress/fpga_compress.c b/tools/fpga_compress/fpga_compress.c
-index 859a2b858..f5f5fde49 100644
---- a/tools/fpga_compress/fpga_compress.c
-+++ b/tools/fpga_compress/fpga_compress.c
-@@ -97,7 +97,10 @@ static int zlib_compress(FILE *infile[], uint8_t num_infiles, FILE *outfile) {
+diff --git a/tools/mf_nonce_brute/mf_nonce_brute.c b/tools/mf_nonce_brute/mf_nonce_brute.c
+index 401410f1e..a3bc14f95 100644
+--- a/tools/mf_nonce_brute/mf_nonce_brute.c
++++ b/tools/mf_nonce_brute/mf_nonce_brute.c
+@@ -72,7 +72,7 @@ uint8_t cmds[8][2] = {
+ static int global_found = 0;
+ static int global_found_candidate = 0;
+ static uint64_t global_candiate_key = 0;
+-static size_t thread_count = 2;
++static int thread_count = 2;
  
-         memcpy(ring_buffer, fpga_config + current_in, bytes_to_copy);
-         int cmp_bytes = LZ4_compress_HC_continue(lz4_streamhc, ring_buffer, outbuf, bytes_to_copy, outsize_max);
--
-+        if (cmp_bytes < 0 ){
-+            fprintf(stderr, "(lz4 - zlib_compress) error,  got negative number of bytes from LZ4_compress_HC_continue call. got %d ", cmp_bytes);
-+            return (EXIT_FAILURE);
-+        }
-         fwrite(&cmp_bytes, sizeof(int), 1, outfile);
-         fwrite(outbuf, sizeof(char), cmp_bytes, outfile);
+ static int param_getptr(const char *line, int *bg, int *en, int paramnum) {
+     int i;
+@@ -384,13 +384,12 @@ static void *brute_thread(void *arguments) {
  
-@@ -118,7 +121,7 @@ static int zlib_compress(FILE *infile[], uint8_t num_infiles, FILE *outfile) {
-     fprintf(stdout, "compressed %u input bytes to %d output bytes\n", total_size, current_out);
+         nt = count << 16 | prng_successor(count, 16);
  
-     if (current_out == 0) {
--        fprintf(stderr, "Error in lz4");
-+        fprintf(stderr, "error in lz4");
-         return (EXIT_FAILURE);
-     }
-     return (EXIT_SUCCESS);
-@@ -204,18 +207,27 @@ static int bitparse_find_section(FILE *infile, char section_name, unsigned int *
+-        if (!candidate_nonce(args->xored, nt, args->ev1))
++        if (candidate_nonce(args->xored, nt, args->ev1) == false)
+             continue;
+ 
+         p64 = prng_successor(nt, 64);
+         ks2 = ar_enc ^ p64;
+         ks3 = at_enc ^ prng_successor(p64, 32);
+-        free(revstate);
+         revstate = lfsr_recovery64(ks2, ks3);
+         ks4 = crypto1_word(revstate, 0, 0);
+ 
+@@ -415,14 +414,17 @@ static void *brute_thread(void *arguments) {
+ 
+                 // check if cmd exists
+                 uint8_t isOK = checkValidCmd(decrypted);
+-                (void)isOK;
++                if (isOK == false) {
++                    printf(_RED_("<-- not a valid cmd\n"));
++                    pthread_mutex_unlock(&print_lock);
++                    continue;
++                }
+ 
+                 // Add a crc-check.
+                 isOK = checkCRC(decrypted);
+                 if (isOK == false) {
+-                    printf(_RED_("<-- not a valid cmd\n"));
++                    printf(_RED_("<-- not a valid crc\n"));
+                     pthread_mutex_unlock(&print_lock);
+-                    free(revstate);
+                     continue;
+                 } else {
+                     printf("<-- valid cmd\n");
+@@ -450,6 +452,7 @@ static void *brute_thread(void *arguments) {
+             free(revstate);
              break;
          }
-         unsigned int current_length = 0;
-+        int tmp;
-         switch (current_name) {
-             case 'e':
-                 /* Four byte length field */
--                current_length += fgetc(infile) << 24;
--                current_length += fgetc(infile) << 16;
--                current_length += fgetc(infile) << 8;
--                current_length += fgetc(infile) << 0;
-+                for (int i = 0; i < 4; i++) {
-+                    tmp = fgetc(infile);
-+                    if (tmp < 0 ) {
-+                        break;
-+                    }
-+                    current_length += tmp << (24 - (i * 8));
-+                }
-                 numbytes += 4;
-                 break;
-             default: /* Fall through, two byte length field */
--                current_length += fgetc(infile) << 8;
--                current_length += fgetc(infile) << 0;
-+                for (int i = 0; i < 2; i++) {
-+                    tmp = fgetc(infile);
-+                    if (tmp < 0 ) {
-+                        break;
-+                    }
-+                    current_length += tmp << (8 - (i * 8));
-+                }
-                 numbytes += 2;
-                 break;
++        free(revstate);
+     }
+     free(args);
+     return NULL;
+@@ -468,7 +471,7 @@ static void *brute_key_thread(void *arguments) {
+             break;
          }
-@@ -290,6 +302,7 @@ static int FpgaGatherVersion(FILE *infile, char *infile_name, char *dst, int len
-         for (uint16_t i = 0; i < fpga_info_len; i++) {
-             char c = (char)fgetc(infile);
-             if (i < sizeof(tempstr)) {
-+                if (c == ' ') c = '0';
-                 tempstr[i] = c;
-             }
-         }
+ 
+-        key |= count << 32;
++        key |= (count << 32);
+ 
+         // Init cipher with key
+         struct Crypto1State *pcs = crypto1_create(key);
+@@ -576,7 +579,7 @@ int main(int argc, char *argv[]) {
+         thread_count = 2;
+ #endif  /* _WIN32 */
+ 
+-    printf("\nBruteforce using " _YELLOW_("%zu") " threads\n", thread_count);
++    printf("\nBruteforce using " _YELLOW_("%d") " threads\n", thread_count);
+     printf("looking for the last bytes of the encrypted tagnonce\n");
+ 
+     pthread_t threads[thread_count];
+@@ -585,7 +588,7 @@ int main(int argc, char *argv[]) {
+     pthread_mutex_init(&print_lock, NULL);
+ 
+     // one thread T0 for none EV1.
+-    struct thread_args *a = malloc(sizeof(struct thread_args));
++    struct thread_args *a = calloc(1, sizeof(struct thread_args));
+     a->xored = xored;
+     a->thread = 0;
+     a->idx = 0;
+@@ -594,7 +597,7 @@ int main(int argc, char *argv[]) {
+ 
+     // the rest of available threads to EV1 scenario
+     for (int i = 0; i < thread_count - 1; ++i) {
+-        struct thread_args *b = malloc(sizeof(struct thread_args));
++        struct thread_args *b = calloc(1, sizeof(struct thread_args));
+         b->xored = xored;
+         b->thread = i + 1;
+         b->idx = i;
