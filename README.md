@@ -1,34 +1,140 @@
-commit 88d9942d3f4a8cde819ee4392077a0c00f076ab3
+commit 083e557b9ffbd95b82b24d36e28f403b9b4b8487
 Author: iceman1001 <iceman@iuse.se>
-Date:   Tue Jun 22 07:49:17 2021 +0200
+Date:   Tue Jun 22 07:53:00 2021 +0200
 
-    fix little endian vs big endian in the macros
+    fix little endian vs big endian in the macros...  again... but this time correct
 
 diff --git a/client/src/cmdlfem4x50.c b/client/src/cmdlfem4x50.c
-index 149ba0b42..2e85786eb 100644
+index 2e85786eb..89ee9efb0 100644
 --- a/client/src/cmdlfem4x50.c
 +++ b/client/src/cmdlfem4x50.c
-@@ -464,7 +464,9 @@ int CmdEM4x50Chk(const char *Cmd) {
+@@ -344,7 +344,7 @@ int CmdEM4x50Login(const char *Cmd) {
+         return PM3_EINVARG;
      }
  
-     size_t datalen = 0;
--    uint8_t data[100000] = {0x0};
-+
-+    // 2021 iceman: how many keys shall we reserv space for? The t55xx dictionary has 139 keys.
-+    uint8_t data[2000 * 4] = {0x0};
-     uint8_t *keys = data;
-     uint32_t key_count = 0;
+-    uint32_t password = BYTES2UINT32(pwd);
++    uint32_t password = BYTES2UINT32_BE(pwd);
+ 
+     // start
+     clearCommandBuffer();
+@@ -395,8 +395,8 @@ int CmdEM4x50Brute(const char *Cmd) {
+     }
+ 
+     em4x50_data_t etd;
+-    etd.password1 = BYTES2UINT32(first);
+-    etd.password2 = BYTES2UINT32(last);
++    etd.password1 = BYTES2UINT32_BE(first);
++    etd.password2 = BYTES2UINT32_BE(last);
+ 
+     // 27 passwords/second (empirical value)
+     const int speed = 27;
+@@ -624,7 +624,7 @@ int CmdEM4x50Read(const char *Cmd) {
+             PrintAndLogEx(FAILED, "password length must be 4 bytes instead of %d", pwd_len);
+             return PM3_EINVARG;
+         } else {
+-            etd.password1 = BYTES2UINT32(pwd);
++            etd.password1 = BYTES2UINT32_BE(pwd);
+             etd.pwd_given = true;
+         }
+     }
+@@ -663,7 +663,7 @@ int CmdEM4x50Info(const char *Cmd) {
+             PrintAndLogEx(FAILED, "password length must be 4 bytes instead of %d", pwd_len);
+             return PM3_EINVARG;
+         } else {
+-            etd.password1 = BYTES2UINT32(pwd);
++            etd.password1 = BYTES2UINT32_BE(pwd);
+             etd.pwd_given = true;
+         }
+     }
+@@ -775,7 +775,7 @@ int CmdEM4x50Dump(const char *Cmd) {
+             CLIParserFree(ctx);
+             return PM3_EINVARG;
+         } else {
+-            etd.password1 = BYTES2UINT32(pwd);
++            etd.password1 = BYTES2UINT32_BE(pwd);
+             etd.pwd_given = true;
+         }
+     }
+@@ -867,14 +867,14 @@ int CmdEM4x50Write(const char *Cmd) {
+             PrintAndLogEx(FAILED, "password length must be 4 bytes instead of %d", pwd_len);
+             return PM3_EINVARG;
+         } else {
+-            etd.password1 = BYTES2UINT32(pwd);
++            etd.password1 = BYTES2UINT32_BE(pwd);
+             etd.pwd_given = true;
+         }
+     }
+ 
+     etd.addresses = (addr << 8) | addr;
+     etd.addr_given = true;
+-    etd.word = BYTES2UINT32(word);
++    etd.word = BYTES2UINT32_BE(word);
+ 
+     clearCommandBuffer();
+     SendCommandNG(CMD_LF_EM4X50_WRITE, (uint8_t *)&etd, sizeof(etd));
+@@ -936,14 +936,14 @@ int CmdEM4x50WritePwd(const char *Cmd) {
+         PrintAndLogEx(FAILED, "password length must be 4 bytes instead of %d", pwd_len);
+         return PM3_EINVARG;
+     } else {
+-        etd.password1 = BYTES2UINT32(pwd);
++        etd.password1 = BYTES2UINT32_BE(pwd);
+     }
+ 
+     if (npwd_len != 4) {
+         PrintAndLogEx(FAILED, "password length must be 4 bytes instead of %d", npwd_len);
+         return PM3_EINVARG;
+     } else {
+-        etd.password2 = BYTES2UINT32(npwd);
++        etd.password2 = BYTES2UINT32_BE(npwd);
+     }
+ 
+     PacketResponseNG resp;
+@@ -999,7 +999,7 @@ int CmdEM4x50Wipe(const char *Cmd) {
+ 
+     em4x50_data_t etd = {.pwd_given = false, .word = 0x0, .password2 = 0x0};
+ 
+-    etd.password1 = BYTES2UINT32(pwd);
++    etd.password1 = BYTES2UINT32_BE(pwd);
+     etd.pwd_given = true;
+ 
+     // clear password
+@@ -1095,7 +1095,7 @@ int CmdEM4x50Restore(const char *Cmd) {
+             PrintAndLogEx(FAILED, "password length must be 4 bytes instead of %d", pwd_len);
+             return PM3_EINVARG;
+         } else {
+-            etd.password1 = BYTES2UINT32(pwd);
++            etd.password1 = BYTES2UINT32_BE(pwd);
+             etd.pwd_given = true;
+             // if password is available protection and control word can be restored
+             startblock = EM4X50_PROTECTION;
+@@ -1122,7 +1122,7 @@ int CmdEM4x50Restore(const char *Cmd) {
+         PrintAndLogEx(INPLACE, "Restoring block %i", i);
+ 
+         etd.addresses = i << 8 | i;
+-        etd.word = reflect32(BYTES2UINT32((data + 4 * i)));
++        etd.word = reflect32(BYTES2UINT32_BE((data + 4 * i)));
+ 
+         PacketResponseNG resp;
+         clearCommandBuffer();
+@@ -1172,7 +1172,7 @@ int CmdEM4x50Sim(const char *Cmd) {
+             PrintAndLogEx(FAILED, "password length must be 4 bytes, got %d", pwd_len);
+             return PM3_EINVARG;
+         } else {
+-            password = BYTES2UINT32(pwd);
++            password = BYTES2UINT32_BE(pwd);
+         }
+     }
  
 diff --git a/client/src/cmdlfem4x70.c b/client/src/cmdlfem4x70.c
-index 5c7d0d06a..59584a2bc 100644
+index 59584a2bc..5c7d0d06a 100644
 --- a/client/src/cmdlfem4x70.c
 +++ b/client/src/cmdlfem4x70.c
 @@ -251,7 +251,7 @@ int CmdEM4x70Unlock(const char *Cmd) {
          return PM3_EINVARG;
      }
  
--    etd.pin = BYTES2UINT32(pin);
-+    etd.pin = BYTES2UINT32_BE(pin);
+-    etd.pin = BYTES2UINT32_BE(pin);
++    etd.pin = BYTES2UINT32(pin);
  
      clearCommandBuffer();
      SendCommandNG(CMD_LF_EM4X70_UNLOCK, (uint8_t *)&etd, sizeof(etd));
@@ -36,36 +142,8 @@ index 5c7d0d06a..59584a2bc 100644
          return PM3_EINVARG;
      }
  
--    etd.pin = BYTES2UINT32(pin);
-+    etd.pin = BYTES2UINT32_BE(pin);
+-    etd.pin = BYTES2UINT32_BE(pin);
++    etd.pin = BYTES2UINT32(pin);
  
      clearCommandBuffer();
      SendCommandNG(CMD_LF_EM4X70_WRITEPIN, (uint8_t *)&etd, sizeof(etd));
-diff --git a/include/common.h b/include/common.h
-index 50d0aed69..95784acee 100644
---- a/include/common.h
-+++ b/include/common.h
-@@ -131,15 +131,21 @@ extern bool tearoff_enabled;
- #endif
- #endif
- 
--// convert 2 bytes to U16
-+// convert 2 bytes to U16 in little endian
- #ifndef BYTES2UINT16
- # define BYTES2UINT16(x) ((x[1] << 8) | (x[0]))
- #endif
--// convert 4 bytes to U32
-+// convert 4 bytes to U32 in little endian
- #ifndef BYTES2UINT32
- # define BYTES2UINT32(x) ((x[3] << 24) | (x[2] << 16) | (x[1] << 8) | (x[0]))
- #endif
- 
-+// convert 4 bytes to U32 in big endian
-+#ifndef BYTES2UINT32_BE
-+# define BYTES2UINT32_BE(x) ((x[0] << 24) | (x[1] << 16) | (x[2] << 8) | (x[3]))
-+#endif
-+
-+
- #define EVEN                        0
- #define ODD                         1
- 
