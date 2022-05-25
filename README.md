@@ -1,183 +1,181 @@
-commit 2bf2bb301a4554b142538c9691073a6effa9144e
+commit 89a05b47a80d261597d7320d0b292a0989243cd5
 Author: iceman1001 <iceman@iuse.se>
-Date:   Fri Jan 7 19:23:42 2022 +0100
+Date:   Fri Jan 7 19:31:19 2022 +0100
 
-    cppcheck fixes
+    cppcheck fixes const
 
-diff --git a/client/src/mifare/desfirecrypto.c b/client/src/mifare/desfirecrypto.c
-index f022bbe65..8ee68c29e 100644
---- a/client/src/mifare/desfirecrypto.c
-+++ b/client/src/mifare/desfirecrypto.c
-@@ -439,7 +439,7 @@ void DesfireDESKeySetVersion(uint8_t *key, DesfireCryptoAlgorithm keytype, uint8
-     }
- }
- 
--uint8_t DesfireDESKeyGetVersion(uint8_t *key) {
-+uint8_t DesfireDESKeyGetVersion(const uint8_t *key) {
-     uint8_t version = 0;
-     for (int n = 0; n < 8; n++)
-         version |= ((key[n] & 1) << (7 - n));
-diff --git a/client/src/mifare/desfirecrypto.h b/client/src/mifare/desfirecrypto.h
-index 96f508fa6..7147eb981 100644
---- a/client/src/mifare/desfirecrypto.h
-+++ b/client/src/mifare/desfirecrypto.h
-@@ -114,7 +114,7 @@ void MifareKdfAn10922(DesfireContext_t *ctx, DesfireCryptoOpKeyType key_type, co
- void DesfireGenSessionKeyLRP(uint8_t *key, uint8_t *rndA, uint8_t *rndB, bool enckey, uint8_t *sessionkey);
- 
- void DesfireDESKeySetVersion(uint8_t *key, DesfireCryptoAlgorithm keytype, uint8_t version);
--uint8_t DesfireDESKeyGetVersion(uint8_t *key);
-+uint8_t DesfireDESKeyGetVersion(const uint8_t *key);
- 
- DesfireCryptoAlgorithm DesfireKeyTypeToAlgo(uint8_t keyType);
- uint8_t DesfireKeyAlgoToType(DesfireCryptoAlgorithm keyType);
-diff --git a/client/src/mifare/gallaghercore.c b/client/src/mifare/gallaghercore.c
-index 71e235286..e9ae26364 100644
---- a/client/src/mifare/gallaghercore.c
-+++ b/client/src/mifare/gallaghercore.c
-@@ -13,7 +13,7 @@
- #include "ui.h"
- 
- static void scramble(uint8_t *arr, uint8_t len) {
--    uint8_t lut[] = {
-+    const uint8_t lut[] = {
-         0xa3, 0xb0, 0x80, 0xc6, 0xb2, 0xf4, 0x5c, 0x6c, 0x81, 0xf1, 0xbb, 0xeb, 0x55, 0x67, 0x3c, 0x05,
-         0x1a, 0x0e, 0x61, 0xf6, 0x22, 0xce, 0xaa, 0x8f, 0xbd, 0x3b, 0x1f, 0x5e, 0x44, 0x04, 0x51, 0x2e,
-         0x4d, 0x9a, 0x84, 0xea, 0xf8, 0x66, 0x74, 0x29, 0x7f, 0x70, 0xd8, 0x31, 0x7a, 0x6d, 0xa4, 0x00,
-@@ -38,7 +38,7 @@ static void scramble(uint8_t *arr, uint8_t len) {
- }
- 
- static void descramble(uint8_t *arr, uint8_t len) {
--    uint8_t lut[] = {
-+    const uint8_t lut[] = {
-         0x2f, 0x6e, 0xdd, 0xdf, 0x1d, 0x0f, 0xb0, 0x76, 0xad, 0xaf, 0x7f, 0xbb, 0x77, 0x85, 0x11, 0x6d,
-         0xf4, 0xd2, 0x84, 0x42, 0xeb, 0xf7, 0x34, 0x55, 0x4a, 0x3a, 0x10, 0x71, 0xe7, 0xa1, 0x62, 0x1a,
-         0x3e, 0x4c, 0x14, 0xd3, 0x5e, 0xb2, 0x7d, 0x56, 0xbc, 0x27, 0x82, 0x60, 0xe3, 0xae, 0x1f, 0x9b,
-diff --git a/client/src/mifare/lrpcrypto.c b/client/src/mifare/lrpcrypto.c
-index bd0368b9d..8016293f8 100644
---- a/client/src/mifare/lrpcrypto.c
-+++ b/client/src/mifare/lrpcrypto.c
-@@ -106,7 +106,7 @@ void LRPGenerateUpdatedKeys(LRPContext_t *ctx, size_t updatedKeysCount) {
- 
- // https://www.nxp.com/docs/en/application-note/AN12304.pdf
- // Algorithm 3
--void LRPEvalLRP(LRPContext_t *ctx, uint8_t *iv, size_t ivlen, bool final, uint8_t *y) {
-+void LRPEvalLRP(LRPContext_t *ctx, const uint8_t *iv, size_t ivlen, bool final, uint8_t *y) {
-     uint8_t ry[CRYPTO_AES128_KEY_SIZE] = {0};
-     memcpy(ry, ctx->updatedKeys[ctx->useUpdatedKeyNum], CRYPTO_AES128_KEY_SIZE);
- 
-diff --git a/client/src/mifare/lrpcrypto.h b/client/src/mifare/lrpcrypto.h
-index aa7f45704..1b6622ed9 100644
---- a/client/src/mifare/lrpcrypto.h
-+++ b/client/src/mifare/lrpcrypto.h
-@@ -50,7 +50,7 @@ void LRPSetKeyEx(LRPContext_t *ctx, uint8_t *key, uint8_t *counter, size_t count
- void LRPSetCounter(LRPContext_t *ctx, uint8_t *counter, size_t counterLenNibbles);
- void LRPGeneratePlaintexts(LRPContext_t *ctx, size_t plaintextsCount);
- void LRPGenerateUpdatedKeys(LRPContext_t *ctx, size_t updatedKeysCount);
--void LRPEvalLRP(LRPContext_t *ctx, uint8_t *iv, size_t ivlen, bool final, uint8_t *y);
-+void LRPEvalLRP(LRPContext_t *ctx, const uint8_t *iv, size_t ivlen, bool final, uint8_t *y);
- void LRPIncCounter(uint8_t *ctr, size_t ctrlen);
- void LRPEncode(LRPContext_t *ctx, uint8_t *data, size_t datalen, uint8_t *resp, size_t *resplen);
- void LRPDecode(LRPContext_t *ctx, uint8_t *data, size_t datalen, uint8_t *resp, size_t *resplen);
-diff --git a/client/src/mifare/mad.c b/client/src/mifare/mad.c
-index 55868cfae..ca5be1e01 100644
---- a/client/src/mifare/mad.c
-+++ b/client/src/mifare/mad.c
-@@ -159,7 +159,7 @@ static int madCRCCheck(uint8_t *sector, bool verbose, int MADver) {
-     return PM3_SUCCESS;
- }
- 
--static uint16_t madGetAID(uint8_t *sector, bool swapmad, int MADver, int sectorNo) {
-+static uint16_t madGetAID(const uint8_t *sector, bool swapmad, int MADver, int sectorNo) {
-     uint16_t mad;
-     if (MADver == 1)
-         mad = (sector[16 + 2 + (sectorNo - 1) * 2 + 1] << 8) + (sector[16 + 2 + (sectorNo - 1) * 2]);
-@@ -267,7 +267,7 @@ int MADCardHolderInfoDecode(uint8_t *data, size_t datalen, bool verbose) {
-     return PM3_SUCCESS;
- }
- 
--static int MADInfoByteDecode(uint8_t *sector, bool swapmad, int mad_ver, bool verbose) {
-+static int MADInfoByteDecode(const uint8_t *sector, bool swapmad, int mad_ver, bool verbose) {
-     uint8_t info;
-     if (mad_ver == 1) {
-         info = sector[16 + 1] & 0x3f;
-diff --git a/client/src/mifare/mifare4.c b/client/src/mifare/mifare4.c
-index 42dff092c..8b262ec40 100644
---- a/client/src/mifare/mifare4.c
-+++ b/client/src/mifare/mifare4.c
-@@ -66,7 +66,7 @@ AccessConditions_t MFAccessConditionsTrailer[] = {
-     {0x07, "read ACCESS by AB", ""}
- };
- 
--bool mfValidateAccessConditions(uint8_t *data) {
-+bool mfValidateAccessConditions(const uint8_t *data) {
-     uint8_t ndata1 = (data[0]) & 0x0f;
-     uint8_t ndata2 = (data[0] >> 4) & 0x0f;
-     uint8_t ndata3 = (data[1]) & 0x0f;
-@@ -77,7 +77,7 @@ bool mfValidateAccessConditions(uint8_t *data) {
-     return ((ndata1 == (data1 ^ 0xF)) && (ndata2 == (data2 ^ 0xF)) && (ndata3 == (data3 ^ 0xF)));
- }
- 
--const char *mfGetAccessConditionsDesc(uint8_t blockn, uint8_t *data) {
-+const char *mfGetAccessConditionsDesc(uint8_t blockn, const uint8_t *data) {
-     uint8_t data1 = ((data[1] >> 4) & 0x0f) >> blockn;
-     uint8_t data2 = ((data[2]) & 0x0f) >> blockn;
-     uint8_t data3 = ((data[2] >> 4) & 0x0f) >> blockn;
-diff --git a/client/src/mifare/mifare4.h b/client/src/mifare/mifare4.h
-index 132cf6ee5..0cc716d58 100644
---- a/client/src/mifare/mifare4.h
-+++ b/client/src/mifare/mifare4.h
-@@ -63,8 +63,8 @@ int mfpReadSector(uint8_t sectorNo, uint8_t keyType, uint8_t *key, uint8_t *data
- int MFPGetSignature(bool activateField, bool leaveSignalON, uint8_t *dataout, int maxdataoutlen, int *dataoutlen);
- int MFPGetVersion(bool activateField, bool leaveSignalON, uint8_t *dataout, int maxdataoutlen, int *dataoutlen);
- 
--bool mfValidateAccessConditions(uint8_t *data);
--const char *mfGetAccessConditionsDesc(uint8_t blockn, uint8_t *data);
-+bool mfValidateAccessConditions(const uint8_t *data);
-+const char *mfGetAccessConditionsDesc(uint8_t blockn, const uint8_t *data);
- 
- uint8_t mfNumBlocksPerSector(uint8_t sectorNo);
- uint8_t mfFirstBlockOfSector(uint8_t sectorNo);
 diff --git a/client/src/mifare/mifarehost.c b/client/src/mifare/mifarehost.c
-index 4b5e4e5a1..7fa5ed18f 100644
+index 7fa5ed18f..31eee3ef0 100644
 --- a/client/src/mifare/mifarehost.c
 +++ b/client/src/mifare/mifarehost.c
-@@ -327,7 +327,7 @@ int mfCheckKeys_file(uint8_t *destfn, uint64_t *key) {
+@@ -880,7 +880,7 @@ int mfEmlSetMem_xt(uint8_t *data, int blockNum, int blocksCount, int blockBtWidt
+ }
  
- // PM3 imp of J-Run mf_key_brute (part 2)
- // ref: https://github.com/J-Run/mf_key_brute
--int mfKeyBrute(uint8_t blockNo, uint8_t keyType, uint8_t *key, uint64_t *resultkey) {
-+int mfKeyBrute(uint8_t blockNo, uint8_t keyType, const uint8_t *key, uint64_t *resultkey) {
+ // "MAGIC" CARD
+-int mfCSetUID(uint8_t *uid, uint8_t uidlen, uint8_t *atqa, uint8_t *sak, uint8_t *old_uid, uint8_t *verifed_uid, uint8_t wipecard) {
++int mfCSetUID(uint8_t *uid, uint8_t uidlen, const uint8_t *atqa, const uint8_t *sak, uint8_t *old_uid, uint8_t *verifed_uid, uint8_t wipecard) {
  
-     uint64_t key64;
-     uint8_t found = false;
-@@ -655,7 +655,6 @@ int mfStaticNested(uint8_t blockNo, uint8_t keyType, uint8_t *key, uint8_t trgBl
-     PrintAndLogEx(SUCCESS, "Found " _YELLOW_("%u") " key candidates", keycnt);
+     uint8_t params = MAGIC_SINGLE;
+     uint8_t block0[16];
+@@ -945,7 +945,7 @@ int mfCSetUID(uint8_t *uid, uint8_t uidlen, uint8_t *atqa, uint8_t *sak, uint8_t
+     return res;
+ }
  
-     memset(resultKey, 0, 6);
--    uint64_t key64 = -1;
- 
-     // The list may still contain several key candidates. Test each of them with mfCheckKeys
-     uint32_t maxkeysinblock = IfPm3Flash() ? 1000 : KEYS_IN_BLOCK;
-@@ -706,7 +705,8 @@ int mfStaticNested(uint8_t blockNo, uint8_t keyType, uint8_t *key, uint8_t trgBl
-         }
- 
-         int res = 0;
--        key64 = 0;
-+        uint64_t key64 = 0;
-+
-         uint32_t chunk = keycnt - i > max_keys_chunk ? max_keys_chunk : keycnt - i;
- 
-         // copy x keys to device.
+-int mfCWipe(uint8_t *uid, uint8_t *atqa, uint8_t *sak) {
++int mfCWipe(uint8_t *uid, const uint8_t *atqa, const uint8_t *sak) {
+     uint8_t block0[16] = {0x01, 0x02, 0x03, 0x04, 0x04, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xBE, 0xAF};
+     uint8_t blockD[16] = {0x00};
+     uint8_t blockK[16] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x08, 0x77, 0x8F, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 diff --git a/client/src/mifare/mifarehost.h b/client/src/mifare/mifarehost.h
-index 56cc5d841..0d26b5da0 100644
+index 0d26b5da0..c12113c45 100644
 --- a/client/src/mifare/mifarehost.h
 +++ b/client/src/mifare/mifarehost.h
-@@ -67,7 +67,7 @@ int mfCheckKeys_fast(uint8_t sectorsCnt, uint8_t firstChunk, uint8_t lastChunk,
+@@ -76,8 +76,8 @@ int mfEmlGetMem(uint8_t *data, int blockNum, int blocksCount);
+ int mfEmlSetMem(uint8_t *data, int blockNum, int blocksCount);
+ int mfEmlSetMem_xt(uint8_t *data, int blockNum, int blocksCount, int blockBtWidth);
  
- int mfCheckKeys_file(uint8_t *destfn, uint64_t *key);
+-int mfCSetUID(uint8_t *uid, uint8_t uidlen, uint8_t *atqa, uint8_t *sak, uint8_t *old_uid, uint8_t *verifed_uid, uint8_t wipecard);
+-int mfCWipe(uint8_t *uid, uint8_t *atqa, uint8_t *sak);
++int mfCSetUID(uint8_t *uid, uint8_t uidlen, const uint8_t *atqa, const uint8_t *sak, uint8_t *old_uid, uint8_t *verifed_uid, uint8_t wipecard);
++int mfCWipe(uint8_t *uid, const uint8_t *atqa, const uint8_t *sak);
+ int mfCSetBlock(uint8_t blockNo, uint8_t *data, uint8_t *uid, uint8_t params);
+ int mfCGetBlock(uint8_t blockNo, uint8_t *data, uint8_t params);
  
--int mfKeyBrute(uint8_t blockNo, uint8_t keyType, uint8_t *key, uint64_t *resultkey);
-+int mfKeyBrute(uint8_t blockNo, uint8_t keyType, const uint8_t *key, uint64_t *resultkey);
+diff --git a/client/src/nfc/ndef.c b/client/src/nfc/ndef.c
+index 7e07639ad..c0d0e0c4d 100644
+--- a/client/src/nfc/ndef.c
++++ b/client/src/nfc/ndef.c
+@@ -105,7 +105,7 @@ static const char *URI_s[] = {
+ static int ndefRecordDecodeAndPrint(uint8_t *ndefRecord, size_t ndefRecordLen);
+ static int ndefDecodePayload(NDEFHeader_t *ndef);
  
- int mfReadSector(uint8_t sectorNo, uint8_t keyType, uint8_t *key, uint8_t *data);
- int mfReadBlock(uint8_t blockNo, uint8_t keyType, uint8_t *key, uint8_t *data);
+-static uint16_t ndefTLVGetLength(uint8_t *data, size_t *indx) {
++static uint16_t ndefTLVGetLength(const uint8_t *data, size_t *indx) {
+     uint16_t len = 0;
+     if (data[0] == 0xff) {
+         len = (data[1] << 8) + data[2];
+diff --git a/client/src/util.c b/client/src/util.c
+index 7fa177911..867c1fc15 100644
+--- a/client/src/util.c
++++ b/client/src/util.c
+@@ -843,7 +843,7 @@ int hextobinstring(char *target, char *source) {
+ 
+ // convert binary array of 0x00/0x01 values to hex
+ // return number of bits converted
+-int binarraytohex(char *target, const size_t targetlen, char *source, size_t srclen) {
++int binarraytohex(char *target, const size_t targetlen, const char *source, size_t srclen) {
+     uint8_t i = 0, x = 0;
+     uint32_t t = 0; // written target chars
+     uint32_t r = 0; // consumed bits
+@@ -914,7 +914,7 @@ int binstring2binarray(uint8_t *target, char *source, int length) {
+ }
+ 
+ // return parity bit required to match type
+-uint8_t GetParity(uint8_t *bits, uint8_t type, int length) {
++uint8_t GetParity(const uint8_t *bits, uint8_t type, int length) {
+     int x;
+     for (x = 0 ; length > 0 ; --length)
+         x += bits[length - 1];
+@@ -939,7 +939,7 @@ void wiegand_add_parity_swapped(uint8_t *target, uint8_t *source, uint8_t length
+ }
+ 
+ // Pack a bitarray into a uint32_t.
+-uint32_t PackBits(uint8_t start, uint8_t len, uint8_t *bits) {
++uint32_t PackBits(uint8_t start, uint8_t len, const uint8_t *bits) {
+ 
+     if (len > 32) return 0;
+ 
+@@ -1082,7 +1082,7 @@ int binstring_to_u96(uint32_t *hi2, uint32_t *hi, uint32_t *lo, const char *str)
+  *
+  * Returns the number of bits entered.
+  */
+-int binarray_to_u96(uint32_t *hi2, uint32_t *hi, uint32_t *lo, uint8_t *arr, int arrlen) {
++int binarray_to_u96(uint32_t *hi2, uint32_t *hi, uint32_t *lo, const uint8_t *arr, int arrlen) {
+     int i = 0;
+     for (; i < arrlen; i++) {
+         uint8_t n = arr[i];
+diff --git a/client/src/util.h b/client/src/util.h
+index 532f47313..df9149829 100644
+--- a/client/src/util.h
++++ b/client/src/util.h
+@@ -86,17 +86,17 @@ int param_getstr(const char *line, int paramnum, char *str, size_t buffersize);
+ 
+ int hextobinarray(char *target, char *source);
+ int hextobinstring(char *target, char *source);
+-int binarraytohex(char *target, const size_t targetlen, char *source, size_t srclen);
++int binarraytohex(char *target, const size_t targetlen, const char *source, size_t srclen);
+ void binarraytobinstring(char *target,  char *source, int length);
+ int binstring2binarray(uint8_t *target, char *source, int length);
+ 
+-uint8_t GetParity(uint8_t *bits, uint8_t type, int length);
++uint8_t GetParity(const uint8_t *bits, uint8_t type, int length);
+ void wiegand_add_parity(uint8_t *target, uint8_t *source, uint8_t length);
+ void wiegand_add_parity_swapped(uint8_t *target, uint8_t *source, uint8_t length);
+ 
+ //void xor(unsigned char *dst, unsigned char *src, size_t len);
+ 
+-uint32_t PackBits(uint8_t start, uint8_t len, uint8_t *bits);
++uint32_t PackBits(uint8_t start, uint8_t len, const uint8_t *bits);
+ uint64_t HornerScheme(uint64_t num, uint64_t divider, uint64_t factor);
+ 
+ int num_CPUs(void); // number of logical CPUs
+@@ -111,7 +111,7 @@ char *str_dup(const char *src);
+ char *str_ndup(const char *src, size_t len);
+ int hexstring_to_u96(uint32_t *hi2, uint32_t *hi, uint32_t *lo, const char *str);
+ int binstring_to_u96(uint32_t *hi2, uint32_t *hi, uint32_t *lo, const char *str);
+-int binarray_to_u96(uint32_t *hi2, uint32_t *hi, uint32_t *lo, uint8_t *arr, int arrlen);
++int binarray_to_u96(uint32_t *hi2, uint32_t *hi, uint32_t *lo, const uint8_t *arr, int arrlen);
+ 
+ uint32_t bitcount32(uint32_t a);
+ uint64_t bitcount64(uint64_t a);
+diff --git a/common/crapto1/crapto1.c b/common/crapto1/crapto1.c
+index c59c28107..b70cfa159 100644
+--- a/common/crapto1/crapto1.c
++++ b/common/crapto1/crapto1.c
+@@ -418,7 +418,7 @@ static uint32_t fastfwd[2][8] = {
+  * encrypt the NACK which is observed when varying only the 3 last bits of Nr
+  * only correct iff [NR_3] ^ NR_3 does not depend on Nr_3
+  */
+-uint32_t *lfsr_prefix_ks(uint8_t ks[8], int isodd) {
++uint32_t *lfsr_prefix_ks(const uint8_t ks[8], int isodd) {
+     uint32_t *candidates = calloc(4 << 10, sizeof(uint8_t));
+     if (!candidates) return 0;
+ 
+diff --git a/common/crapto1/crapto1.h b/common/crapto1/crapto1.h
+index 708ddb033..105b3ab06 100644
+--- a/common/crapto1/crapto1.h
++++ b/common/crapto1/crapto1.h
+@@ -43,7 +43,7 @@ struct Crypto1State *lfsr_recovery64(uint32_t ks2, uint32_t ks3);
+ struct Crypto1State *
+ lfsr_common_prefix(uint32_t pfx, uint32_t rr, uint8_t ks[8], uint8_t par[8][8], uint32_t no_par);
+ #endif
+-uint32_t *lfsr_prefix_ks(uint8_t ks[8], int isodd);
++uint32_t *lfsr_prefix_ks(const uint8_t ks[8], int isodd);
+ 
+ 
+ uint8_t lfsr_rollback_bit(struct Crypto1State *s, uint32_t in, int fb);
+diff --git a/common/crc.c b/common/crc.c
+index cb077182f..f4cf3834f 100644
+--- a/common/crc.c
++++ b/common/crc.c
+@@ -148,7 +148,7 @@ uint32_t CRC8Hitag1(uint8_t *buff, size_t size) {
+     return crc_finish(&crc);
+ }
+ 
+-uint32_t CRC8Hitag1Bits(uint8_t *buff, size_t bitsize) {
++uint32_t CRC8Hitag1Bits(const uint8_t *buff, size_t bitsize) {
+     crc_t crc;
+     uint8_t data = 0;
+     uint8_t n = 0;
+diff --git a/common/crc.h b/common/crc.h
+index 33e289ee8..f06ceddf0 100644
+--- a/common/crc.h
++++ b/common/crc.h
+@@ -78,6 +78,6 @@ uint32_t CRC8Cardx(uint8_t *buff, size_t size);
+ 
+ // Calculate CRC-8/Hitag1, ZX8211 checksum
+ uint32_t CRC8Hitag1(uint8_t *buff, size_t size);
+-uint32_t CRC8Hitag1Bits(uint8_t *buff, size_t bitsize);
++uint32_t CRC8Hitag1Bits(const uint8_t *buff, size_t bitsize);
+ 
+ #endif /* __CRC_H */
