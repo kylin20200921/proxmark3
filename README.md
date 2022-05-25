@@ -1,9 +1,9 @@
-commit d4b5bfbeaa7688b04af237875140a8ac59ffdaf5
-Merge: 85fb51564 bde40dd6c
+commit ebe38673f0714cb18bc28a87abe608d554ad42f5
+Merge: d4b5bfbea bf0317725
 Author: Iceman <iceman@iuse.se>
-Date:   Thu Nov 18 07:28:49 2021 +0100
+Date:   Thu Nov 18 17:43:17 2021 +0100
 
-    Merge pull request #1529 from zabszk/master
+    Merge pull request #1532 from pieterg/patch-2
     
-    Fixed ledcontrol in SimulateTagLowFrequencyEx
+    armsrc/felica: fix handling POLL with Request Code 1
 
