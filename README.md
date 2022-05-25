@@ -1,57 +1,29 @@
-commit 67d6ba97a5180367088756c1e4d7ab08d95ef54d
+commit 8f32d4fc9d672b61f27091212f49a61ff7d86d8d
 Author: iceman1001 <iceman@iuse.se>
-Date:   Fri Nov 19 00:44:24 2021 +0100
+Date:   Fri Nov 19 00:44:41 2021 +0100
 
-    code style
+    textual
 
-diff --git a/armsrc/hitag2.c b/armsrc/hitag2.c
-index 725deb910..693a5f9d2 100644
---- a/armsrc/hitag2.c
-+++ b/armsrc/hitag2.c
-@@ -633,7 +633,7 @@ static bool hitag2_write_page(uint8_t *rx, const size_t rxlen, uint8_t *tx, size
-                 memcpy(tx, writedata, 4);
-                 writestate = WRITE_STATE_PROG;
-             } else {
--                Dbprintf("hitag2_write_page: Page number was not received correctly: rxlen=%d rx=%02x%02x%02x%02x",
-+                Dbprintf("hitag2_write_page: Page number was not received correctly: rxlen %d rx %02x%02x%02x%02x",
-                          rxlen, rx[0], rx[1], rx[2], rx[3]);
-                 bSuccessful = false;
-                 return false;
-@@ -648,7 +648,7 @@ static bool hitag2_write_page(uint8_t *rx, const size_t rxlen, uint8_t *tx, size
-             }
-             return false;
-         default:
--            DbpString("hitag2_write_page: Unknown state %d");
-+            Dbprintf("hitag2_write_page: Unknown state %d", writestate);
-             bSuccessful = false;
-             return false;
-     }
-@@ -660,8 +660,8 @@ static bool hitag2_password(uint8_t *rx, const size_t rxlen, uint8_t *tx, size_t
-     // Reset the transmission frame length
-     *txlen = 0;
+diff --git a/client/src/cmdhf14a.c b/client/src/cmdhf14a.c
+index 217d9781c..1f65a5fc8 100644
+--- a/client/src/cmdhf14a.c
++++ b/client/src/cmdhf14a.c
+@@ -1214,6 +1214,7 @@ static int CmdHF14ACmdRaw(const char *Cmd) {
+                   "Sends raw bytes over ISO14443a. With option to use TOPAZ 14a mode.",
+                   "hf 14a raw -sc 3000     -> select, crc, where 3000 == 'read block 00'\n"
+                   "hf 14a raw -ak -b 7 40  -> send 7 bit byte 0x40\n"
++                  "hf 14a raw --ecp -s     -> send ECP before select"
+                  );
  
--    if (bPwd && !bAuthenticating && write) {
--        if (!hitag2_write_page(rx, rxlen, tx, txlen)) {
-+    if (bPwd && (bAuthenticating == false) && write) {
-+        if (hitag2_write_page(rx, rxlen, tx, txlen) == false) {
-             return false;
-         }
-     } else {
-@@ -682,7 +682,7 @@ static bool hitag2_password(uint8_t *rx, const size_t rxlen, uint8_t *tx, size_t
-             // Received UID, tag password
-             case 32: {
-                 // stage 1, got UID
--                if (!bPwd) {
-+                if (bPwd == false) {
-                     bPwd = true;
-                     bAuthenticating = true;
-                     memcpy(tx, password, 4);
-@@ -916,7 +916,7 @@ static bool hitag2_test_auth_attempts(uint8_t *rx, const size_t rxlen, uint8_t *
- 
-         // Received UID, crypto tag answer, or read block response
-         case 32: {
--            if (!bCrypto) {
-+            if (bCrypto == false) {
-                 *txlen = 64;
-                 memcpy(tx, NrAr, 8);
-                 bCrypto = true;
+     void *argtable[] = {
+@@ -1228,8 +1229,8 @@ static int CmdHF14ACmdRaw(const char *Cmd) {
+         arg_int0("t",  "timeout", "<ms>", "timeout in milliseconds"),
+         arg_lit0("v",  "verbose", "Verbose output"),
+         arg_lit0(NULL, "topaz", "use Topaz protocol to send command"),
+-        arg_lit0(NULL, "ecp", "Use enhanced contactless polling"),
+-        arg_lit0(NULL, "mag", "Use Apple magsafe polling"),
++        arg_lit0(NULL, "ecp", "use enhanced contactless polling"),
++        arg_lit0(NULL, "mag", "use Apple magsafe polling"),
+         arg_strx1(NULL, NULL, "<hex>", "raw bytes to send"),
+         arg_param_end
+     };
