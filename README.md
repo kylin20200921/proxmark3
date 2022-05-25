@@ -1,19 +1,39 @@
-commit 4e0fe278e4db3e5a3103650a4863a2a7870379d3
+commit 9458289c4e0ea7836522679b86812c486558e054
 Author: iceman1001 <iceman@iuse.se>
-Date:   Mon Jun 21 10:40:39 2021 +0200
+Date:   Mon Jun 21 16:33:56 2021 +0200
 
-    added two tests for ndef parsing
+    added dorma kaba entry
 
-diff --git a/tools/pm3_tests.sh b/tools/pm3_tests.sh
-index b812bdd03..38d66d23f 100755
---- a/tools/pm3_tests.sh
-+++ b/tools/pm3_tests.sh
-@@ -367,6 +367,8 @@ while true; do
-       if ! CheckExecute "jooki encode test"       "$CLIENTBIN -c 'hf jooki encode -t'" "04 28 F4 DA F0 4A 81  ( ok )"; then break; fi
-       if ! CheckExecute "trace load/list 14a"     "$CLIENTBIN -c 'trace load -f traces/hf_14a_mfu.trace; trace list -1 -t 14a;'" "READBLOCK(8)"; then break; fi
-       if ! CheckExecute "trace load/list x"       "$CLIENTBIN -c 'trace load -f traces/hf_14a_mfu.trace; trace list -x1 -t 14a;'" "0.0101840425"; then break; fi
-+      if ! CheckExecute "nfc decode test - oob"           "$CLIENTBIN -c 'nfc decode -d DA2010016170706C69636174696F6E2F766E642E626C7565746F6F74682E65702E6F6F62301000649201B96DFB0709466C65782032'" "Flex 2"; then break; fi
-+      if ! CheckExecute "nfc decode test - device info"   "$CLIENTBIN -c 'nfc decode -d d1025744690004536f6e79010752432d533338300220426c61636b204e46432052656164657220636f6e6e656374656420746f2050430310123e4567e89b12d3a45642665544000004124e464320506f72742d3130302076312e3032'" "NFC Port-100 v1.02"; then break; fi
- 
-       echo -e "\n${C_BLUE}Testing LF:${C_NC}"
-       if ! CheckExecute "lf AWID test"          "$CLIENTBIN -c 'data load -f traces/lf_AWID-15-259.pm3;lf search -1'" "AWID ID found"; then break; fi
+diff --git a/client/resources/mad.json b/client/resources/mad.json
+index aae377af8..8b1c4193c 100644
+--- a/client/resources/mad.json
++++ b/client/resources/mad.json
+@@ -5995,6 +5995,7 @@
+         "application": "(access control and security) VIGIK",
+         "company": "CDV International",
+         "mad": "0x4905",
++
+         "service_provider": "CDVI",
+         "system_integrator": "CDVI"
+     },
+@@ -11836,6 +11837,13 @@
+         "service_provider": "HUG-Witschi AG",
+         "system_integrator": "HUG-Witschi AG"
+     },
++    {
++        "application": "Access control - Hotel lodging system",
++        "company": "DORMA/KABA",
++        "mad": "0x9051",
++        "service_provider": "DORMA/KABA",
++        "system_integrator": "DORMA/KABA"
++    },
+     {
+         "application": "FIDELIO CRUISE ship property management system, - materials management system, - meal counting system",
+         "company": "FIDELIO CRUISE SOFTWARE GMBH",
+@@ -13558,4 +13566,4 @@
+         "service_provider": "Tech ID",
+         "system_integrator": "Tech ID"
+     }
+-]
+\ No newline at end of file
++]
