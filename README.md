@@ -1,9 +1,18 @@
-commit d4b473e4c754877cd6d4773b616578f64e567649
-Merge: b00506ed4 5aad5b2bb
-Author: Iceman <iceman@iuse.se>
-Date:   Tue Sep 21 20:10:44 2021 +0200
+commit 347b5c96147c9f17ba188e83342e8e8c646c3cb2
+Author: iceman1001 <iceman@iuse.se>
+Date:   Wed Sep 22 22:30:25 2021 +0200
 
-    Merge pull request #1509 from Gator96100/master
-    
-    Windows: fixed usb prioritization
+    textual
 
+diff --git a/client/src/cmdtrace.c b/client/src/cmdtrace.c
+index 68f254e9c..b4f4264d8 100644
+--- a/client/src/cmdtrace.c
++++ b/client/src/cmdtrace.c
+@@ -593,6 +593,7 @@ static int CmdTraceLoad(const char *Cmd) {
+     gs_traceLen = (long)len;
+ 
+     PrintAndLogEx(SUCCESS, "Recorded Activity (TraceLen = " _YELLOW_("%lu") " bytes)", gs_traceLen);
++    PrintAndLogEx(HINT, "try " _YELLOW_("`trace list -1 -t ...`") " to view trace.  Remember the " _YELLOW_("`-1`") " param");
+     return PM3_SUCCESS;
+ }
+ 
