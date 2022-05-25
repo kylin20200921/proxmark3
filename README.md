@@ -1,21 +1,25 @@
-commit 7d151057c251533ced5cd0eccbe433537c3b2267
+commit 228668e7a3a99c791420b7cb252b0866f0d7be79
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sat May 15 10:49:15 2021 +0200
+Date:   Sat May 15 15:20:10 2021 +0200
 
-    update test for mf_nonce_brute
+    mark as unsigned
 
-diff --git a/tools/pm3_tests.sh b/tools/pm3_tests.sh
-index 19d70625f..c820d611d 100755
---- a/tools/pm3_tests.sh
-+++ b/tools/pm3_tests.sh
-@@ -275,8 +275,8 @@ while true; do
-     if $TESTALL || $TESTMFNONCEBRUTE; then
-       echo -e "\n${C_BLUE}Testing mf_nonce_brute:${C_NC} ${MFNONCEBRUTEBIN:=./tools/mf_nonce_brute/mf_nonce_brute}"
-       if ! CheckFileExist "mf_nonce_brute exists"          "$MFNONCEBRUTEBIN"; then break; fi
--#      if ! CheckExecute slow "mf_nonce_brute test"         "$MFNONCEBRUTEBIN 9c599b32 5a920d85 1011 98d76b77 d6c6e870 0000 ca7e0b63 0111 3e709c8a" "Key found \[.*ffffffffffff.*\]"; then break; fi
--      if ! CheckExecute slow "mf_nonce_brute test"         "$MFNONCEBRUTEBIN 96519578 d7e3c6ac 0011 cd311951 9da49e49 0010 2bb22e00 0100 a4f7f398" "Key found \[.*3b7e4fd575ad.*\]"; then break; fi
-+      if ! CheckExecute slow "mf_nonce_brute test"         "$MFNONCEBRUTEBIN 9c599b32 5a920d85 1011 98d76b77 d6c6e870 0000 ca7e0b63 0111 3e709c8a" "Key found \[.*ffffffffffff.*\]"; then break; fi
-+#      if ! CheckExecute slow "mf_nonce_brute test"         "$MFNONCEBRUTEBIN 96519578 d7e3c6ac 0011 cd311951 9da49e49 0010 2bb22e00 0100 a4f7f398" "Key found \[.*3b7e4fd575ad.*\]"; then break; fi
-     fi
-     # hitag2crack not yet part of "all"
-     # if $TESTALL || $TESTHITAG2CRACK; then
+diff --git a/include/proxmark3_arm.h b/include/proxmark3_arm.h
+index de3ae9caa..0cee0f80d 100644
+--- a/include/proxmark3_arm.h
++++ b/include/proxmark3_arm.h
+@@ -41,12 +41,12 @@
+ #define SSC_CLOCK_MODE_SELECT(x)                ((x) << 0)
+ #define SSC_FRAME_MODE_BITS_IN_WORD(x)          (((x)-1) << 0)
+ 
+-#define MC_FLASH_COMMAND_KEY                    ((0x5a) << 24)
++#define MC_FLASH_COMMAND_KEY                    ((0x5A) << 24)
+ #define MC_FLASH_MODE_FLASH_WAIT_STATES(x)      ((x) << 8)
+ #define MC_FLASH_MODE_MASTER_CLK_IN_MHZ(x)      (((x)+((x)/2)) << 16)
+ #define MC_FLASH_COMMAND_PAGEN(x)               ((x) << 8)
+ 
+-#define RST_CONTROL_KEY                         (0xa5 << 24)
++#define RST_CONTROL_KEY                         (0xA5U << 24)
+ 
+ #define PMC_MAIN_OSC_STARTUP_DELAY(x)           ((x) << 8)
+ #define PMC_PLL_DIVISOR(x)                      (x)
