@@ -1168,14 +1168,6 @@ local _keys = {
    'BF3FE47637EC',
    'B290401B0CAD',
    'AD11006B0601',
-   'E4410EF8ED2D',
-   '6A68A7D83E11',
-   '0D6057E8133B',
-   'D3F3B958B8A3',
-   '3E120568A35C',
-   '2196FAD8115B',
-   '7C469FE86855',
-   'CE99FBC8BD26',
 }
 ---
 --    The keys above have just been pasted in, for completeness sake. They contain duplicates. 
