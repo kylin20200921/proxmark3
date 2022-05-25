@@ -1,9 +1,28 @@
-commit 30fc94da4c16d981ab66b0f5a64f907f084ebb5b
-Merge: 8fa51075f 2f1703425
-Author: Iceman <iceman@iuse.se>
-Date:   Sat May 15 16:18:52 2021 +0200
+commit 451de246b70e53ea84851653d8134f8898a08004
+Author: iceman1001 <iceman@iuse.se>
+Date:   Sun May 16 23:01:37 2021 +0200
 
-    Merge pull request #1275 from tharexde/fix_4x50_standalone
-    
-    fixed upload of eml files in 4x50 standalone mode
+    if client wants to know how much SPIFFS
 
+diff --git a/include/pmflash.h b/include/pmflash.h
+index 4c970a628..c2f90bfc1 100644
+--- a/include/pmflash.h
++++ b/include/pmflash.h
+@@ -35,7 +35,6 @@
+ # define FLASH_MEM_MAX_4K_SECTOR   0x3F000
+ #endif
+ 
+-
+ #ifndef FLASH_MEM_ID_LEN
+ # define FLASH_MEM_ID_LEN 8
+ #endif
+@@ -79,4 +78,9 @@ typedef struct {
+     uint8_t signature[FLASH_MEM_SIGNATURE_LEN];
+ } PACKED rdv40_validation_t;
+ 
++// SPIFFS current allocates 128kb of the 256kb available.
++#ifndef FLASH_SPIFFS_ALLOCATED_SIZE
++# define FLASH_SPIFFS_ALLOCATED_SIZE (1024 * 128)
++#endif
++
+ #endif // __PMFLASH_H
