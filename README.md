@@ -1,30 +1,19 @@
-commit e0fc80c539c9579805ae209410fbda80f428e7ce
+commit ea80ea21ad5bfba83a8c63d30b1bbfc4d8adde2b
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun Jun 20 08:01:01 2021 +0200
+Date:   Sun Jun 20 08:02:33 2021 +0200
 
-    fix coverity CID 349315
+    fix coverity CID 349314
 
 diff --git a/client/src/cmdhfcipurse.c b/client/src/cmdhfcipurse.c
-index bc1651b6a..6fb3d42a3 100644
+index 6fb3d42a3..c4d2df247 100644
 --- a/client/src/cmdhfcipurse.c
 +++ b/client/src/cmdhfcipurse.c
-@@ -73,7 +73,7 @@ static int CmdHFCipurseInfo(const char *Cmd) {
-         return PM3_SUCCESS;
+@@ -285,7 +285,7 @@ static int CmdHFCipurseReadFile(const char *Cmd) {
      }
  
--    PrintAndLogEx(INFO, "Cipurse card: " _GREEN_("OK"));
-+    PrintAndLogEx(INFO, "Cipurse card ( " _GREEN_("ok") " )");
+     if (verbose)
+-        PrintAndLogEx(INFO, "File id: %x offset %d key id: %d key: %s", fileId, offset, keyId, sprint_hex(key, CIPURSE_AES_KEY_LENGTH));
++        PrintAndLogEx(INFO, "File id " _YELLOW_("%x") " offset " _YELLOW_("%zu") " key id " _YELLOW_("%d") " key " _YELLOW_("%s"), fileId, offset, keyId, sprint_hex(key, CIPURSE_AES_KEY_LENGTH));
  
-     res = CIPURSESelectFile(0x2ff7, buf, sizeof(buf), &len, &sw);
-     if (res != 0 || sw != 0x9000) {
-@@ -88,8 +88,8 @@ static int CmdHFCipurseInfo(const char *Cmd) {
-     }
- 
-     if (len > 0) {
--        PrintAndLogEx(INFO, "Info file: " _GREEN_("OK"));
--        PrintAndLogEx(INFO, "[%d]: %s", len, sprint_hex(buf, len));
-+        PrintAndLogEx(INFO, "Info file ( " _GREEN_("ok") " )");
-+        PrintAndLogEx(INFO, "[%zu]: %s", len, sprint_hex(buf, len));
-         CIPURSEPrintInfoFile(buf, len);
-     }
- 
+     if (noAuth == false) {
+         bool bres = CIPURSEChannelAuthenticate(keyId, key, verbose);
