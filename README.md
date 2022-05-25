@@ -1,23 +1,34 @@
-commit 09dc29dd9d5fbe319f3814a2ca75f203cef1a8fa
+commit c56d3dd42e1e0679a70243c404f9d06029143048
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun May 16 23:03:40 2021 +0200
+Date:   Sun May 16 23:04:48 2021 +0200
 
-    fix cppchecker, lesser scope
+    remove unused var
 
-diff --git a/client/src/cmdhficlass.c b/client/src/cmdhficlass.c
-index f30b54e95..dc4d16a33 100644
---- a/client/src/cmdhficlass.c
-+++ b/client/src/cmdhficlass.c
-@@ -1217,11 +1217,10 @@ static int CmdHFiClassDecrypt(const char *Cmd) {
-     mbedtls_des3_context ctx;
-     mbedtls_des3_set2key_dec(&ctx, key);
+diff --git a/tools/mf_nonce_brute/mf_trace_brute.c b/tools/mf_nonce_brute/mf_trace_brute.c
+index d5ceb6d3a..67451acf8 100644
+--- a/tools/mf_nonce_brute/mf_trace_brute.c
++++ b/tools/mf_nonce_brute/mf_trace_brute.c
+@@ -58,7 +58,6 @@ uint8_t cmds[8][2] = {
+ };
  
--    uint8_t dec_data[8] = {0};
--
-     // decrypt user supplied data
-     if (have_data) {
+ static int global_found = 0;
+-static int global_found_candidate = 0;
+ static size_t thread_count = 2;
  
-+        uint8_t dec_data[8] = {0};
-         if (use_sc) {
-             Decrypt(enc_data, dec_data);
-         } else {
+ static int param_getptr(const char *line, int *bg, int *en, int paramnum) {
+@@ -305,13 +304,13 @@ int main(int argc, char *argv[]) {
+     for (int i = 0; i < thread_count; ++i)
+         pthread_join(threads[i], NULL);
+ 
+-    if (!global_found && !global_found_candidate) {
++    if (global_found == false) {
+         printf("\nFailed to find a key\n\n");
+     }
+ 
+     t1 = msclock() - t1;
+     if (t1 > 0)
+-        printf("Execution time: %.0f ticks\n", (float)t1);
++        printf("execution time " _YELLOW_("%.2f") " sec\n", (float)t1 / 1000.0);
+ 
+     // clean up mutex
+     pthread_mutex_destroy(&print_lock);
