@@ -1,91 +1,87 @@
-commit e5b97dccf37e54a801d7ded3f17f541202ee12ac
+commit c3b876c46c9ca209bc16ba7ad1825df4504f54a5
 Author: iceman1001 <iceman@iuse.se>
-Date:   Fri Dec 31 11:19:30 2021 +0100
+Date:   Fri Dec 31 11:22:10 2021 +0100
 
     text
 
-diff --git a/armsrc/Standalone/readme.md b/armsrc/Standalone/readme.md
-index dee415ffa..dacf5057c 100644
---- a/armsrc/Standalone/readme.md
-+++ b/armsrc/Standalone/readme.md
-@@ -1,4 +1,19 @@
- # Standalone Modes
+diff --git a/doc/colors_notes.md b/doc/colors_notes.md
+index 182383cf3..9d8704c87 100644
+--- a/doc/colors_notes.md
++++ b/doc/colors_notes.md
+@@ -1,9 +1,9 @@
+-# Notes on Color usage.
++# Notes on Color usage
+ <a id="Top"></a>
+ 
+ 
+ # Table of Contents
+-- [Notes on Color usage.](#notes-on-color-usage)
++- [Notes on Color usage](#notes-on-color-usage)
+ - [Table of Contents](#table-of-contents)
+   - [style/color](#stylecolor)
+     - [Definition](#definition)
+diff --git a/doc/md/Development/Makefile-vs-CMake.md b/doc/md/Development/Makefile-vs-CMake.md
+index df696e5ec..d77734cfc 100644
+--- a/doc/md/Development/Makefile-vs-CMake.md
++++ b/doc/md/Development/Makefile-vs-CMake.md
+@@ -1,6 +1,21 @@
+ # Makefile vs CMake
 +<a id="Top"></a>
 +
 +
 +# Table of Contents
-+- [Standalone Modes](#standalone-modes)
++- [Makefile vs CMake](#makefile-vs-cmake)
 +- [Table of Contents](#table-of-contents)
-+  - [Implementing a standalone mode](#implementing-a-standalone-mode)
-+  - [Naming your standalone mode](#naming-your-standalone-mode)
-+  - [Update MAKEFILE.HAL](#update-makefilehal)
-+  - [Update MAKEFILE.INC](#update-makefileinc)
-+  - [Adding identification string of your mode](#adding-identification-string-of-your-mode)
-+  - [Compiling your standalone mode](#compiling-your-standalone-mode)
-+  - [Submitting your code](#submitting-your-code)
++  - [Client](#client)
++  - [Tools](#tools)
++  - [ARM](#arm)
++    - [Features to be used via `Makefile.platform`](#features-to-be-used-via-makefileplatform)
++    - [Other features](#other-features)
++  - [Global](#global)
++  
 +
-+
  
- This contains functionality for different StandAlone modes. The fullimage will be built given the correct compiler flags used. Build targets for these files are contained in `Makefile.inc` and `Makefile.hal`
- 
-@@ -8,7 +23,9 @@ Have a look at the skeleton standalone mode, in the file `lf_skeleton.c`.
- As it is now, you can only have one standalone mode installed at the time unless you use the dankarmulti mode (see `dankarmulti.c` on how to use it).
- 
- To avoid clashes between standalone modes, protect all your static variables with a specific namespace. See how it is done in the existing standalone modes.
-+
- ## Implementing a standalone mode
+ ## Client
 +^[Top](#top)
  
- We suggest you keep your standalone code inside the `armsrc/Standalone` folder. And that you name your files according to your standalone mode name.
+ The client can be compiled both with the historical Makefile and with a newer CMakeLists.txt.
+ At the moment both are maintained because they don't perfectly overlap yet.
+@@ -74,6 +89,7 @@ At the moment both are maintained because they don't perfectly overlap yet.
+ | libpm3 with SWIG Lua+Python| **no** | *ongoing* | cf libpm3_experiments branch |
  
-@@ -42,6 +59,7 @@ void RunMod(void) {
- ````
- 
- ## Naming your standalone mode
+ ## Tools
 +^[Top](#top)
  
- We suggest that you follow these guidelines:
- - Use HF/LF to denote which frequency your mode is targeting.  
-@@ -58,6 +76,7 @@ This leads to your next step, your DEFINE name needed in Makefile.
+ `makefile` only at the moment
  
+@@ -82,10 +98,12 @@ At the moment both are maintained because they don't perfectly overlap yet.
+ | Skip GPU-dependent code | `SKIPGPU=1` | to skip ht2crack5gpu tool when compiling the hitag2crack toolsuite |
  
- ## Update MAKEFILE.HAL
+ ## ARM
 +^[Top](#top)
  
- Add your mode to the `Makefile.hal` help and modes list (alphabetically):
- ```
-@@ -82,6 +101,8 @@ STANDALONE_MODES_REQ_BT :=
- ```
+ `makefile` only at the moment
  
- ## Update MAKEFILE.INC
-+^[Top](#top)
-+
- Add your source code files like the following sample in the `Makefile.inc`
- 
- ```
-@@ -97,6 +118,8 @@ endif
- ```
- 
- ## Adding identification string of your mode
-+^[Top](#top)
-+
- Do please add a identification string in a function called `ModInfo` inside your source code file.
- This will enable an easy way to detect on client side which standalone mode has been installed on the device.
- 
-@@ -107,6 +130,8 @@ void ModInfo(void) {
- ````
- 
- ## Compiling your standalone mode
-+^[Top](#top)
-+
- Once all this is done, you and others can now easily compile different standalone modes by just selecting one of the standalone modes (list in `Makefile.hal` or ) , e.g.:
- 
- - rename  Makefile.platform.sample -> Makefile.platform
-@@ -143,6 +168,7 @@ When compiling you will see a header showing what configurations your project co
- Make sure it says your standalone mode name.  
- 
- ## Submitting your code
+-### Features to be used via `Makefile.platform`:
++### Features to be used via `Makefile.platform`
 +^[Top](#top)
  
- Once you're ready to share your mode, please
+ `SKIP_*`, `STANDALONE`
  
+@@ -97,7 +115,8 @@ At the moment both are maintained because they don't perfectly overlap yet.
+ | Skip LF/HF techs in the firmware | `SKIP_`*`=1` | see `common_arm/Makefile.hal` for a list |
+ | Standalone mode choice | `STANDALONE=` | see `doc/md/Use_of_Proxmark/4_Advanced-compilation-parameters.md` for a list |
+ 
+-### Other features:
++### Other features
++^[Top](#top)
+ 
+ | Feature | Makefile | Remarks |
+ |-----|---|---|
+@@ -107,5 +126,6 @@ At the moment both are maintained because they don't perfectly overlap yet.
+ | Tag firmware image | `FWTAG=` | for maintainers |
+ 
+ ## Global
++^[Top](#top)
+ 
+ `makefile` only at the moment
