@@ -1,66 +1,39 @@
-commit 9d02c2e94a4632edf66bfea44095d373fa9ffab4
+commit 1ed21a3ae8b0c4a3e5fb32f55c12f7636778774f
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun Jun 20 16:37:51 2021 +0200
+Date:   Sun Jun 20 18:26:45 2021 +0200
 
-    renamed 'hf mfdes readdata, writedata'  to 'read/write'
+    added more keys (@equipter)
 
-diff --git a/client/src/cmdhfmfdes.c b/client/src/cmdhfmfdes.c
-index 48cd15b5c..4a59c780a 100644
---- a/client/src/cmdhfmfdes.c
-+++ b/client/src/cmdhfmfdes.c
-@@ -3005,11 +3005,11 @@ static int CmdHF14ADesGetValueData(const char *Cmd) {
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 9d325f9d9..9c102b2a7 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
+ This project uses the changelog in accordance with [keepchangelog](http://keepachangelog.com/). Please use this to write notable changes, which is not the same as git commit log...
  
- static int CmdHF14ADesReadData(const char *Cmd) {
-     CLIParserContext *ctx;
--    CLIParserInit(&ctx, "hf mfdes readdata",
-+    CLIParserInit(&ctx, "hf mfdes read",
-                   "Read data from File\n"
-                   "Make sure to select aid or authenticate aid before running this command.",
--                  "hf mfdes readdata -n 01 -t 0 -o 000000 -l 000000 -a 123456\n"
--                  "hf mfdes readdata -n 01 -t 0                 --> Read all data from standard file, fileno 01"
-+                  "hf mfdes read -n 1 -t 0 -o 000000 -l 000000 -a 123456\n"
-+                  "hf mfdes read -n 1 -t 0                       --> Read all data from standard file, fileno 1"
-                  );
- 
-     void *argtable[] = {
-@@ -3099,13 +3099,13 @@ static int CmdHF14ADesReadData(const char *Cmd) {
-         if (res == PM3_SUCCESS) {
-             uint32_t len = le24toh(ft.length);
- 
--            PrintAndLogEx(SUCCESS, "Read %u bytes from file %d:", ft.fileno, len);
-+            PrintAndLogEx(SUCCESS, "Read %u bytes from file %d", ft.fileno, len);
-             PrintAndLogEx(INFO, "Offset  | Data                                            | Ascii");
-             PrintAndLogEx(INFO, "----------------------------------------------------------------------------");
- 
-             for (uint32_t i = 0; i < len; i += 16) {
-                 uint32_t l = len - i;
--                PrintAndLogEx(INFO, "%02d/0x%02X | %s| %s", i, i, sprint_hex(&ft.data[i], l > 16 ? 16 : l), sprint_ascii(&ft.data[i], l > 16 ? 16 : l));
-+                PrintAndLogEx(INFO, "%3d/0x%02X | %s| %s", i, i, sprint_hex(&ft.data[i], l > 16 ? 16 : l), sprint_ascii(&ft.data[i], l > 16 ? 16 : l));
-             }
-         } else {
-             PrintAndLogEx(ERR, "Couldn't read data. Error %d", res);
-@@ -3209,10 +3209,10 @@ static int CmdHF14ADesChangeValue(const char *Cmd) {
- static int CmdHF14ADesWriteData(const char *Cmd) {
- 
-     CLIParserContext *ctx;
--    CLIParserInit(&ctx, "hf mfdes writedata",
--                  "Write data to File\n"
-+    CLIParserInit(&ctx, "hf mfdes write",
-+                  "Write data to file\n"
-                   "Make sure to select aid or authenticate aid before running this command.",
--                  "hf mfdes writedata -n 01 -t 0 -o 000000 -d 3132333435363738"
-+                  "hf mfdes write -n 01 -t 0 -o 000000 -d 3132333435363738"
-                  );
- 
-     void *argtable[] = {
-@@ -5143,8 +5143,8 @@ static command_t CommandTable[] = {
-     {"deletefile",       CmdHF14ADesDeleteFile,       IfPm3Iso14443a,  "Create Delete File"},
-     {"dump",             CmdHF14ADesDump,             IfPm3Iso14443a,  "Dump all files"},
-     {"getvalue",         CmdHF14ADesGetValueData,     IfPm3Iso14443a,  "Get value of file"},
--    {"readdata",         CmdHF14ADesReadData,         IfPm3Iso14443a,  "Read data from standard/backup/record file"},
--    {"writedata",        CmdHF14ADesWriteData,        IfPm3Iso14443a,  "Write data to standard/backup/record file"},
-+    {"read",             CmdHF14ADesReadData,         IfPm3Iso14443a,  "Read data from standard/backup/record file"},
-+    {"write",            CmdHF14ADesWriteData,        IfPm3Iso14443a,  "Write data to standard/backup/record file"},
-     {NULL, NULL, NULL, NULL}
- };
- 
+ ## [unreleased][unreleased]
++ - Added more keys (@equipter)
+  - Changed `hf nfc ndefread` - ndef parser now handles more types (@iceman1001)
+  - Fix `hf desfire` changekey, GetUID, 3DES sesson key tweak. (@mwalker33)
+  - Fix `hf fido` commands now works correctly (@merlokk) 
+diff --git a/client/dictionaries/mfc_default_keys.dic b/client/dictionaries/mfc_default_keys.dic
+index 872954ac7..4ac03904d 100644
+--- a/client/dictionaries/mfc_default_keys.dic
++++ b/client/dictionaries/mfc_default_keys.dic
+@@ -1413,6 +1413,7 @@ F678905568C3
+ D1417E431949    
+ 4BF6DE347FB6
+ #
++#
+ 3a471b2192bf
+ a297ceb7d34b
+ ae76242931f1
+@@ -1421,3 +1422,8 @@ ae76242931f1
+ 124578ABFEDC
+ ABFEDC124578
+ 4578ABFEDC12
++#
++# Data from 
++# premier inn hotel chain
++5e594208ef02    
++af9e38d36582 
