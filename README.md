@@ -1,37 +1,19 @@
-commit b822e0e046dcf2de7fd298aca2bc94a96e37ae6e
+commit 03a7109efde85634e6f8834762d84d801e1d788a
 Author: iceman1001 <iceman@iuse.se>
-Date:   Wed May 19 10:15:45 2021 +0200
+Date:   Wed May 19 10:20:30 2021 +0200
 
-    fix coverity CID 322764
+    fix coverity CID 321717
 
-diff --git a/tools/mf_nonce_brute/mf_trace_brute.c b/tools/mf_nonce_brute/mf_trace_brute.c
-index 18b9c67bd..422465c32 100644
---- a/tools/mf_nonce_brute/mf_trace_brute.c
-+++ b/tools/mf_nonce_brute/mf_trace_brute.c
-@@ -58,7 +58,7 @@ uint8_t cmds[8][2] = {
- };
- 
- static int global_found = 0;
--static size_t thread_count = 2;
-+static int thread_count = 2;
- 
- static int param_getptr(const char *line, int *bg, int *en, int paramnum) {
-     int i;
-@@ -279,7 +279,7 @@ int main(int argc, char *argv[]) {
-         thread_count = 2;
- #endif  /* _WIN32 */
- 
--    printf("\nBruteforce using %zu threads to find upper 16bits of key\n", thread_count);
-+    printf("\nBruteforce using %d threads to find upper 16bits of key\n", thread_count);
- 
-     pthread_t threads[thread_count];
- 
-@@ -288,7 +288,7 @@ int main(int argc, char *argv[]) {
- 
-     // threads
-     for (int i = 0; i < thread_count; ++i) {
--        struct thread_args *a = malloc(sizeof(struct thread_args));
-+        struct thread_args *a = calloc(1, sizeof(struct thread_args));
-         a->thread = i;
-         a->idx = i;
-         a->uid = uid;
+diff --git a/client/src/wiegand_formats.c b/client/src/wiegand_formats.c
+index 0daf1dd5d..75f9ea987 100644
+--- a/client/src/wiegand_formats.c
++++ b/client/src/wiegand_formats.c
+@@ -1383,7 +1383,7 @@ void HIDListFormats(void) {
+         ++i;
+     }
+     PrintAndLogEx(INFO, "------------------------------------------------------------");
+-    PrintAndLogEx(INFO, "Available card formats: " _YELLOW_("%" PRIu32), ARRAYLEN(FormatTable));
++    PrintAndLogEx(INFO, "Available card formats: " _YELLOW_("%" PRIu64), ARRAYLEN(FormatTable));
+     PrintAndLogEx(NORMAL, "");
+     return;
+ }
