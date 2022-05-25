@@ -1,19 +1,19 @@
-commit b93de4388a442b68d43591a3119a7e97dde9ac36
+commit b8aedada544f08f7a97375f84cdde2734a5044f7
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun Jun 20 08:41:18 2021 +0200
+Date:   Sun Jun 20 08:56:06 2021 +0200
 
-    textual
+    text
 
-diff --git a/client/src/cmdhfcipurse.c b/client/src/cmdhfcipurse.c
-index faeea6dab..427340ca4 100644
---- a/client/src/cmdhfcipurse.c
-+++ b/client/src/cmdhfcipurse.c
-@@ -67,7 +67,7 @@ static int CmdHFCipurseInfo(const char *Cmd) {
-         if (sw)
-             PrintAndLogEx(INFO, "Not a CIPURSE card. APDU response: %04x - %s", sw, GetAPDUCodeDescription(sw >> 8, sw & 0xff));
-         else
--            PrintAndLogEx(ERR, "APDU exchange error. Card returns 0x0000.");
-+            PrintAndLogEx(ERR, "APDU exchange error. Card returns 0x0000");
- 
-         DropField();
-         return PM3_SUCCESS;
+diff --git a/client/src/cmddata.c b/client/src/cmddata.c
+index 2a715325c..4371a0187 100644
+--- a/client/src/cmddata.c
++++ b/client/src/cmddata.c
+@@ -2702,7 +2702,7 @@ typedef struct {
+ static int print_modulation(lf_modulation_t b) {
+     PrintAndLogEx(INFO, " Modulation........ " _GREEN_("%s"), GetSelectedModulationStr(b.modulation));
+     PrintAndLogEx(INFO, " Bit clock......... " _GREEN_("RF/%d"), b.bitrate);
+-    PrintAndLogEx(INFO, " Approx baudrate... " _GREEN_("%.f") "bauds", (125000 / (float)b.bitrate));
++    PrintAndLogEx(INFO, " Approx baudrate... " _GREEN_("%.f") " baud", (125000 / (float)b.bitrate));
+     switch (b.modulation) {
+         case DEMOD_PSK1:
+         case DEMOD_PSK2:
