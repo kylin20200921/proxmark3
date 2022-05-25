@@ -1,19 +1,19 @@
-commit b8aedada544f08f7a97375f84cdde2734a5044f7
+commit 0fdcae66829547289b54ae0abeb08c4814c129a1
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun Jun 20 08:56:06 2021 +0200
+Date:   Sun Jun 20 10:11:11 2021 +0200
 
-    text
+    maur keys
 
-diff --git a/client/src/cmddata.c b/client/src/cmddata.c
-index 2a715325c..4371a0187 100644
---- a/client/src/cmddata.c
-+++ b/client/src/cmddata.c
-@@ -2702,7 +2702,7 @@ typedef struct {
- static int print_modulation(lf_modulation_t b) {
-     PrintAndLogEx(INFO, " Modulation........ " _GREEN_("%s"), GetSelectedModulationStr(b.modulation));
-     PrintAndLogEx(INFO, " Bit clock......... " _GREEN_("RF/%d"), b.bitrate);
--    PrintAndLogEx(INFO, " Approx baudrate... " _GREEN_("%.f") "bauds", (125000 / (float)b.bitrate));
-+    PrintAndLogEx(INFO, " Approx baudrate... " _GREEN_("%.f") " baud", (125000 / (float)b.bitrate));
-     switch (b.modulation) {
-         case DEMOD_PSK1:
-         case DEMOD_PSK2:
+diff --git a/client/dictionaries/mfc_default_keys.dic b/client/dictionaries/mfc_default_keys.dic
+index d2c41cbe7..872954ac7 100644
+--- a/client/dictionaries/mfc_default_keys.dic
++++ b/client/dictionaries/mfc_default_keys.dic
+@@ -1416,3 +1416,8 @@ D1417E431949
+ 3a471b2192bf
+ a297ceb7d34b
+ ae76242931f1
++#
++#
++124578ABFEDC
++ABFEDC124578
++4578ABFEDC12
