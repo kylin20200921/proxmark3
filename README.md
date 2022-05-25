@@ -1,40 +1,55 @@
-commit c0e9f66c58416a3a0fd6999430e5f1d94df62485
+commit e6cc0ed83644a085204d11c6d0d6ce7e1fc83596
 Author: iceman1001 <iceman@iuse.se>
-Date:   Mon Nov 22 21:29:52 2021 +0100
+Date:   Wed Nov 24 20:23:34 2021 +0100
 
-    more aid
+    nfc decode - detects and prints application/json
 
-diff --git a/client/resources/aidlist.json b/client/resources/aidlist.json
-index 8380f8299..0ada9ba2a 100644
---- a/client/resources/aidlist.json
-+++ b/client/resources/aidlist.json
-@@ -2169,7 +2169,7 @@
-     },
-     {
-         "AID": "4144204631",
--        "Vendor": "Cipurse",
-+        "Vendor": "CIPURSE",
-         "Country": "",
-         "Name": "Cipurse transport card",
-         "Description": "Cipurse transport card",
-@@ -2183,4 +2183,20 @@
-         "Description": "vivokey.com/apex",
-         "Type": ""
-     },
-+    {
-+        "AID": "D2760000028002000000000000000310",
-+        "Vendor": "CIPURSE",
-+        "Country": "",
-+        "Name": "CPM Master SAM",
-+        "Description": "Application specific master keys",
-+        "Type": "transport"
-+    },
-+    {
-+        "AID": "D2760000028002000000000000000311",
-+        "Vendor": "CIPURSE",
-+        "Country": "",
-+        "Name": "CPM Person SAM",
-+        "Description": "Personalization of end user cards",
-+        "Type": "transport"
-+    },
- ]
+diff --git a/client/src/nfc/ndef.c b/client/src/nfc/ndef.c
+index 7e698eb80..7e07639ad 100644
+--- a/client/src/nfc/ndef.c
++++ b/client/src/nfc/ndef.c
+@@ -25,9 +25,11 @@
+ 
+ #define NDEF_WIFIAPPL   "application/vnd.wfa"
+ #define NDEF_BLUEAPPL   "application/vnd.bluetooth"
++#define NDEF_JSONAPPL   "application/json"
+ #define NDEF_VCARDTEXT  "text/vcard"
+ #define NDEF_XVCARDTEXT "text/x-vcard"
+ 
++
+ static const char *TypeNameFormat_s[] = {
+     "Empty Record",
+     "Well Known Record",
+@@ -517,6 +519,14 @@ static int ndefDecodeMime_vcard(NDEFHeader_t *ndef) {
+     }
+     return PM3_SUCCESS;
+ }
++static int ndefDecodeMime_json(NDEFHeader_t *ndef) {
++    PrintAndLogEx(INFO, _CYAN_("JSON details"));
++    if (ndef->PayloadLen > 1) {
++        PrintAndLogEx(INFO, "");
++        PrintAndLogEx(INFO, _GREEN_("%.*s"), (int)ndef->PayloadLen, ndef->Payload);
++    }
++    return PM3_SUCCESS;
++}
+ 
+ static int ndefDecodeMime_bt(NDEFHeader_t *ndef) {
+     PrintAndLogEx(INFO, "Type............ " _YELLOW_("%.*s"), (int)ndef->TypeLen, ndef->Type);
+@@ -651,6 +661,9 @@ static int ndefDecodePayload(NDEFHeader_t *ndef) {
+             if (str_startswith(begin, NDEF_BLUEAPPL)) {
+                 ndefDecodeMime_bt(ndef);
+             }
++            if (str_startswith(begin, NDEF_JSONAPPL)) {
++                ndefDecodeMime_json(ndef);
++            }
+ 
+             free(begin);
+             begin = NULL;
+@@ -673,6 +686,7 @@ static int ndefDecodePayload(NDEFHeader_t *ndef) {
+             PrintAndLogEx(INFO, "- decoder to be impl -");
+             break;
+     }
++    PrintAndLogEx(INFO, "");
+     return PM3_SUCCESS;
+ }
+ 
