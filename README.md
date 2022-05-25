@@ -1,245 +1,232 @@
-commit 9a063d75fe2e0f9f2ab61d0029a6b7442157c8c8
+commit e8d5d811782b66a8d9eb40b2d94e0a398abc70b3
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun Jun 20 10:32:08 2021 +0200
+Date:   Sun Jun 20 10:41:47 2021 +0200
 
-    style,  the return codes needs to be adjusted to follow the PM3_E* styled defines.
+    code style,  and make less output for hf search
 
-diff --git a/client/src/iso7816/iso7816core.c b/client/src/iso7816/iso7816core.c
-index fae43b9dd..9c336c0bc 100644
---- a/client/src/iso7816/iso7816core.c
-+++ b/client/src/iso7816/iso7816core.c
-@@ -37,7 +37,11 @@ static isodep_state_t isodep_state = ISODEP_INACTIVE;
- void SetISODEPState(isodep_state_t state) {
-     isodep_state = state;
-     if (APDULogging) {
--        PrintAndLogEx(SUCCESS, ">>>> ISODEP -> %s%s%s", isodep_state == ISODEP_INACTIVE ? "inactive" : "", isodep_state == ISODEP_NFCA ? "NFC-A" : "", isodep_state == ISODEP_NFCB ? "NFC-B" : "");
-+        PrintAndLogEx(SUCCESS, "Setting ISODEP -> %s%s%s"
-+            , isodep_state == ISODEP_INACTIVE ? "inactive" : ""
-+            , isodep_state == ISODEP_NFCA ? _GREEN_("NFC-A") : ""
-+            , isodep_state == ISODEP_NFCB ? _GREEN_("NFC-B") : ""
-+            );
-     }
+diff --git a/client/src/cmdhf14a.c b/client/src/cmdhf14a.c
+index fd8d9db9a..b221869d7 100644
+--- a/client/src/cmdhf14a.c
++++ b/client/src/cmdhf14a.c
+@@ -181,7 +181,7 @@ static const hintAIDListT hintAIDList[] = {
+ };
+ 
+ // iso14a apdu input frame length
+-static uint16_t frameLength = 0;
++static uint16_t g_frame_len = 0;
+ uint16_t atsFSC[] = {16, 24, 32, 40, 48, 64, 96, 128, 256};
+ 
+ static int CmdHF14AList(const char *Cmd) {
+@@ -857,31 +857,35 @@ int ExchangeRAW14a(uint8_t *datain, int datainlen, bool activateField, bool leav
+     return 0;
  }
  
-@@ -51,46 +55,50 @@ int Iso7816Connect(Iso7816CommandChannel channel) {
+-int SelectCard14443A_4(bool disconnect, iso14a_card_select_t *card) {
+-    PacketResponseNG resp;
++int SelectCard14443A_4(bool disconnect, bool verbose, iso14a_card_select_t *card) {
+ 
+-    frameLength = 0;
++    // global vars should be prefixed with g_
++    g_frame_len = 0;
+ 
+-    if (card)
++    if (card) {
+         memset(card, 0, sizeof(iso14a_card_select_t));
++    }
+ 
+     DropField();
+ 
+     // Anticollision + SELECT card
++    PacketResponseNG resp;
+     SendCommandMIX(CMD_HF_ISO14443A_READER, ISO14A_CONNECT | ISO14A_NO_DISCONNECT, 0, 0, NULL, 0);
+     if (WaitForResponseTimeout(CMD_ACK, &resp, 1500) == false) {
+-        PrintAndLogEx(ERR, "Proxmark3 connection timeout");
++        PrintAndLogEx(WARNING, "Command execute timeout");
+         return PM3_ETIMEOUT;
+     }
+ 
+     // check result
+     if (resp.oldarg[0] == 0) {
+-        PrintAndLogEx(ERR, "No card in field");
++        if (verbose) {
++            PrintAndLogEx(FAILED, "No card in field");
++        }
+         return PM3_ECARDEXCHANGE;
+     }
+ 
+     if (resp.oldarg[0] != 1 && resp.oldarg[0] != 2) {
+-        PrintAndLogEx(ERR, "Card not in iso14443-4, res=%" PRId64 ".", resp.oldarg[0]);
++        PrintAndLogEx(WARNING, "Card not in iso14443-4, res=%" PRId64 ".", resp.oldarg[0]);
+         return PM3_ECARDEXCHANGE;
+     }
+ 
+@@ -890,36 +894,44 @@ int SelectCard14443A_4(bool disconnect, iso14a_card_select_t *card) {
+         uint8_t rats[] = { 0xE0, 0x80 }; // FSDI=8 (FSD=256), CID=0
+         SendCommandMIX(CMD_HF_ISO14443A_READER, ISO14A_RAW | ISO14A_APPEND_CRC | ISO14A_NO_DISCONNECT, sizeof(rats), 0, rats, sizeof(rats));
+         if (WaitForResponseTimeout(CMD_ACK, &resp, 1500) == false) {
+-            PrintAndLogEx(ERR, "Proxmark3 connection timeout");
++            PrintAndLogEx(WARNING, "Command execute timeout");
+             return PM3_ETIMEOUT;
+         }
+ 
+         if (resp.oldarg[0] == 0) { // ats_len
+-            PrintAndLogEx(ERR, "Can't get ATS");
++            if (verbose) {
++                PrintAndLogEx(FAILED, "Can't get ATS");
++            }
+             return PM3_ECARDEXCHANGE;
+         }
+ 
+         // get frame length from ATS in data field
+         if (resp.oldarg[0] > 1) {
+             uint8_t fsci = resp.data.asBytes[1] & 0x0f;
+-            if (fsci < ARRAYLEN(atsFSC))
+-                frameLength = atsFSC[fsci];
++            if (fsci < ARRAYLEN(atsFSC)) {
++                g_frame_len = atsFSC[fsci];
++            }
+         }
+     } else {
+         // get frame length from ATS in card data structure
+         iso14a_card_select_t *vcard = (iso14a_card_select_t *) resp.data.asBytes;
+         if (vcard->ats_len > 1) {
+             uint8_t fsci = vcard->ats[1] & 0x0f;
+-            if (fsci < ARRAYLEN(atsFSC))
+-                frameLength = atsFSC[fsci];
++            if (fsci < ARRAYLEN(atsFSC)) {
++                g_frame_len = atsFSC[fsci];
++            }
+         }
+ 
+-        if (card)
++        if (card) {
+             memcpy(card, vcard, sizeof(iso14a_card_select_t));
++        }
+     }
++
+     SetISODEPState(ISODEP_NFCA);
+-    if (disconnect)
++
++    if (disconnect) {
+         DropField();
++    }
+ 
+     return PM3_SUCCESS;
+ }
+@@ -928,8 +940,8 @@ static int CmdExchangeAPDU(bool chainingin, uint8_t *datain, int datainlen, bool
+     *chainingout = false;
+ 
+     if (activateField) {
+-        // select with no disconnect and set frameLength
+-        int selres = SelectCard14443A_4(false, NULL);
++        // select with no disconnect and set g_frame_len
++        int selres = SelectCard14443A_4(false, true, NULL);
+         if (selres != PM3_SUCCESS)
+             return selres;
+     }
+@@ -965,7 +977,7 @@ static int CmdExchangeAPDU(bool chainingin, uint8_t *datain, int datainlen, bool
+         }
+ 
+         // I-block ACK
+-        if ((res & 0xf2) == 0xa2) {
++        if ((res & 0xF2) == 0xA2) {
+             *dataoutlen = 0;
+             *chainingout = true;
+             return PM3_SUCCESS;
+@@ -1015,13 +1027,14 @@ int ExchangeAPDU14a(uint8_t *datain, int datainlen, bool activateField, bool lea
+ 
+     // 3 byte here - 1b framing header, 2b crc16
+     if (APDUInFramingEnable &&
+-            ((frameLength && (datainlen > frameLength - 3)) || (datainlen > PM3_CMD_DATA_SIZE - 3))) {
++        ((g_frame_len && (datainlen > g_frame_len - 3)) || (datainlen > PM3_CMD_DATA_SIZE - 3))) {
++
+         int clen = 0;
+ 
+         bool vActivateField = activateField;
+ 
+         do {
+-            int vlen = MIN(frameLength - 3, datainlen - clen);
++            int vlen = MIN(g_frame_len - 3, datainlen - clen);
+             bool chainBlockNotLast = ((clen + vlen) < datainlen);
+ 
+             *dataoutlen = 0;
+@@ -1045,17 +1058,19 @@ int ExchangeAPDU14a(uint8_t *datain, int datainlen, bool activateField, bool lea
+             clen += vlen;
+             vActivateField = false;
+             if (*dataoutlen) {
+-                if (clen != datainlen)
++                if (clen != datainlen) {
+                     PrintAndLogEx(ERR, "APDU: I-block/R-block sequence error. Data len=%d, Sent=%d, Last packet len=%d", datainlen, clen, *dataoutlen);
++                }
+                 break;
+             }
+         } while (clen < datainlen);
++
+     } else {
+         res = CmdExchangeAPDU(false, datain, datainlen, activateField, dataout, maxdataoutlen, dataoutlen, &chaining);
+         if (res != PM3_SUCCESS) {
+-            if (leaveSignalON == false)
++            if (leaveSignalON == false) {
+                 DropField();
+-
++            }
+             return res;
+         }
+     }
+@@ -1064,15 +1079,16 @@ int ExchangeAPDU14a(uint8_t *datain, int datainlen, bool activateField, bool lea
+         // I-block with chaining
+         res = CmdExchangeAPDU(false, NULL, 0, false, &dataout[*dataoutlen], maxdataoutlen, dataoutlen, &chaining);
+         if (res != PM3_SUCCESS) {
+-            if (leaveSignalON == false)
++            if (leaveSignalON == false) {
+                 DropField();
+-
++            }
+             return 100;
+         }
+     }
+ 
+-    if (!leaveSignalON)
++    if (leaveSignalON == false) {
+         DropField();
++    }
+ 
+     return PM3_SUCCESS;
+ }
+diff --git a/client/src/cmdhf14a.h b/client/src/cmdhf14a.h
+index 484b43cfd..18e9fffd7 100644
+--- a/client/src/cmdhf14a.h
++++ b/client/src/cmdhf14a.h
+@@ -43,5 +43,5 @@ int Hf14443_4aGetCardData(iso14a_card_select_t *card);
+ int ExchangeAPDU14a(uint8_t *datain, int datainlen, bool activateField, bool leaveSignalON, uint8_t *dataout, int maxdataoutlen, int *dataoutlen);
+ int ExchangeRAW14a(uint8_t *datain, int datainlen, bool activateField, bool leaveSignalON, uint8_t *dataout, int maxdataoutlen, int *dataoutlen, bool silentMode);
+ 
+-int SelectCard14443A_4(bool disconnect, iso14a_card_select_t *card);
++int SelectCard14443A_4(bool disconnect, bool verbose, iso14a_card_select_t *card);
+ #endif
+diff --git a/client/src/cmdhfmfdes.c b/client/src/cmdhfmfdes.c
+index bec41af0b..52d26bb7f 100644
+--- a/client/src/cmdhfmfdes.c
++++ b/client/src/cmdhfmfdes.c
+@@ -3685,7 +3685,7 @@ static int CmdHF14ADesInfo(const char *Cmd) {
+ 
+ 
+     iso14a_card_select_t card;
+-    res = SelectCard14443A_4(true, &card);
++    res = SelectCard14443A_4(true, false, &card);
+     if (res == PM3_SUCCESS) {
+         static const char STANDALONE_DESFIRE[] = { 0x75, 0x77, 0x81, 0x02};
+         static const char JCOP_DESFIRE[] = { 0x75, 0xf7, 0xb1, 0x02 };
+diff --git a/client/src/iso7816/iso7816core.c b/client/src/iso7816/iso7816core.c
+index 9c336c0bc..3907d7744 100644
+--- a/client/src/iso7816/iso7816core.c
++++ b/client/src/iso7816/iso7816core.c
+@@ -55,7 +55,7 @@ int Iso7816Connect(Iso7816CommandChannel channel) {
      }
      // Try to 14a
      // select with no disconnect and set frameLength
--    int selres = SelectCard14443A_4(false, NULL);
--    if (selres == PM3_SUCCESS) {
-+    int res = SelectCard14443A_4(false, NULL);
-+    if (res == PM3_SUCCESS) {
+-    int res = SelectCard14443A_4(false, NULL);
++    int res = SelectCard14443A_4(false, false, NULL);
+     if (res == PM3_SUCCESS) {
          SetISODEPState(ISODEP_NFCA);
          return PM3_SUCCESS;
-     }
- 
-     PrintAndLogEx(DEBUG, "No 14a tag spotted, trying 14b");
-     // If not 14a, try to 14b
--    selres = select_card_14443b_4(false, NULL);
--    if (selres == PM3_SUCCESS) {
-+    res = select_card_14443b_4(false, NULL);
-+    if (res == PM3_SUCCESS) {
-         SetISODEPState(ISODEP_NFCB);
-         return PM3_SUCCESS;
-     }
-+
-     PrintAndLogEx(DEBUG, "No 14b tag spotted, failed to find any tag.");
--    return selres;
-+    return res;
- }
- 
--int Iso7816ExchangeEx(Iso7816CommandChannel channel, bool ActivateField, bool LeaveFieldON, sAPDU apdu, bool includeLe, uint16_t Le, uint8_t *Result, size_t MaxResultLen, size_t *ResultLen, uint16_t *sw) {
--    uint8_t data[APDU_RES_LEN] = {0};
-+int Iso7816ExchangeEx(Iso7816CommandChannel channel, bool activate_field, bool leave_field_on,
-+                      sAPDU apdu, bool include_le, uint16_t le, uint8_t *result,
-+                      size_t max_result_len, size_t *result_len, uint16_t *sw) {
- 
--    *ResultLen = 0;
--    if (sw) *sw = 0;
--    uint16_t isw = 0;
--    int res = 0;
-+    *result_len = 0;
-+    if (sw) {
-+         *sw = 0;
-+    }
- 
--    if (ActivateField) {
-+    if (activate_field) {
-         DropFieldEx(channel);
-         msleep(50);
-     }
- 
-     // COMPUTE APDU
-     int datalen = 0;
--    if (includeLe) {
--        if (Le == 0) {
--            Le = 0x100;
-+    if (include_le) {
-+        if (le == 0) {
-+            le = 0x100;
-         }
-     } else {
--        Le = 0;
-+        le = 0;
-     }
--    if (APDUEncodeS(&apdu, false, Le, data, &datalen)) {
-+
-+    uint8_t data[APDU_RES_LEN] = {0};
-+    if (APDUEncodeS(&apdu, false, le, data, &datalen)) {
-         PrintAndLogEx(ERR, "APDU encoding error.");
-         return 201;
-     }
-@@ -98,59 +106,68 @@ int Iso7816ExchangeEx(Iso7816CommandChannel channel, bool ActivateField, bool Le
-     if (APDULogging)
-         PrintAndLogEx(SUCCESS, ">>>> %s", sprint_hex(data, datalen));
- 
-+    int res = 0;
-+
-     switch (channel) {
--        case CC_CONTACTLESS:
-+        case CC_CONTACTLESS: {
-+
-             switch (GetISODEPState()) {
-                 case ISODEP_NFCA:
--                    res = ExchangeAPDU14a(data, datalen, ActivateField, LeaveFieldON, Result, (int)MaxResultLen, (int *)ResultLen);
-+                    res = ExchangeAPDU14a(data, datalen, activate_field, leave_field_on, result, (int)max_result_len, (int *)result_len);
-                     break;
-                 case ISODEP_NFCB:
--                    res = exchange_14b_apdu(data, datalen, ActivateField, LeaveFieldON, Result, (int)MaxResultLen, (int *)ResultLen, 4000);
-+                    res = exchange_14b_apdu(data, datalen, activate_field, leave_field_on, result, (int)max_result_len, (int *)result_len, 4000);
-                     break;
-                 case ISODEP_INACTIVE:
--                    if (! ActivateField) {
-+                    if (activate_field == false) {
-                         PrintAndLogEx(FAILED, "Field currently inactive, cannot send an APDU");
-                         return PM3_EIO;
-                     }
--                    res = ExchangeAPDU14a(data, datalen, ActivateField, LeaveFieldON, Result, (int)MaxResultLen, (int *)ResultLen);
-+                    res = ExchangeAPDU14a(data, datalen, activate_field, leave_field_on, result, (int)max_result_len, (int *)result_len);
-                     if (res != PM3_SUCCESS) {
--                        res = exchange_14b_apdu(data, datalen, ActivateField, LeaveFieldON, Result, (int)MaxResultLen, (int *)ResultLen, 4000);
-+                        res = exchange_14b_apdu(data, datalen, activate_field, leave_field_on, result, (int)max_result_len, (int *)result_len, 4000);
-                     }
-                     break;
-             }
-+
-             if (res != PM3_SUCCESS) {
-                 return res;
-             }
-             break;
--        case CC_CONTACT:
-+        }
-+        case CC_CONTACT: {
-             res = 1;
--            if (IfPm3Smartcard())
--                res = ExchangeAPDUSC(false, data, datalen, ActivateField, LeaveFieldON, Result, (int)MaxResultLen, (int *)ResultLen);
-+            if (IfPm3Smartcard()) {
-+                res = ExchangeAPDUSC(false, data, datalen, activate_field, leave_field_on, result, (int)max_result_len, (int *)result_len);
-+            }
- 
-             if (res) {
-                 return res;
-             }
-             break;
-+        }
-     }
- 
-     if (APDULogging)
--        PrintAndLogEx(SUCCESS, "<<<< %s", sprint_hex(Result, *ResultLen));
-+        PrintAndLogEx(SUCCESS, "<<<< %s", sprint_hex(result, *result_len));
- 
--    if (*ResultLen < 2) {
-+    if (*result_len < 2) {
-         return 200;
-     }
- 
--    *ResultLen -= 2;
--    isw = Result[*ResultLen] * 0x0100 + Result[*ResultLen + 1];
--    if (sw)
-+    *result_len -= 2;
-+    uint16_t isw = (result[*result_len] * 0x0100) + result[*result_len + 1];
-+
-+    if (sw) {
-         *sw = isw;
-+    }
- 
-     if (isw != 0x9000) {
-         if (APDULogging) {
-             if (*sw >> 8 == 0x61) {
--                PrintAndLogEx(ERR, "APDU chaining len:%02x -->", *sw & 0xff);
-+                PrintAndLogEx(ERR, "APDU chaining len %02x", *sw & 0xFF);
-             } else {
--                PrintAndLogEx(ERR, "APDU(%02x%02x) ERROR: [%4X] %s", apdu.CLA, apdu.INS, isw, GetAPDUCodeDescription(*sw >> 8, *sw & 0xff));
-+                PrintAndLogEx(ERR, "APDU(%02x%02x) ERROR: [%4X] %s", apdu.CLA, apdu.INS, isw, GetAPDUCodeDescription(*sw >> 8, *sw & 0xFF));
-                 return 5;
-             }
-         }
-@@ -158,10 +175,32 @@ int Iso7816ExchangeEx(Iso7816CommandChannel channel, bool ActivateField, bool Le
-     return PM3_SUCCESS;
- }
- 
--int Iso7816Exchange(Iso7816CommandChannel channel, bool LeaveFieldON, sAPDU apdu, uint8_t *Result, size_t MaxResultLen, size_t *ResultLen, uint16_t *sw) {
--    return Iso7816ExchangeEx(channel, false, LeaveFieldON, apdu, false, 0, Result, MaxResultLen, ResultLen, sw);
-+int Iso7816Exchange(Iso7816CommandChannel channel, bool leave_field_on, sAPDU apdu, uint8_t *result, size_t max_result_len, size_t *result_len, uint16_t *sw) {
-+    return Iso7816ExchangeEx(channel
-+            , false
-+            , leave_field_on
-+            , apdu
-+            , false
-+            , 0
-+            , result
-+            , max_result_len
-+            , result_len
-+            , sw
-+            );
- }
- 
--int Iso7816Select(Iso7816CommandChannel channel, bool ActivateField, bool LeaveFieldON, uint8_t *AID, size_t AIDLen, uint8_t *Result, size_t MaxResultLen, size_t *ResultLen, uint16_t *sw) {
--    return Iso7816ExchangeEx(channel, ActivateField, LeaveFieldON, (sAPDU) {0x00, 0xa4, 0x04, 0x00, AIDLen, AID}, (channel == CC_CONTACTLESS), 0, Result, MaxResultLen, ResultLen, sw);
-+int Iso7816Select(Iso7816CommandChannel channel, bool activate_field, bool leave_field_on, uint8_t *aid, size_t aid_len,
-+                  uint8_t *result, size_t max_result_len, size_t *result_len, uint16_t *sw) {
-+
-+    return Iso7816ExchangeEx(channel
-+            , activate_field
-+            , leave_field_on
-+            , (sAPDU) {0x00, 0xa4, 0x04, 0x00, aid_len, aid}
-+            , (channel == CC_CONTACTLESS)
-+            , 0
-+            , result
-+            , max_result_len
-+            , result_len
-+            , sw
-+            );
- }
-diff --git a/client/src/iso7816/iso7816core.h b/client/src/iso7816/iso7816core.h
-index 8c0b44629..beb5e3e90 100644
---- a/client/src/iso7816/iso7816core.h
-+++ b/client/src/iso7816/iso7816core.h
-@@ -12,9 +12,7 @@
- #define ISO7816CORE_H__
- 
- #include "common.h"
--
- #include <inttypes.h>
--
- #include "apduinfo.h"
- 
- #define APDU_RES_LEN 260
-@@ -41,9 +39,14 @@ isodep_state_t GetISODEPState(void);
- int Iso7816Connect(Iso7816CommandChannel channel);
- 
- // exchange
--int Iso7816Exchange(Iso7816CommandChannel channel, bool LeaveFieldON, sAPDU apdu, uint8_t *Result, size_t MaxResultLen, size_t *ResultLen, uint16_t *sw);
--int Iso7816ExchangeEx(Iso7816CommandChannel channel, bool ActivateField, bool LeaveFieldON, sAPDU apdu, bool IncludeLe, uint16_t Le, uint8_t *Result, size_t MaxResultLen, size_t *ResultLen, uint16_t *sw);
-+int Iso7816Exchange(Iso7816CommandChannel channel, bool leave_field_on, sAPDU apdu, uint8_t *result, size_t max_result_len,
-+                       size_t *result_len, uint16_t *sw);
-+
-+int Iso7816ExchangeEx(Iso7816CommandChannel channel, bool activate_field, bool leave_field_on, sAPDU apdu, bool include_le,
-+                       uint16_t le, uint8_t *result,  size_t max_result_len, size_t *result_len, uint16_t *sw);
- 
- // search application
--int Iso7816Select(Iso7816CommandChannel channel, bool ActivateField, bool LeaveFieldON, uint8_t *AID, size_t AIDLen, uint8_t *Result, size_t MaxResultLen, size_t *ResultLen, uint16_t *sw);
-+int Iso7816Select(Iso7816CommandChannel channel, bool activate_field, bool leave_field_on, uint8_t *aid, size_t aid_len,
-+                       uint8_t *result, size_t max_result_len, size_t *result_len, uint16_t *sw);
-+
- #endif
