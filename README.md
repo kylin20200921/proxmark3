@@ -1,9 +1,9 @@
-commit 679a2f36d32ac63dd14cf38cc127c1f67b8bc851
-Merge: 22c1078b8 832abcfc3
+commit e83dfcc2cbccd4cc9398fd6085ae41109e98436a
+Merge: 679a2f36d 8075c1ac5
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sat Jan 29 20:07:28 2022 +0100
+Date:   Sun Jan 30 20:39:11 2022 +0100
 
-    Merge pull request #1569 from gabe-sky/fix_typo
+    Merge pull request #1571 from startrk1995/ultimate_magic_card
     
-    Fix typo
+    Ultimate magic card (Gen4)
 
