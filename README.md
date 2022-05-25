@@ -1,24 +1,14 @@
-commit 8edcfb925beb45bbe1e5d0ae29eb5afe8c324246
+commit 24d55e8c35ab3eade2832860e976f85b71e9fd7e
 Author: iceman1001 <iceman@iuse.se>
-Date:   Mon Aug 23 07:25:25 2021 +0200
+Date:   Fri Sep 3 19:10:27 2021 +0200
 
-    text
+    Mifare Plus MAD/ read sector 0  traces
 
-diff --git a/client/src/cmdhflist.c b/client/src/cmdhflist.c
-index 74e5c3aec..8e1c010c7 100644
---- a/client/src/cmdhflist.c
-+++ b/client/src/cmdhflist.c
-@@ -345,9 +345,11 @@ int applyIso14443a(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize) {
-             break;
-         }
-         case NTAG_I2C_FASTWRITE: 
--            if (cmdsize == 69) {
-+            if (cmdsize == 69)
-                 snprintf(exp, size, "FAST WRITE (%d - %d)", cmd[1], cmd[2]);
--            }
-+            else
-+                snprintf(exp, size, "?");
-+            
-             break;
-         default:
-             return 0;
+diff --git a/traces/hf_mfp_mad_sl3.trace b/traces/hf_mfp_mad_sl3.trace
+new file mode 100644
+index 000000000..c7c547932
+Binary files /dev/null and b/traces/hf_mfp_mad_sl3.trace differ
+diff --git a/traces/hf_mfp_read_sc0_sl3.trace b/traces/hf_mfp_read_sc0_sl3.trace
+new file mode 100644
+index 000000000..3f075fbbe
+Binary files /dev/null and b/traces/hf_mfp_read_sc0_sl3.trace differ
