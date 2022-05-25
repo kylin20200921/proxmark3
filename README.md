@@ -1,19 +1,19 @@
-commit 0d017908b4ddbb0abbcdd3222c94156e9249f32f
+commit f63bc96980679716dabe23d36d8234334573f3da
 Author: iceman1001 <iceman@iuse.se>
-Date:   Thu May 20 10:31:21 2021 +0200
+Date:   Thu May 20 11:34:56 2021 +0200
 
-    style
+    seems cppchecker cant make up its mind
 
-diff --git a/client/src/cmdhfmfdes.c b/client/src/cmdhfmfdes.c
-index 121108c62..4fb04b324 100644
---- a/client/src/cmdhfmfdes.c
-+++ b/client/src/cmdhfmfdes.c
-@@ -4974,8 +4974,6 @@ static int CmdHF14aDesNDEF(const char *Cmd) {
-         }
-     }
- 
--//    PrintAndLogEx(INFO, "reading data from tag");
--
-     if (!datalen) {
-         PrintAndLogEx(ERR, "no NDEF data");
-         return PM3_SUCCESS;
+diff --git a/client/src/cmdhficlass.c b/client/src/cmdhficlass.c
+index dc4d16a33..08c4e9360 100644
+--- a/client/src/cmdhficlass.c
++++ b/client/src/cmdhficlass.c
+@@ -301,7 +301,7 @@ static int generate_config_card(const iclass_config_card_item_t *o,  uint8_t *ke
+             uint8_t *p = realloc(data, tot_bytes);
+             if (p == NULL) {
+                 PrintAndLogEx(FAILED, "failed to allocate memory");
+-                //free(data);
++                free(data);
+                 return PM3_EMALLOC;
+             }
+             data = p;
