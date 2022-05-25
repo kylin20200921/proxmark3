@@ -1,23 +1,20 @@
-commit cf7b1d2c17d811c0b1f2cbba8e798d29def5faaf
-Author: iceman1001 <iceman@iuse.se>
-Date:   Tue Dec 28 07:38:40 2021 +0100
+commit f9a5cfdb9bd82eb092c973f346f4e02da90aa2cf
+Author: Iceman <iceman@iuse.se>
+Date:   Thu Dec 30 15:12:25 2021 +0100
 
-    maur keys
+    Update checklist-for-release.md
 
-diff --git a/client/dictionaries/mfc_default_keys.dic b/client/dictionaries/mfc_default_keys.dic
-index bd6630829..61c94694c 100644
---- a/client/dictionaries/mfc_default_keys.dic
-+++ b/client/dictionaries/mfc_default_keys.dic
-@@ -342,6 +342,12 @@ c52876869800
- 25352912cd8d
- 81b20c274c3f
- #
-+# Data from mall
-+abba1234fcb0 # playland balikesir
-+314f495254ff # A trio bowling bahcelievler
-+4152414b4e41 # A trio bowling bahcelievler
-+4E474434FFFF # karinca park nigde
-+#
- # Data from https://github.com/RadioWar/NFCGUI
- 44dd5a385aaf
- 21a600056cb0
+diff --git a/.github/ISSUE_TEMPLATE/checklist-for-release.md b/.github/ISSUE_TEMPLATE/checklist-for-release.md
+index 193516862..4825270d5 100644
+--- a/.github/ISSUE_TEMPLATE/checklist-for-release.md
++++ b/.github/ISSUE_TEMPLATE/checklist-for-release.md
+@@ -51,7 +51,8 @@ make hitag2crack/clean && make hitag2crack && tools/pm3_tests.sh hitag2crack ||
+ - [ ] Fedora
+ - [ ] OpenSuse Leap
+ - [ ] OpenSuse Tumbleweed
+-- [ ] OSX
++- [ ] OSX (MacPorts)
++- [ ] OSX (Homebrew)
+ - [ ] Android
+ - [ ] Termux
+ 
