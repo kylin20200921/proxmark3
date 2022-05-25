@@ -1,21 +1,9 @@
-commit 071a171af9c5e5b1c2639944171bc17276745118
+commit 795e604ddb3fd25d456fd6a3b8de8cd654c1fc03
+Merge: 071a171af 750fd646c
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun Jan 16 20:06:44 2022 +0100
+Date:   Mon Jan 17 19:58:12 2022 +0100
 
-    remove text
+    Merge pull request #1557 from DarkMatterMatt/feat/hf-gallagher-remove-aid-limits
+    
+    Improve `hf gallagher` commands
 
-diff --git a/client/src/proxmark3.c b/client/src/proxmark3.c
-index a7cc7f446..548d35ef8 100644
---- a/client/src/proxmark3.c
-+++ b/client/src/proxmark3.c
-@@ -401,9 +401,7 @@ check_script:
-                 // process cmd
-                 g_pendingPrompt = false;
-                 mainret = CommandReceived(cmd);
--#if defined ICOPYX
--                PrintAndLogEx(NORMAL, "\nNikola.D: %d", ret);
--#endif
-+
-                 // exit or quit
-                 if (mainret == PM3_EFATAL)
-                     break;
