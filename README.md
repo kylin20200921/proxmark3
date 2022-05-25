@@ -1,109 +1,34 @@
-commit 5f9d8273e6faef96562b8db2485be8bd1665b24f
+commit 8d5f31757f155c95d7ede4abf9cd1f6531b7344a
 Author: iceman1001 <iceman@iuse.se>
-Date:   Tue Jan 11 10:54:14 2022 +0100
+Date:   Tue Jan 11 10:59:22 2022 +0100
 
-    fix outofbounds
+    avoid printing null items
 
-diff --git a/client/src/emv/emv_pk.c b/client/src/emv/emv_pk.c
-index b32c703ec..8df7a2067 100644
---- a/client/src/emv/emv_pk.c
-+++ b/client/src/emv/emv_pk.c
-@@ -269,23 +269,27 @@ char *emv_pk_dump_pk(const struct emv_pk *pk) {
-     size_t outpos = 0;
-     size_t outsize = 1048;          // should be enough
-     char *out = calloc(1, outsize); // should be enough
--    if (!out)
-+    if (out == NULL) {
-         return NULL;
+diff --git a/client/src/wiegand_formats.c b/client/src/wiegand_formats.c
+index 1e417df5d..d7818661c 100644
+--- a/client/src/wiegand_formats.c
++++ b/client/src/wiegand_formats.c
+@@ -1259,6 +1259,11 @@ static bool Unpack_bc40(wiegand_message_t *packed, wiegand_card_t *card) {
+ 
+ void print_desc_wiegand(cardformat_t *fmt, wiegand_message_t *packed) {
+ 
++    // return if invalid card format
++    if (fmt->Name == NULL) {
++        return;
 +    }
++
+     char *s = calloc(128, sizeof(uint8_t));
+     sprintf(s, _YELLOW_("%-10s")" %-32s",  fmt->Name, fmt->Descrp);
  
-     size_t rc = emv_pk_write_bin(out + outpos, outsize - outpos, pk->rid, 5);
--    if (rc == 0)
-+    if (rc == 0) {
-         goto err;
+@@ -1397,6 +1402,11 @@ void HIDListFormats(void) {
+ }
+ 
+ cardformat_t HIDGetCardFormat(int idx) {
++
++    // if idx is out-of-bounds, return the last item
++    if ((idx < 0) || (idx > ARRAYLEN(FormatTable) - 2)) {
++        return FormatTable[ARRAYLEN(FormatTable) - 1];
 +    }
+     return FormatTable[idx];
+ }
  
-     outpos += rc;
- 
-     rc = emv_pk_write_bin(out + outpos, outsize - outpos, &pk->index, 1);
--    if (rc == 0)
-+    if (rc == 0) {
-         goto err;
-+    }
- 
-     outpos += rc;
- 
--    if (outpos + 7 > outsize)
-+    if (outpos + 7 >= outsize) {
-         goto err;
-+    }
-     out[outpos++] = TOHEX((pk->expire >> 20) & 0xf);
-     out[outpos++] = TOHEX((pk->expire >> 16) & 0xf);
-     out[outpos++] = TOHEX((pk->expire >> 12) & 0xf);
-@@ -296,13 +300,15 @@ char *emv_pk_dump_pk(const struct emv_pk *pk) {
- 
-     if (pk->pk_algo == PK_RSA) {
-         rc = emv_pk_write_str(out + outpos, outsize - outpos, "rsa");
--        if (rc == 0)
-+        if (rc == 0) {
-             goto err;
-+        }
-         outpos += rc;
-         out[outpos++] = ' ';
-     } else {
--        if (outpos + 4 > outsize)
-+        if (outpos + 4 >= outsize) {
-             goto err;
-+        }
-         out[outpos++] = '?';
-         out[outpos++] = '?';
-         out[outpos++] = TOHEX(pk->pk_algo >> 4);
-@@ -310,24 +316,28 @@ char *emv_pk_dump_pk(const struct emv_pk *pk) {
-     }
- 
-     rc = emv_pk_write_bin(out + outpos, outsize - outpos, pk->exp, pk->elen);
--    if (rc == 0)
-+    if (rc == 0) {
-         goto err;
-+    }
-     outpos += rc;
- 
-     rc = emv_pk_write_bin(out + outpos, outsize - outpos, pk->modulus, pk->mlen);
--    if (rc == 0)
-+    if (rc == 0) {
-         goto err;
-+    }
-     outpos += rc;
- 
-     if (pk->hash_algo == HASH_SHA_1) {
-         rc = emv_pk_write_str(out + outpos, outsize - outpos, "sha1");
--        if (rc == 0)
-+        if (rc == 0) {
-             goto err;
-+        }
-         outpos += rc;
-         out[outpos++] = ' ';
-     } else {
--        if (outpos + 4 > outsize)
-+        if (outpos + 4 >= outsize) {
-             goto err;
-+        }
-         out[outpos++] = '?';
-         out[outpos++] = '?';
-         out[outpos++] = TOHEX(pk->pk_algo >> 4);
-@@ -336,12 +346,12 @@ char *emv_pk_dump_pk(const struct emv_pk *pk) {
- 
- 
-     rc = emv_pk_write_bin(out + outpos, outsize - outpos, pk->hash, 20);
--    if (rc == 0)
-+    if (rc == 0) {
-         goto err;
--    outpos += rc;
-+    }
- 
-+    outpos += rc;
-     out[outpos - 1] = '\0';
--
-     return out;
- 
- err:
