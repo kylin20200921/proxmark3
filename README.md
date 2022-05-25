@@ -1,44 +1,49 @@
-commit b9bf84dbf14a2fc470dc7530f74a02667cb6d2af
+commit b974a077366a4ef1f66c7fdcd9600e91821594f7
 Author: iceman1001 <iceman@iuse.se>
-Date:   Thu May 20 10:15:16 2021 +0200
+Date:   Thu May 20 10:31:00 2021 +0200
 
-    desfire readdata fct, now deals with both INS cases
+    text
 
-diff --git a/client/src/cmdhfmfdes.c b/client/src/cmdhfmfdes.c
-index 1f7689fb4..121108c62 100644
---- a/client/src/cmdhfmfdes.c
-+++ b/client/src/cmdhfmfdes.c
-@@ -1903,16 +1903,18 @@ static int handler_desfire_debit(mfdes_value_t *value, uint8_t cs) {
+diff --git a/client/src/cmdhf14a.c b/client/src/cmdhf14a.c
+index 22022d3c6..aab5f6c17 100644
+--- a/client/src/cmdhf14a.c
++++ b/client/src/cmdhf14a.c
+@@ -397,7 +397,7 @@ int Hf14443_4aGetCardData(iso14a_card_select_t *card) {
+ static int CmdHF14AReader(const char *Cmd) {
+     CLIParserContext *ctx;
+     CLIParserInit(&ctx, "hf 14a reader",
+-                  "Reader for ISO 14443A based tags",
++                  "Act as a ISO-14443a reader to identify tag. Look for ISO-14443a tags until Enter or the pm3 button is pressed",
+                   "hf 14a reader -@   -> Continuous mode");
+ 
+     void *argtable[] = {
+diff --git a/client/src/cmdhffelica.c b/client/src/cmdhffelica.c
+index 02efb2e30..70999787a 100644
+--- a/client/src/cmdhffelica.c
++++ b/client/src/cmdhffelica.c
+@@ -119,14 +119,13 @@ static void print_service_code_list_constraints(void) {
+ /*
+ static int usage_hf_felica_sim(void) {
+     PrintAndLogEx(INFO, "\n Emulating ISO/18092 FeliCa tag \n");
+-    PrintAndLogEx(INFO, "Usage: hf felica sim [h] t <type> [v]");
++    PrintAndLogEx(INFO, "Usage: hf felica sim -t <type> [-v]");
+     PrintAndLogEx(INFO, "Options:");
+-    PrintAndLogEx(INFO, "    h     : This help");
+     PrintAndLogEx(INFO, "    t     : 1 = FeliCa");
+     PrintAndLogEx(INFO, "          : 2 = FeliCaLiteS");
+     PrintAndLogEx(INFO, "    v     : (Optional) Verbose");
+     PrintAndLogEx(INFO, "Examples:");
+-    PrintAndLogEx(INFO, "          hf felica sim t 1 ");
++    PrintAndLogEx(INFO, "          hf felica sim -t 1");
+     return PM3_SUCCESS;
  }
+ */
+@@ -259,7 +258,7 @@ int read_felica_uid(bool loop, bool verbose) {
+ static int CmdHFFelicaReader(const char *Cmd) {
+     CLIParserContext *ctx;
+     CLIParserInit(&ctx, "hf felica reader",
+-                  "Reader for FeliCa based tags",
++                  "Act as a ISO 18092 / FeliCa reader. Look for FeliCa tags until Enter or the pm3 button is pressed",
+                   "hf felica reader -@    -> Continuous mode");
  
- static int handler_desfire_readdata(mfdes_data_t *data, MFDES_FILE_TYPE_T type, uint8_t cs) {
--    if (data->fileno > 0x1F) return PM3_EINVARG;
--    sAPDU apdu = {0x90, MFDES_READ_DATA, 0x00, 0x00, 1 + 3 + 3, (uint8_t *)data}; // 0xBD
--    if (type == MFDES_RECORD_FILE) apdu.INS = MFDES_READ_RECORDS; //0xBB
-+    if (data->fileno > 0x1F) {
-+        return PM3_EINVARG;
-+    }
- 
--    uint16_t sw = 0;
--    uint32_t resplen = 0;
-+    sAPDU apdu = {0x90, MFDES_READ_DATA, 0x00, 0x00, 1 + 3 + 3, (uint8_t *)data}; // 0xBD
-+    if (type == MFDES_RECORD_FILE) {
-+        apdu.INS = MFDES_READ_RECORDS; //0xBB
-+    } 
- 
-     // we need the CMD 0xBD <data> to calc the CMAC
-     uint8_t tmp_data[8]; // Since the APDU is hardcoded to 7 bytes of payload 7+1 = 8 is enough.
--    tmp_data[0] = 0xBD;
-+    tmp_data[0] = apdu.INS;
-     memcpy(&tmp_data[1], data, 7);
- 
-     // size_t plen = apdu.Lc;
-@@ -1926,6 +1928,8 @@ static int handler_desfire_readdata(mfdes_data_t *data, MFDES_FILE_TYPE_T type,
-     apdu.Lc =  7;
-     apdu.data = (uint8_t *)data;
- 
-+    uint16_t sw = 0;
-+    uint32_t resplen = 0;
-     int res = send_desfire_cmd(&apdu, false, data->data, &resplen, &sw, 0, true);
-     if (res != PM3_SUCCESS) {
-         PrintAndLogEx(WARNING, _RED_("   Can't read data -> %s"), GetErrorString(res, &sw));
+     void *argtable[] = {
