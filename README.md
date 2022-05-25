@@ -1,467 +1,223 @@
-commit e550f8ccc85b745e3961a096b5e3a602adaa5034
+commit b3731c60030e3266598eb02f4c56ca011538a30f
 Author: iceman1001 <iceman@iuse.se>
-Date:   Thu Jan 6 15:40:11 2022 +0100
+Date:   Thu Jan 6 18:18:48 2022 +0100
 
-    cppcheck fixes for const
+    cppcheck fixes
 
-diff --git a/armsrc/iso14443a.c b/armsrc/iso14443a.c
-index 7fb0b4b0c..e2f2cf585 100644
---- a/armsrc/iso14443a.c
-+++ b/armsrc/iso14443a.c
-@@ -801,7 +801,7 @@ void RAMFUNC SniffIso14443a(uint8_t param) {
- //-----------------------------------------------------------------------------
- // Prepare tag messages
- //-----------------------------------------------------------------------------
--static void CodeIso14443aAsTagPar(const uint8_t *cmd, uint16_t len, uint8_t *par, bool collision) {
-+static void CodeIso14443aAsTagPar(const uint8_t *cmd, uint16_t len, const uint8_t *par, bool collision) {
- 
-     tosend_reset();
- 
-@@ -2047,7 +2047,7 @@ int EmGetCmd(uint8_t *received, uint16_t *len, uint8_t *par) {
+diff --git a/armsrc/nprintf.c b/armsrc/nprintf.c
+index d60140d8c..458bfd8dd 100644
+--- a/armsrc/nprintf.c
++++ b/armsrc/nprintf.c
+@@ -354,11 +354,15 @@ static size_t _ftoa(out_fct_type out, char *buffer, size_t idx, size_t maxlen, d
+         prec = PRINTF_DEFAULT_FLOAT_PRECISION;
      }
- }
+     // limit precision to 9, cause a prec >= 10 can lead to overflow errors
+-    while ((len < PRINTF_FTOA_BUFFER_SIZE) && (prec > 9U)) {
++    while ((len < PRINTF_FTOA_BUFFER_SIZE)) {
+         buf[len++] = '0';
+         prec--;
+     }
  
--int EmSendCmd14443aRaw(uint8_t *resp, uint16_t respLen) {
-+int EmSendCmd14443aRaw(const uint8_t *resp, uint16_t respLen) {
-     volatile uint8_t b;
-     uint16_t i = 0;
-     uint32_t ThisTransferTime;
-@@ -2412,7 +2412,7 @@ void iso14443a_antifuzz(uint32_t flags) {
-     BigBuf_free_keep_EM();
- }
- 
--static void iso14a_set_ATS_times(uint8_t *ats) {
-+static void iso14a_set_ATS_times(const uint8_t *ats) {
- 
-     if (ats[0] > 1) {                           // there is a format byte T0
-         if ((ats[1] & 0x20) == 0x20) {          // there is an interface byte TB(1)
-diff --git a/armsrc/iso14443a.h b/armsrc/iso14443a.h
-index 58664201a..a90e88dcc 100644
---- a/armsrc/iso14443a.h
-+++ b/armsrc/iso14443a.h
-@@ -154,7 +154,7 @@ int iso14443a_select_cardEx(uint8_t *uid_ptr, iso14a_card_select_t *p_card, uint
- int iso14443a_fast_select_card(uint8_t *uid_ptr, uint8_t num_cascades);
- void iso14a_set_trigger(bool enable);
- 
--int EmSendCmd14443aRaw(uint8_t *resp, uint16_t respLen);
-+int EmSendCmd14443aRaw(const uint8_t *resp, uint16_t respLen);
- int EmSend4bit(uint8_t resp);
- int EmSendCmd(uint8_t *resp, uint16_t respLen);
- int EmSendCmdEx(uint8_t *resp, uint16_t respLen, bool collision);
-diff --git a/armsrc/iso14443b.c b/armsrc/iso14443b.c
-index 8ad7b87d0..f6304fcb5 100644
---- a/armsrc/iso14443b.c
-+++ b/armsrc/iso14443b.c
-@@ -678,7 +678,7 @@ static int GetIso14443bCommandFromReader(uint8_t *received, uint16_t *len) {
-     return false;
- }
- 
--static void TransmitFor14443b_AsTag(uint8_t *response, uint16_t len) {
-+static void TransmitFor14443b_AsTag(const uint8_t *response, uint16_t len) {
- 
-     // Signal field is off with the appropriate LED
-     LED_D_OFF();
-diff --git a/armsrc/iso15693.c b/armsrc/iso15693.c
-index a09415f76..77c67c3cf 100644
---- a/armsrc/iso15693.c
-+++ b/armsrc/iso15693.c
-@@ -140,7 +140,7 @@ static uint8_t encode15_lut[] = {
-     0x01  // 00000001
- };
- 
--void CodeIso15693AsReader(uint8_t *cmd, int n) {
-+void CodeIso15693AsReader(const uint8_t *cmd, int n) {
- 
-     tosend_reset();
-     tosend_t *ts = get_tosend();
-@@ -181,7 +181,7 @@ static void CodeIso15693AsReaderEOF(void) {
- // encode data using "1 out of 256" scheme
- // data rate is 1,66 kbit/s (fc/8192)
- // is designed for more robust communication over longer distances
--static void CodeIso15693AsReader256(uint8_t *cmd, int n) {
-+static void CodeIso15693AsReader256(const uint8_t *cmd, int n) {
- 
-     tosend_reset();
-     tosend_t *ts = get_tosend();
-@@ -218,7 +218,7 @@ static const uint8_t encode_4bits[16] = {
-     0xa5, 0x65, 0x95, 0x55
- };
- 
--void CodeIso15693AsTag(uint8_t *cmd, size_t len) {
-+void CodeIso15693AsTag(const uint8_t *cmd, size_t len) {
-     /*
-      * SOF comprises 3 parts;
-      * * An unmodulated time of 56.64 us
-@@ -2094,7 +2094,7 @@ void LockPassSlixIso15693(uint32_t pass_id, uint32_t password) {
- //-----------------------------------------------------------------------------
- 
- // Set the UID on Magic ISO15693 tag (based on Iceman's LUA-script).
--void SetTag15693Uid(uint8_t *uid) {
-+void SetTag15693Uid(const uint8_t *uid) {
- 
-     LED_A_ON();
- 
-@@ -2135,7 +2135,7 @@ void SetTag15693Uid(uint8_t *uid) {
-     switch_off();
- }
- 
--static void init_password_15693_slixl(uint8_t *buffer, uint8_t *pwd, uint8_t *rnd) {
-+static void init_password_15693_slixl(uint8_t *buffer, uint8_t *pwd, const uint8_t *rnd) {
-     memcpy(buffer, pwd, 4);
-     if (rnd) {
-         buffer[0] ^= rnd[0];
-diff --git a/armsrc/iso15693.h b/armsrc/iso15693.h
-index 1b6c96977..b4f634fff 100644
---- a/armsrc/iso15693.h
-+++ b/armsrc/iso15693.h
-@@ -35,8 +35,8 @@
- 
- void Iso15693InitReader(void);
- void Iso15693InitTag(void);
--void CodeIso15693AsReader(uint8_t *cmd, int n);
--void CodeIso15693AsTag(uint8_t *cmd, size_t len);
-+void CodeIso15693AsReader(const uint8_t *cmd, int n);
-+void CodeIso15693AsTag(const uint8_t *cmd, size_t len);
- 
- void TransmitTo15693Reader(const uint8_t *cmd, size_t len, uint32_t *start_time, uint32_t slot_time, bool slow);
- int GetIso15693CommandFromReader(uint8_t *received, size_t max_len, uint32_t *eof_time);
-@@ -57,7 +57,7 @@ int SendDataTag(uint8_t *send, int sendlen, bool init, bool speed_fast, uint8_t
- 
- int SendDataTagEOF(uint8_t *recv, uint16_t max_recv_len, uint32_t start_time, uint16_t timeout, uint32_t *eof_time);
- 
--void SetTag15693Uid(uint8_t *uid);
-+void SetTag15693Uid(const uint8_t *uid);
- 
- void DisablePrivacySlixLIso15693(uint8_t *password);
- #endif
-diff --git a/armsrc/lfops.c b/armsrc/lfops.c
-index d19e61d65..52e3f8db6 100644
---- a/armsrc/lfops.c
-+++ b/armsrc/lfops.c
-@@ -403,7 +403,9 @@ static bool prev_keep = false;
-  * @param period_1
-  * @param command (in binary char array)
-  */
--void ModThenAcquireRawAdcSamples125k(uint32_t delay_off, uint16_t period_0, uint16_t period_1, uint8_t *symbol_extra, uint16_t *period_extra, uint8_t *command, bool verbose, bool keep_field_on, uint32_t samples, bool ledcontrol) {
-+void ModThenAcquireRawAdcSamples125k(uint32_t delay_off, uint16_t period_0, uint16_t period_1, 
-+                   const uint8_t *symbol_extra, uint16_t *period_extra, uint8_t *command,
-+                   bool verbose, bool keep_field_on, uint32_t samples, bool ledcontrol) {
- 
-     if (!prev_keep) {
-         FpgaDownloadAndGo(FPGA_BITSTREAM_LF);
-@@ -1104,7 +1106,8 @@ static void leadingZeroBiphaseSimBits(int *n, uint8_t clock, uint8_t *phase) {
- 
- 
- // args clock, ask/man or askraw, invert, transmission separator
--void CmdASKsimTAG(uint8_t encoding, uint8_t invert, uint8_t separator, uint8_t clk, uint16_t size, uint8_t *bits, bool ledcontrol) {
-+void CmdASKsimTAG(uint8_t encoding, uint8_t invert, uint8_t separator, uint8_t clk,
-+                  uint16_t size, const uint8_t *bits, bool ledcontrol) {
-     FpgaDownloadAndGo(FPGA_BITSTREAM_LF);
-     set_tracing(false);
- 
-@@ -1184,7 +1187,8 @@ static void pskSimBit(uint8_t waveLen, int *n, uint8_t clk, uint8_t *curPhase, b
- }
- 
- // args clock, carrier, invert,
--void CmdPSKsimTAG(uint8_t carrier, uint8_t invert, uint8_t clk, uint16_t size, uint8_t *bits, bool ledcontrol) {
-+void CmdPSKsimTAG(uint8_t carrier, uint8_t invert, uint8_t clk, uint16_t size,
-+                  const uint8_t *bits, bool ledcontrol) {
-     FpgaDownloadAndGo(FPGA_BITSTREAM_LF);
-     set_tracing(false);
- 
-@@ -1218,7 +1222,8 @@ static void nrzSimBit(uint8_t c, int *n, uint8_t clock) {
- }
- 
- // args clock,
--void CmdNRZsimTAG(uint8_t invert, uint8_t separator, uint8_t clk, uint16_t size, uint8_t *bits, bool ledcontrol) {
-+void CmdNRZsimTAG(uint8_t invert, uint8_t separator, uint8_t clk, uint16_t size,
-+                  const uint8_t *bits, bool ledcontrol) {
- 
-     FpgaDownloadAndGo(FPGA_BITSTREAM_LF);
-     set_tracing(false);
-@@ -2219,7 +2224,7 @@ void T55xxWakeUp(uint32_t pwd, uint8_t flags, bool ledcontrol) {
- }
- 
- /*-------------- Cloning routines -----------*/
--static void WriteT55xx(uint32_t *blockdata, uint8_t startblock, uint8_t numblocks, bool ledcontrol) {
-+static void WriteT55xx(const uint32_t *blockdata, uint8_t startblock, uint8_t numblocks, bool ledcontrol) {
-     t55xx_write_block_t cmd;
-     cmd.pwd     = 0;
-     cmd.flags   = 0;
-diff --git a/armsrc/lfops.h b/armsrc/lfops.h
-index 0d6b7e342..494b59623 100644
---- a/armsrc/lfops.h
-+++ b/armsrc/lfops.h
-@@ -21,7 +21,10 @@
- 
- #include "pm3_cmd.h" // struct
- 
--void ModThenAcquireRawAdcSamples125k(uint32_t delay_off, uint16_t period_0, uint16_t period_1, uint8_t *symbol_extra, uint16_t *period_extra, uint8_t *command, bool verbose, bool keep_field_on, uint32_t samples, bool ledcontrol);
-+void ModThenAcquireRawAdcSamples125k(uint32_t delay_off, uint16_t period_0, uint16_t period_1, 
-+                   const uint8_t *symbol_extra, uint16_t *period_extra, uint8_t *command, bool verbose, 
-+                   bool keep_field_on, uint32_t samples, bool ledcontrol);
++    if (prec > 9U) {
++        prec = 9U;
++    }
 +
- void ReadTItag(bool ledcontrol);
- void WriteTItag(uint32_t idhi, uint32_t idlo, uint16_t crc, bool ledcontrol);
+     int whole = (int)value;
+     double tmp = (value - whole) * pow10[prec];
+     unsigned long frac = (unsigned long)tmp;
+@@ -379,7 +383,7 @@ static size_t _ftoa(out_fct_type out, char *buffer, size_t idx, size_t maxlen, d
  
-@@ -34,11 +37,16 @@ void SimulateTagLowFrequencyBidir(int divisor, int max_bitlen);
- void CmdHIDsimTAGEx(uint32_t hi2, uint32_t hi, uint32_t lo, uint8_t longFMT, bool ledcontrol, int numcycles);
- void CmdHIDsimTAG(uint32_t hi2, uint32_t hi, uint32_t lo, uint8_t longFMT, bool ledcontrol);
+     if (prec == 0U) {
+         diff = value - (double)whole;
+-        if ((!(diff < 0.5) || (diff > 0.5)) && (whole & 1)) {
++        if (((diff < 0.5) == false) || (whole & 1)) {
+             // exactly 0.5 and ODD, then round up
+             // 1.5 -> 2, but 2.5 -> 2
+             ++whole;
+diff --git a/client/deps/cliparser/cliparser.c b/client/deps/cliparser/cliparser.c
+index cae61a9e8..77db942a1 100644
+--- a/client/deps/cliparser/cliparser.c
++++ b/client/deps/cliparser/cliparser.c
+@@ -219,10 +219,7 @@ int CLIParamHexToBuf(struct arg_str *argstr, uint8_t *data, int maxdatalen, int
+     // concat all strings in argstr into tmpstr[]
+     //
+     int res = CLIParamStrToBuf(argstr, tmpstr, sizeof(tmpstr), &tmplen);
+-    if (res) {
+-        return res;
+-    }
+-    if (tmplen == 0) {
++    if (res || (tmplen == 0)) {
+         return res;
+     }
  
--void CmdFSKsimTAGEx(uint8_t fchigh, uint8_t fclow, uint8_t separator, uint8_t clk, uint16_t bitslen, uint8_t *bits, bool ledcontrol, int numcycles);
--void CmdFSKsimTAG(uint8_t fchigh, uint8_t fclow, uint8_t separator, uint8_t clk, uint16_t bitslen, uint8_t *bits, bool ledcontrol);
--void CmdASKsimTAG(uint8_t encoding, uint8_t invert, uint8_t separator, uint8_t clk, uint16_t size, uint8_t *bits, bool ledcontrol);
--void CmdPSKsimTAG(uint8_t carrier, uint8_t invert, uint8_t clk, uint16_t size, uint8_t *bits, bool ledcontrol);
--void CmdNRZsimTAG(uint8_t invert, uint8_t separator, uint8_t clk, uint16_t size, uint8_t *bits, bool ledcontrol);
-+void CmdFSKsimTAGEx(uint8_t fchigh, uint8_t fclow, uint8_t separator, uint8_t clk, uint16_t bitslen,
-+                  uint8_t *bits, bool ledcontrol, int numcycles);
-+void CmdFSKsimTAG(uint8_t fchigh, uint8_t fclow, uint8_t separator, uint8_t clk, uint16_t bitslen, 
-+                  uint8_t *bits, bool ledcontrol);
-+void CmdASKsimTAG(uint8_t encoding, uint8_t invert, uint8_t separator, uint8_t clk, uint16_t size,
-+                  const uint8_t *bits, bool ledcontrol);
-+void CmdPSKsimTAG(uint8_t carrier, uint8_t invert, uint8_t clk, uint16_t size,
-+                  const uint8_t *bits, bool ledcontrol);
-+void CmdNRZsimTAG(uint8_t invert, uint8_t separator, uint8_t clk, uint16_t size,
-+                  const uint8_t *bits, bool ledcontrol);
+diff --git a/client/deps/hardnested/hardnested_bf_core.c b/client/deps/hardnested/hardnested_bf_core.c
+index 0f9eb3da8..3609f1938 100644
+--- a/client/deps/hardnested/hardnested_bf_core.c
++++ b/client/deps/hardnested/hardnested_bf_core.c
+@@ -124,7 +124,7 @@ typedef union {
+ #endif
  
- int lf_hid_watch(int findone, uint32_t *high, uint32_t *low, bool ledcontrol);
- int lf_awid_watch(int findone, uint32_t *high, uint32_t *low, bool ledcontrol); // Realtime demodulation mode for AWID26
-@@ -54,7 +62,8 @@ void T55xxResetRead(uint8_t flags, bool ledcontrol);
- //id T55xxWriteBlock(uint32_t data, uint8_t blockno, uint32_t pwd, uint8_t flags, bool ledcontrol);
- void T55xxWriteBlock(uint8_t *data, bool ledcontrol);
- // void T55xxWriteBlockExt(uint32_t data, uint8_t blockno, uint32_t pwd, uint8_t flags);
--void T55xxReadBlock(uint8_t page, bool pwd_mode, bool brute_mem, uint8_t block, uint32_t pwd, uint8_t downlink_mode, bool ledcontrol);
-+void T55xxReadBlock(uint8_t page, bool pwd_mode, bool brute_mem, uint8_t block, uint32_t pwd, 
-+                    uint8_t downlink_mode, bool ledcontrol);
- void T55xxWakeUp(uint32_t pwd, uint8_t flags, bool ledcontrol);
- void T55xx_ChkPwds(uint8_t flags, bool ledcontrol);
- void T55xxDangerousRawTest(uint8_t *data, bool ledcontrol);
-diff --git a/armsrc/mifarecmd.c b/armsrc/mifarecmd.c
-index 76312a702..9d3a5f759 100644
---- a/armsrc/mifarecmd.c
-+++ b/armsrc/mifarecmd.c
-@@ -663,7 +663,7 @@ void MifareUSetPwd(uint8_t arg0, uint8_t *datain) {
+ // typedefs and declaration of functions:
+-typedef uint64_t crack_states_bitsliced_t(uint32_t, uint8_t *, statelist_t *, uint32_t *, uint64_t *, uint32_t, uint8_t *, noncelist_t *);
++typedef uint64_t crack_states_bitsliced_t(uint32_t, uint8_t *, statelist_t *, uint32_t *, uint64_t *, uint32_t, const uint8_t *, noncelist_t *);
+ crack_states_bitsliced_t crack_states_bitsliced_AVX512;
+ crack_states_bitsliced_t crack_states_bitsliced_AVX2;
+ crack_states_bitsliced_t crack_states_bitsliced_AVX;
+@@ -133,7 +133,7 @@ crack_states_bitsliced_t crack_states_bitsliced_MMX;
+ crack_states_bitsliced_t crack_states_bitsliced_NOSIMD;
+ crack_states_bitsliced_t crack_states_bitsliced_dispatch;
+ 
+-typedef void bitslice_test_nonces_t(uint32_t, uint32_t *, uint8_t *);
++typedef void bitslice_test_nonces_t(uint32_t, const uint32_t *, const uint8_t *);
+ bitslice_test_nonces_t bitslice_test_nonces_AVX512;
+ bitslice_test_nonces_t bitslice_test_nonces_AVX2;
+ bitslice_test_nonces_t bitslice_test_nonces_AVX;
+@@ -174,7 +174,7 @@ static bitslice_t bs_ones;
+ static bitslice_t bs_zeroes;
+ 
+ 
+-void BITSLICE_TEST_NONCES(uint32_t nonces_to_bruteforce, uint32_t *bf_test_nonce, uint8_t *bf_test_nonce_par) {
++void BITSLICE_TEST_NONCES(uint32_t nonces_to_bruteforce, const uint32_t *bf_test_nonce, const uint8_t *bf_test_nonce_par) {
+ 
+     // initialize 1 and 0 vectors
+     memset(bs_ones.bytes, 0xff, VECTOR_SIZE);
+@@ -206,7 +206,9 @@ void BITSLICE_TEST_NONCES(uint32_t nonces_to_bruteforce, uint32_t *bf_test_nonce
  }
  
- // Return 1 if the nonce is invalid else return 0
--static int valid_nonce(uint32_t Nt, uint32_t NtEnc, uint32_t Ks1, uint8_t *parity) {
-+static int valid_nonce(uint32_t Nt, uint32_t NtEnc, uint32_t Ks1, const uint8_t *parity) {
-     return (
-                (oddparity8((Nt >> 24) & 0xFF) == ((parity[0]) ^ oddparity8((NtEnc >> 24) & 0xFF) ^ BIT(Ks1, 16))) && \
-                (oddparity8((Nt >> 16) & 0xFF) == ((parity[1]) ^ oddparity8((NtEnc >> 16) & 0xFF) ^ BIT(Ks1, 8))) && \
-@@ -1300,7 +1300,7 @@ static uint8_t chkKey_readb(struct chk_t *c, uint8_t *keyb) {
+ 
+-uint64_t CRACK_STATES_BITSLICED(uint32_t cuid, uint8_t *best_first_bytes, statelist_t *p, uint32_t *keys_found, uint64_t *num_keys_tested, uint32_t nonces_to_bruteforce, uint8_t *bf_test_nonce_2nd_byte, noncelist_t *nonces) {
++uint64_t CRACK_STATES_BITSLICED(uint32_t cuid, uint8_t *best_first_bytes, statelist_t *p, uint32_t *keys_found,
++                                uint64_t *num_keys_tested, uint32_t nonces_to_bruteforce,
++                                const uint8_t *bf_test_nonce_2nd_byte, noncelist_t *nonces) {
+ 
+     // Unlike aczid's implementation this doesn't roll back at all when performing bitsliced bruteforce.
+     // We know that the best first byte is already shifted in. Testing with the remaining three bytes of
+@@ -593,7 +595,10 @@ SIMDExecInstr GetSIMDInstrAuto(void) {
+ }
+ 
+ // determine the available instruction set at runtime and call the correct function
+-uint64_t crack_states_bitsliced_dispatch(uint32_t cuid, uint8_t *best_first_bytes, statelist_t *p, uint32_t *keys_found, uint64_t *num_keys_tested, uint32_t nonces_to_bruteforce, uint8_t *bf_test_nonce_2nd_byte, noncelist_t *nonces) {
++uint64_t crack_states_bitsliced_dispatch(uint32_t cuid, uint8_t *best_first_bytes, statelist_t *p,
++                                         uint32_t *keys_found, uint64_t *num_keys_tested, 
++                                         uint32_t nonces_to_bruteforce, const uint8_t *bf_test_nonce_2nd_byte, 
++                                         noncelist_t *nonces) {
+     switch (GetSIMDInstrAuto()) {
+ #if defined(COMPILER_HAS_SIMD_AVX512)
+         case SIMD_AVX512:
+@@ -624,7 +629,7 @@ uint64_t crack_states_bitsliced_dispatch(uint32_t cuid, uint8_t *best_first_byte
+     return (*crack_states_bitsliced_function_p)(cuid, best_first_bytes, p, keys_found, num_keys_tested, nonces_to_bruteforce, bf_test_nonce_2nd_byte, nonces);
+ }
+ 
+-void bitslice_test_nonces_dispatch(uint32_t nonces_to_bruteforce, uint32_t *bf_test_nonce, uint8_t *bf_test_nonce_par) {
++void bitslice_test_nonces_dispatch(uint32_t nonces_to_bruteforce, const uint32_t *bf_test_nonce, const uint8_t *bf_test_nonce_par) {
+     switch (GetSIMDInstrAuto()) {
+ #if defined(COMPILER_HAS_SIMD_AVX512)
+         case SIMD_AVX512:
+diff --git a/client/deps/hardnested/hardnested_bruteforce.c b/client/deps/hardnested/hardnested_bruteforce.c
+index 2aab98524..71ff09144 100644
+--- a/client/deps/hardnested/hardnested_bruteforce.c
++++ b/client/deps/hardnested/hardnested_bruteforce.c
+@@ -117,7 +117,7 @@ inline uint8_t trailing_zeros(uint8_t byte) {
+ }
+ 
+ 
+-bool verify_key(uint32_t cuid, noncelist_t *nonces, uint8_t *best_first_bytes, uint32_t odd, uint32_t even) {
++bool verify_key(uint32_t cuid, noncelist_t *nonces, const uint8_t *best_first_bytes, uint32_t odd, uint32_t even) {
+     struct Crypto1State pcs;
+     for (uint16_t test_first_byte = 1; test_first_byte < 256; test_first_byte++) {
+         noncelistentry_t *test_nonce = nonces[best_first_bytes[test_first_byte]].first;
+diff --git a/client/deps/hardnested/hardnested_bruteforce.h b/client/deps/hardnested/hardnested_bruteforce.h
+index a8e6786d5..8fe420aad 100644
+--- a/client/deps/hardnested/hardnested_bruteforce.h
++++ b/client/deps/hardnested/hardnested_bruteforce.h
+@@ -57,6 +57,6 @@ void prepare_bf_test_nonces(noncelist_t *nonces, uint8_t best_first_byte);
+ bool brute_force_bs(float *bf_rate, statelist_t *candidates, uint32_t cuid, uint32_t num_acquired_nonces, uint64_t maximum_states, noncelist_t *nonces, uint8_t *best_first_bytes, uint64_t *found_key);
+ float brute_force_benchmark(void);
+ uint8_t trailing_zeros(uint8_t byte);
+-bool verify_key(uint32_t cuid, noncelist_t *nonces, uint8_t *best_first_bytes, uint32_t odd, uint32_t even);
++bool verify_key(uint32_t cuid, noncelist_t *nonces, const uint8_t *best_first_bytes, uint32_t odd, uint32_t even);
+ 
+ #endif
+diff --git a/client/src/cipurse/cipursecrypto.c b/client/src/cipurse/cipursecrypto.c
+index 48145d60a..63519d468 100644
+--- a/client/src/cipurse/cipursecrypto.c
++++ b/client/src/cipurse/cipursecrypto.c
+@@ -86,7 +86,7 @@ static uint64_t computeNLM48(uint64_t x, uint64_t y) {
      return res;
  }
  
--static void chkKey_scanA(struct chk_t *c, struct sector_t *k_sector, uint8_t *found, uint8_t *sectorcnt, uint8_t *foundkeys) {
-+static void chkKey_scanA(struct chk_t *c, struct sector_t *k_sector, uint8_t *found, const uint8_t *sectorcnt, uint8_t *foundkeys) {
-     for (uint8_t s = 0; s < *sectorcnt; s++) {
+-static void computeNLM(uint8_t *res, uint8_t *x, uint8_t *y) {
++static void computeNLM(uint8_t *res, const uint8_t *x, const uint8_t *y) {
+     uint64_t x64 = 0;
+     uint64_t y64 = 0;
  
-         // skip already found A keys
-@@ -1318,7 +1318,7 @@ static void chkKey_scanA(struct chk_t *c, struct sector_t *k_sector, uint8_t *fo
-     }
+@@ -213,7 +213,7 @@ bool CipurseCCheckCT(CipurseContext_t *ctx, uint8_t *CT) {
+     return (memcmp(CT, ctx->CT, CIPURSE_AES_KEY_LENGTH) == 0);
  }
  
--static void chkKey_scanB(struct chk_t *c, struct sector_t *k_sector, uint8_t *found, uint8_t *sectorcnt, uint8_t *foundkeys) {
-+static void chkKey_scanB(struct chk_t *c, struct sector_t *k_sector, uint8_t *found, const uint8_t *sectorcnt, uint8_t *foundkeys) {
-     for (uint8_t s = 0; s < *sectorcnt; s++) {
+-static uint16_t CipurseCComputeMICCRC(uint8_t *data, size_t len) {
++static uint16_t CipurseCComputeMICCRC(const uint8_t *data, size_t len) {
+     uint16_t initCRC = 0x6363;
+     for (size_t i = 0; i < len; i++) {
+         uint8_t ch = data[i] ^ initCRC;
+diff --git a/client/src/cmdlfhitag.c b/client/src/cmdlfhitag.c
+index 74534b915..4723ef39e 100644
+--- a/client/src/cmdlfhitag.c
++++ b/client/src/cmdlfhitag.c
+@@ -592,6 +592,9 @@ static int CmdLFHitagReader(const char *Cmd) {
  
-         // skip already found B keys
-diff --git a/armsrc/mifareutil.c b/armsrc/mifareutil.c
-index d0da3191e..1a2fed1b4 100644
---- a/armsrc/mifareutil.c
-+++ b/armsrc/mifareutil.c
-@@ -30,7 +30,7 @@
- #include "desfire_crypto.h"
+     hitag_function htf;
+     hitag_data htd;
++    memset(&htd, 0, sizeof(htd));
++
++
+     uint16_t cmd = CMD_LF_HITAG_READER;
+     if (s01) {
+         cmd = CMD_LF_HITAGS_READ;
+@@ -778,6 +781,8 @@ static int CmdLFHitagWriter(const char *Cmd) {
  
- // crypto1 helpers
--void mf_crypto1_decryptEx(struct Crypto1State *pcs, uint8_t *data_in, int len, uint8_t *data_out) {
-+void mf_crypto1_decryptEx(struct Crypto1State *pcs, const uint8_t *data_in, int len, uint8_t *data_out) {
-     if (len != 1) {
-         for (int i = 0; i < len; i++)
-             data_out[i] = crypto1_byte(pcs, 0x00, 0) ^ data_in[i];
-@@ -53,7 +53,7 @@ void mf_crypto1_encrypt(struct Crypto1State *pcs, uint8_t *data, uint16_t len, u
-     mf_crypto1_encryptEx(pcs, data, NULL, data, len, par);
+     hitag_function htf;
+     hitag_data htd;
++    memset(&htd, 0, sizeof(htd));
++
+     if (s03) {
+         htf = WHTSF_CHALLENGE;
+         memcpy(htd.auth.NrAr, nrar, sizeof(nrar));
+@@ -881,10 +886,10 @@ static int CmdLFHitag2Dump(const char *Cmd) {
+ 
+ 
+ // Annotate HITAG protocol
+-void annotateHitag1(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize, bool is_response) {
++void annotateHitag1(char *exp, size_t size, const uint8_t *cmd, uint8_t cmdsize, bool is_response) {
  }
  
--void mf_crypto1_encryptEx(struct Crypto1State *pcs, uint8_t *data_in, uint8_t *keystream, uint8_t *data_out, uint16_t len, uint8_t *par) {
-+void mf_crypto1_encryptEx(struct Crypto1State *pcs, const uint8_t *data_in, uint8_t *keystream, uint8_t *data_out, uint16_t len, uint8_t *par) {
-     int i;
-     par[0] = 0;
+-void annotateHitag2(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize, bool is_response) {
++void annotateHitag2(char *exp, size_t size, const uint8_t *cmd, uint8_t cmdsize, bool is_response) {
  
-diff --git a/armsrc/mifareutil.h b/armsrc/mifareutil.h
-index dddb76c98..bb1360b0e 100644
---- a/armsrc/mifareutil.h
-+++ b/armsrc/mifareutil.h
-@@ -93,9 +93,10 @@ int mifare_desfire_des_auth2(uint32_t uid, uint8_t *key, uint8_t *blockData);
- 
- // crypto functions
- void mf_crypto1_decrypt(struct Crypto1State *pcs, uint8_t *data, int len);
--void mf_crypto1_decryptEx(struct Crypto1State *pcs, uint8_t *data_in, int len, uint8_t *data_out);
-+void mf_crypto1_decryptEx(struct Crypto1State *pcs, const uint8_t *data_in, int len, uint8_t *data_out);
- void mf_crypto1_encrypt(struct Crypto1State *pcs, uint8_t *data, uint16_t len, uint8_t *par);
--void mf_crypto1_encryptEx(struct Crypto1State *pcs, uint8_t *data_in, uint8_t *keystream, uint8_t *data_out, uint16_t len, uint8_t *par);
-+void mf_crypto1_encryptEx(struct Crypto1State *pcs, const uint8_t *data_in, uint8_t *keystream,
-+                          uint8_t *data_out, uint16_t len, uint8_t *par);
- uint8_t mf_crypto1_encrypt4bit(struct Crypto1State *pcs, uint8_t data);
- 
- // Mifare memory structure
-diff --git a/armsrc/optimized_cipher.c b/armsrc/optimized_cipher.c
-index bbe9f62ea..68b36af85 100644
---- a/armsrc/optimized_cipher.c
-+++ b/armsrc/optimized_cipher.c
-@@ -172,7 +172,7 @@ static void opt_successor(const uint8_t *k, State_t *s, uint8_t y) {
-     s->l = s->r + r;
+     // iceman: live decrypt of trace?
+     if (is_response) {
+@@ -935,7 +940,7 @@ void annotateHitag2(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize, bool
  }
  
--static void opt_suc(const uint8_t *k, State_t *s, uint8_t *in, uint8_t length, bool add32Zeroes) {
-+static void opt_suc(const uint8_t *k, State_t *s, const uint8_t *in, uint8_t length, bool add32Zeroes) {
-     for (int i = 0; i < length; i++) {
-         uint8_t head;
-         head = in[i];
-diff --git a/armsrc/optimized_elite.c b/armsrc/optimized_elite.c
-index 7d9e752c9..3e9e1608a 100644
---- a/armsrc/optimized_elite.c
-+++ b/armsrc/optimized_elite.c
-@@ -60,7 +60,7 @@
-  * @param key
-  * @param dest
-  */
--void permutekey(uint8_t key[8], uint8_t dest[8]) {
-+void permutekey(const uint8_t key[8], uint8_t dest[8]) {
-     int i;
-     for (i = 0 ; i < 8 ; i++) {
-         dest[i] = (((key[7] & (0x80 >> i)) >> (7 - i)) << 7) |
-@@ -79,7 +79,7 @@ void permutekey(uint8_t key[8], uint8_t dest[8]) {
-  * @param key
-  * @param dest
-  */
--void permutekey_rev(uint8_t key[8], uint8_t dest[8]) {
-+void permutekey_rev(const uint8_t key[8], uint8_t dest[8]) {
-     int i;
-     for (i = 0 ; i < 8 ; i++) {
-         dest[7 - i] = (((key[0] & (0x80 >> i)) >> (7 - i)) << 7) |
-@@ -129,7 +129,7 @@ static uint8_t swap(uint8_t val) {
-  * @param csn the CSN used
-  * @param k output
-  */
--void hash1(uint8_t csn[], uint8_t k[]) {
-+void hash1(const uint8_t csn[], uint8_t k[]) {
-     k[0] = csn[0] ^ csn[1] ^ csn[2] ^ csn[3] ^ csn[4] ^ csn[5] ^ csn[6] ^ csn[7];
-     k[1] = csn[0] + csn[1] + csn[2] + csn[3] + csn[4] + csn[5] + csn[6] + csn[7];
-     k[2] = rr(swap(csn[2] + k[1]));
-diff --git a/armsrc/optimized_elite.h b/armsrc/optimized_elite.h
-index f11cb8f2d..f921e832a 100644
---- a/armsrc/optimized_elite.h
-+++ b/armsrc/optimized_elite.h
-@@ -37,21 +37,21 @@
- #include <stdint.h>
- #include <stdlib.h>
  
--void permutekey(uint8_t key[8], uint8_t dest[8]);
-+void permutekey(const uint8_t key[8], uint8_t dest[8]);
- /**
-  * Permutes  a key from iclass specific format to NIST format
-  * @brief permutekey_rev
-  * @param key
-  * @param dest
-  */
--void permutekey_rev(uint8_t key[8], uint8_t dest[8]);
-+void permutekey_rev(const uint8_t key[8], uint8_t dest[8]);
- /**
-  * Hash1 takes CSN as input, and determines what bytes in the keytable will be used
-  * when constructing the K_sel.
-  * @param csn the CSN used
-  * @param k output
-  */
--void hash1(uint8_t *csn, uint8_t *k);
-+void hash1(const uint8_t *csn, uint8_t *k);
- void hash2(uint8_t *key64, uint8_t *outp_keytable);
+-void annotateHitagS(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize, bool is_response) {
++void annotateHitagS(char *exp, size_t size, const uint8_t *cmd, uint8_t cmdsize, bool is_response) {
+ }
  
+ static command_t CommandTable[] = {
+diff --git a/client/src/cmdlfhitag.h b/client/src/cmdlfhitag.h
+index 7f92285e8..5059557de 100644
+--- a/client/src/cmdlfhitag.h
++++ b/client/src/cmdlfhitag.h
+@@ -16,8 +16,8 @@
+ int CmdLFHitag(const char *Cmd);
+ 
+ int readHitagUid(void);
+-void annotateHitag1(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize, bool is_response);
+-void annotateHitag2(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize, bool is_response);
+-void annotateHitagS(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize, bool is_response);
++void annotateHitag1(char *exp, size_t size, const uint8_t *cmd, uint8_t cmdsize, bool is_response);
++void annotateHitag2(char *exp, size_t size, const uint8_t *cmd, uint8_t cmdsize, bool is_response);
++void annotateHitagS(char *exp, size_t size, const uint8_t *cmd, uint8_t cmdsize, bool is_response);
+ uint8_t hitag1_CRC_check(uint8_t *d, uint32_t nbit);
  #endif
-diff --git a/armsrc/pcf7931.c b/armsrc/pcf7931.c
-index 68d660377..f0da7be87 100644
---- a/armsrc/pcf7931.c
-+++ b/armsrc/pcf7931.c
-@@ -180,7 +180,7 @@ bool IsBlock0PCF7931(uint8_t *block) {
-     return false;
- }
- 
--bool IsBlock1PCF7931(uint8_t *block) {
-+bool IsBlock1PCF7931(const uint8_t *block) {
-     // assuming all RFU bits are set to 0
- 
-     uint8_t rb1 = block[14] & 0x80;
-@@ -472,7 +472,7 @@ void WritePCF7931(uint8_t pass1, uint8_t pass2, uint8_t pass3, uint8_t pass4, ui
-  * @param tab : array of the data frame
-  */
- 
--void SendCmdPCF7931(uint32_t *tab, bool ledcontrol) {
-+void SendCmdPCF7931(const uint32_t *tab, bool ledcontrol) {
-     uint16_t u = 0, tempo = 0;
- 
-     if (g_dbglevel >= DBG_INFO) {
-diff --git a/armsrc/pcf7931.h b/armsrc/pcf7931.h
-index 18bd928b6..3be9ea5be 100644
---- a/armsrc/pcf7931.h
-+++ b/armsrc/pcf7931.h
-@@ -20,9 +20,9 @@
- 
- size_t DemodPCF7931(uint8_t **outBlocks, bool ledcontrol);
- bool IsBlock0PCF7931(uint8_t *block);
--bool IsBlock1PCF7931(uint8_t *block);
-+bool IsBlock1PCF7931(const uint8_t *block);
- void ReadPCF7931(bool ledcontrol);
--void SendCmdPCF7931(uint32_t *tab, bool ledcontrol);
-+void SendCmdPCF7931(const uint32_t *tab, bool ledcontrol);
- bool AddBytePCF7931(uint8_t byte, uint32_t *tab, int32_t l, int32_t p);
- bool AddBitPCF7931(bool b, uint32_t *tab, int32_t l, int32_t p);
- bool AddPatternPCF7931(uint32_t a, uint32_t b, uint32_t c, uint32_t *tab);
-diff --git a/armsrc/thinfilm.c b/armsrc/thinfilm.c
-index 96cbeafe5..82db7c7cb 100644
---- a/armsrc/thinfilm.c
-+++ b/armsrc/thinfilm.c
-@@ -78,7 +78,7 @@ static void CodeThinfilmAsTag(const uint8_t *cmd, uint16_t len) {
-     ts->max++;
- }
- 
--static int EmSendCmdThinfilmRaw(uint8_t *resp, uint16_t respLen) {
-+static int EmSendCmdThinfilmRaw(const uint8_t *resp, uint16_t respLen) {
-     volatile uint8_t b;
-     uint16_t i = 0;
-     uint32_t ThisTransferTime;
-diff --git a/armsrc/wiegand.c b/armsrc/wiegand.c
-index 506d43ded..4de79b8ac 100644
---- a/armsrc/wiegand.c
-+++ b/armsrc/wiegand.c
-@@ -25,7 +25,7 @@
- * @param type     use the defined values  EVEN|ODD
- * @return parity bit required to match type
- */
--uint8_t getParity(uint8_t *bits, uint8_t len, uint8_t type) {
-+uint8_t getParity(const uint8_t *bits, uint8_t len, uint8_t type) {
-     uint8_t x = 0;
-     for (; len > 0; --len)
-         x += bits[len - 1];
-@@ -89,7 +89,7 @@ size_t removeParity(uint8_t *bits, size_t startIdx, uint8_t pLen, uint8_t pType,
- * @param pType      EVEN|ODD|2 (always 1's)|3 (always 0's)
- * @return
- */
--size_t addParity(uint8_t *src, uint8_t *dest, uint8_t sourceLen, uint8_t pLen, uint8_t pType) {
-+size_t addParity(const uint8_t *src, uint8_t *dest, uint8_t sourceLen, uint8_t pLen, uint8_t pType) {
-     uint32_t parityWd = 0;
-     size_t j = 0, bitCnt = 0;
-     for (int word = 0; word < sourceLen; word += pLen - 1) {
-diff --git a/armsrc/wiegand.h b/armsrc/wiegand.h
-index 5001bf715..1c92b2ea6 100644
---- a/armsrc/wiegand.h
-+++ b/armsrc/wiegand.h
-@@ -21,7 +21,7 @@
- 
- #include "common.h"
- 
--uint8_t getParity(uint8_t *bits, uint8_t len, uint8_t type);
-+uint8_t getParity(const uint8_t *bits, uint8_t len, uint8_t type);
- uint8_t checkParity(uint32_t bits, uint8_t len, uint8_t type);
- 
- void num_to_wiegand_bytes(uint64_t oem, uint64_t fc, uint64_t cn, uint8_t *dest, uint8_t formatlen);
