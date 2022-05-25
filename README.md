@@ -1,54 +1,26 @@
-commit 41c755e12b61ffca55c0df0c9f1fd0dc805da693
+commit 7bfc3d8f58de5bfeec67016c1ef388e7c178bbcd
 Author: iceman1001 <iceman@iuse.se>
-Date:   Tue Jun 15 11:38:06 2021 +0200
+Date:   Tue Jun 15 11:38:59 2021 +0200
 
-    some lua colors
+    fix spiffs comms
 
-diff --git a/client/luascripts/hf_mfu_magicwrite.lua b/client/luascripts/hf_mfu_magicwrite.lua
-index c01f043fe..199aec7c0 100644
---- a/client/luascripts/hf_mfu_magicwrite.lua
-+++ b/client/luascripts/hf_mfu_magicwrite.lua
-@@ -12,29 +12,30 @@ local err_lock = 'use -k or change cfg0 block'
+diff --git a/client/src/scripting.c b/client/src/scripting.c
+index 37769bffe..0184c78a5 100644
+--- a/client/src/scripting.c
++++ b/client/src/scripting.c
+@@ -342,12 +342,12 @@ static int l_GetFromFlashMemSpiffs(lua_State *L) {
+         return returnToLuaWithError(L, "Filename missing or invalid");
  
- copyright = 'Copyright (c) 2017 IceSQL AB. All rights reserved.'
- author = 'Christian Herrmann'
--version = 'v1.1.3'
-+version = 'v1.1.4'
- desc = 'This script enables easy programming of a MAGIC NTAG 21* card'
- example = [[
--    -- wipe tag
--    script run hf_mfu_magicwrite -w
--
--    -- wipe a locked down tag by giving the password
--    script run hf_mfu_magicwrite -k ffffffff -w
--
--    --read magic tag configuration
--    script run hf_mfu_magicwrite -c
-+    -- read magic tag configuration
-+    ]]..ansicolors.yellow..[[script run hf_mfu_magicwrite -c  ]]..ansicolors.reset..[[ 
+     // get size from spiffs itself !
+-    SendCommandMIX(CMD_SPIFFS_STAT, 0, 0, 0, (uint8_t *)destfilename, 32);
++    SendCommandNG(CMD_SPIFFS_STAT, (uint8_t *)destfilename, 32);
+     PacketResponseNG resp;
+-    if (!WaitForResponseTimeout(CMD_ACK, &resp, 2000))
++    if (!WaitForResponseTimeout(CMD_SPIFFS_STAT, &resp, 2000))
+         return returnToLuaWithError(L, "No response from the device");
  
-     -- set uid
--    script run hf_mfu_magicwrite -u 04112233445566
-+    ]]..ansicolors.yellow..[[script run hf_mfu_magicwrite -u 04112233445566 ]]..ansicolors.reset..[[ 
+-    len = resp.oldarg[0];
++    len = resp.data.asDwords[0];
  
-     -- set pwd / pack
--    script run hf_mfu_magicwrite -p 11223344 -a 8080
-+    ]]..ansicolors.yellow..[[script run hf_mfu_magicwrite -p 11223344 -a 8080 ]]..ansicolors.reset..[[ 
- 
-     -- set version to NTAG213
--    script run hf_mfu_magicwrite -v 0004040201000f03
-+    ]]..ansicolors.yellow..[[script run hf_mfu_magicwrite -v 0004040201000f03 ]]..ansicolors.reset..[[ 
- 
-     -- set signature
--    script run hf_mfu_magicwrite -s 1122334455667788990011223344556677889900112233445566778899001122
-+    ]]..ansicolors.yellow..[[script run hf_mfu_magicwrite -s 1122334455667788990011223344556677889900112233445566778899001122 ]]..ansicolors.reset..[[ 
-+
-+    -- wipe tag
-+    ]]..ansicolors.yellow..[[script run hf_mfu_magicwrite -w ]]..ansicolors.reset..[[ 
-+
-+    -- wipe a locked down tag by giving the password
-+    ]]..ansicolors.yellow..[[script run hf_mfu_magicwrite -k ffffffff -w ]]..ansicolors.reset..[[ 
-+
- ]]
- usage = [[
- script run hf_mfu_easywrite -h -k <passwd> -c -w -u <uid> -t <type> -p <passwd> -a <pack> -s <signature> -o <otp> -v <version>
+     if (len == 0)
+         return returnToLuaWithError(L, "Filename invalid or empty");
