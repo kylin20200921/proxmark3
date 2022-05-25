@@ -1,19 +1,9 @@
-commit f63bc96980679716dabe23d36d8234334573f3da
-Author: iceman1001 <iceman@iuse.se>
-Date:   Thu May 20 11:34:56 2021 +0200
+commit 10f27f7b888732228e47ee4ca63024ce3001dae8
+Merge: 9a00ad023 00d0fd006
+Author: Iceman <iceman@iuse.se>
+Date:   Fri May 21 11:40:12 2021 +0200
 
-    seems cppchecker cant make up its mind
+    Merge pull request #1280 from c0decave/c0decave-requirements-docu-changes-btaddon
+    
+    C0decave requirements docu changes btaddon
 
-diff --git a/client/src/cmdhficlass.c b/client/src/cmdhficlass.c
-index dc4d16a33..08c4e9360 100644
---- a/client/src/cmdhficlass.c
-+++ b/client/src/cmdhficlass.c
-@@ -301,7 +301,7 @@ static int generate_config_card(const iclass_config_card_item_t *o,  uint8_t *ke
-             uint8_t *p = realloc(data, tot_bytes);
-             if (p == NULL) {
-                 PrintAndLogEx(FAILED, "failed to allocate memory");
--                //free(data);
-+                free(data);
-                 return PM3_EMALLOC;
-             }
-             data = p;
