@@ -1,9 +1,9 @@
-commit e83dfcc2cbccd4cc9398fd6085ae41109e98436a
-Merge: 679a2f36d 8075c1ac5
+commit 145f0853c4da5a3b186eaf7a0825da88808c6cbe
+Merge: e83dfcc2c 98db74f28
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun Jan 30 20:39:11 2022 +0100
+Date:   Sun Jan 30 21:11:18 2022 +0100
 
-    Merge pull request #1571 from startrk1995/ultimate_magic_card
+    Merge pull request #1572 from bettse/fix_termux
     
-    Ultimate magic card (Gen4)
+    remove system define that messes up termux
 
