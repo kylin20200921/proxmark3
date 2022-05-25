@@ -1,35 +1,49 @@
-commit 5b803d2dd4bae4cb09682cf20c256a865c520886
+commit 7bfb314ffa8f031a5a1eb7403588e9cb0b170ae8
 Author: iceman1001 <iceman@iuse.se>
-Date:   Thu Jan 27 06:10:20 2022 +0100
+Date:   Thu Jan 27 06:17:16 2022 +0100
 
-    should fix thread safe call on Mingw (thanks to @gator96100)
+    should fix the actions for ubuntu and wsl
 
-diff --git a/tools/mfd_aes_brute/mfd_aes_brute.c b/tools/mfd_aes_brute/mfd_aes_brute.c
-index a10d43f7a..4e39ea93f 100644
---- a/tools/mfd_aes_brute/mfd_aes_brute.c
-+++ b/tools/mfd_aes_brute/mfd_aes_brute.c
-@@ -18,6 +18,10 @@
+diff --git a/.github/workflows/ubuntu.yml b/.github/workflows/ubuntu.yml
+index 1cf90616b..3f558bfac 100644
+--- a/.github/workflows/ubuntu.yml
++++ b/.github/workflows/ubuntu.yml
+@@ -26,7 +26,7 @@ jobs:
+         run: sudo apt-get update
  
- #define __STDC_FORMAT_MACROS
+       - name: Install dependencies
+-        run: sudo apt-get install -yqq make autoconf build-essential ca-certificates pkg-config libreadline-dev gcc-arm-none-eabi libnewlib-dev qtbase5-dev libbz2-dev libbluetooth-dev libpython3-dev python3 python3-dev libpython3-all-dev liblua5.2-dev liblua5.2-0-dbg liblua5.2-0 lua5.2 sed
++        run: sudo apt-get install -yqq make autoconf build-essential ca-certificates pkg-config libreadline-dev gcc-arm-none-eabi libnewlib-dev qtbase5-dev libbz2-dev libbluetooth-dev libpython3-dev python3 python3-dev libpython3-all-dev liblua5.2-dev liblua5.2-0-dbg liblua5.2-0 lua5.2 sed libssl-dev
  
-+#if !defined(_WIN32)
-+    #define _POSIX_C_SOURCE 200112L  // need localtime_r()
-+#endif
-+
- #include <stdio.h>
- #include <stdint.h>
- #include <stdlib.h>
-@@ -128,7 +132,12 @@ static void print_time(uint64_t at) {
+       - name: Install Python dependencies
+         run: |
+@@ -58,7 +58,7 @@ jobs:
+         run: sudo apt-get update
  
-     time_t t = at;
-     struct tm lt;
--    (void) localtime_r(&t, &lt);
-+
-+#if defined(_WIN32)
-+        (void)localtime_s(&lt, &t);
-+#else
-+        (void)localtime_r(&t, &lt);
-+#endif
+       - name: Install dependencies
+-        run: sudo apt-get install -yqq make autoconf build-essential ca-certificates pkg-config libreadline-dev gcc-arm-none-eabi libnewlib-dev qtbase5-dev libbz2-dev libbluetooth-dev libpython3-dev python3 python3-dev libpython3-all-dev liblua5.2-dev liblua5.2-0-dbg liblua5.2-0 lua5.2 sed
++        run: sudo apt-get install -yqq make autoconf build-essential ca-certificates pkg-config libreadline-dev gcc-arm-none-eabi libnewlib-dev qtbase5-dev libbz2-dev libbluetooth-dev libpython3-dev python3 python3-dev libpython3-all-dev liblua5.2-dev liblua5.2-0-dbg liblua5.2-0 lua5.2 sed libssl-dev
  
-     char res[32];
-     strftime(res, sizeof(res), "%Y-%m-%d %H:%M:%S", &lt);
+       - name: Install Python dependencies
+         run: |
+@@ -91,7 +91,7 @@ jobs:
+         run: sudo apt-get update
+ 
+       - name: Install dependencies
+-        run: sudo apt-get install -yqq make autoconf build-essential ca-certificates pkg-config libreadline-dev gcc-arm-none-eabi libnewlib-dev qtbase5-dev libbz2-dev libbluetooth-dev libpython3-dev python3 python3-dev libpython3-all-dev liblua5.2-dev liblua5.2-0-dbg liblua5.2-0 lua5.2 sed
++        run: sudo apt-get install -yqq make autoconf build-essential ca-certificates pkg-config libreadline-dev gcc-arm-none-eabi libnewlib-dev qtbase5-dev libbz2-dev libbluetooth-dev libpython3-dev python3 python3-dev libpython3-all-dev liblua5.2-dev liblua5.2-0-dbg liblua5.2-0 lua5.2 sed libssl-dev
+ 
+       - name: Install Python dependencies
+         run: |
+diff --git a/.github/workflows/windows.yml b/.github/workflows/windows.yml
+index bb97b8523..5da0035d5 100644
+--- a/.github/workflows/windows.yml
++++ b/.github/workflows/windows.yml
+@@ -117,6 +117,7 @@ jobs:
+             python3-pip
+             python3-dev
+             libpython3-all-dev
++            libssl-dev
+ 
+       - name: Install Python dependencies
+         run: |
