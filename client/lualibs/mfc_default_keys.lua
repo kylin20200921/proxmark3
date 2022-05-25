@@ -1137,6 +1137,9 @@ local _keys = {
    '3a471b2192bf',
    'a297ceb7d34b',
    'ae76242931f1',
+   '124578ABFEDC',
+   'ABFEDC124578',
+   '4578ABFEDC12',
 }
 ---
 --    The keys above have just been pasted in, for completeness sake. They contain duplicates. 
