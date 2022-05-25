@@ -1,9 +1,9 @@
-commit 94b597febf79c97373524dd18a62a1b2a06c1198
-Merge: ebe38673f 3edd6b5b3
+commit 5f003f168d219f6cec1085b8416abdaf2ddddc4b
+Merge: 94b597feb 218a4ba2e
 Author: Iceman <iceman@iuse.se>
-Date:   Thu Nov 18 17:43:48 2021 +0100
+Date:   Fri Nov 19 00:38:13 2021 +0100
 
-    Merge pull request #1530 from pieterg/patch-1
+    Merge pull request #1531 from zabszk/master
     
-    armsrc/felica: fix crc offsets in felica_sim_lite
+    Added ledcontrol to LF operations
 
