@@ -1,639 +1,192 @@
-commit 0e7b61ed5542b0c95a73b2447581c0b136ebd37c
+commit 04d7f18e551324c2ad51c9f541b488a3802d5349
 Author: iceman1001 <iceman@iuse.se>
-Date:   Fri Dec 31 10:48:53 2021 +0100
+Date:   Fri Dec 31 10:52:28 2021 +0100
 
     text
 
-diff --git a/doc/magic_cards_notes.md b/doc/magic_cards_notes.md
-index c9a36b733..5aaee0260 100644
---- a/doc/magic_cards_notes.md
-+++ b/doc/magic_cards_notes.md
-@@ -45,6 +45,7 @@ Useful docs:
- # ISO14443A
- 
- ## Identifying broken ISO14443A magic
-+^[Top](#top)
- 
- When a magic card configuration is really messed up and the card is not labeled, it may be hard to find out which type of card it is.
- 
-@@ -68,10 +69,12 @@ To restore anticollision config of the Proxmark3:
- hf 14a config --std
- ```
- # MIFARE Classic
-+^[Top](#top)
- 
- Referred as M1, S50 (1k), S70 (4k)
- 
- ## MIFARE Classic block0
-+^[Top](#top)
- 
- UID 4b: (actually NUID as there are no more "unique" IDs on 4b)
- 
-@@ -101,8 +104,10 @@ UID 7b:
- ```
- 
- ## MIFARE Classic Gen1A aka UID
-+^[Top](#top)
- 
- ### Identify
-+^[Top](#top)
- 
- ```
- hf 14a info
-@@ -111,12 +116,14 @@ hf 14a info
- ```
- 
- ### Magic commands
-+^[Top](#top)
- 
- * Wipe: `40(7)`, `41` (use 2000ms timeout)
- * Read: `40(7)`, `43`, `30xx`+crc
- * Write: `40(7)`, `43`, `A0xx`+crc, `xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`+crc
- 
- ### Characteristics
-+^[Top](#top)
- 
- * UID: Only 4b versions
- * ATQA:
-@@ -131,48 +138,56 @@ hf 14a info
-   * no card with ATS
- 
- #### MIFARE Classic Gen1A flavour 1
-+^[Top](#top)
- 
- * SAK: play blindly the block0 SAK byte, beware!
- * PRNG: static 01200145
- * Wipe: filled with 0xFF
- 
- #### MIFARE Classic Gen1A flavour 2
-+^[Top](#top)
- 
- * SAK: play blindly the block0 SAK byte, beware!
- * PRNG: static 01200145
- * Wipe: filled with 0x00
- 
- #### MIFARE Classic Gen1A flavour 3
-+^[Top](#top)
- 
- * SAK: 08
- * PRNG: static 01200145
- * Wipe: filled with 0xFF
- 
- #### MIFARE Classic Gen1A flavour 4
-+^[Top](#top)
- 
- * SAK: 08
- * PRNG: weak
- * Wipe: timeout, no wipe
- 
- #### MIFARE Classic Gen1A flavour 5
-+^[Top](#top)
- 
- * SAK: 08
- * PRNG: weak
- * Wipe: reply ok but no wipe performed
- 
- #### MIFARE Classic Gen1A flavour 6
-+^[Top](#top)
- 
- * SAK: 08 or 88 if block0_SAK most significant bit is set
- * PRNG: weak
- * Wipe: timeout, no wipe
- 
- #### MIFARE Classic Gen1A flavour 7
-+^[Top](#top)
- 
- * SAK: 08 or 88 if block0_SAK most significant bit is set
- * PRNG: weak
- * Wipe: filled with 0x00
- 
- ### Proxmark3 commands
-+^[Top](#top)
- 
- ```
- hf mf csetuid
-@@ -219,6 +234,7 @@ hf 14a raw -t 1000          41
- ```
- 
- ### libnfc commands
-+^[Top](#top)
- 
- ```
- nfc-mfsetuid
-@@ -227,10 +243,12 @@ nfc-mfclassic W a u mydump
- ```
- 
- ## MIFARE Classic Gen1B
-+^[Top](#top)
- 
- Similar to Gen1A, but supports directly read/write after command 40
- 
- ### Identify
-+^[Top](#top)
- 
- ```
- hf 14a info
-@@ -239,15 +257,18 @@ hf 14a info
- ```
- 
- ### Magic commands
-+^[Top](#top)
- 
- * Read: `40(7)`, `30xx`
- * Write: `40(7)`, `A0xx`+crc, `xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`+crc
- 
- ## MIFARE Classic DirectWrite aka Gen2 aka CUID
-+^[Top](#top)
- 
- (also referred as MCT compatible by some sellers)
- 
- ### Identify
-+^[Top](#top)
- 
- ```
- hf 14a info
-@@ -260,12 +281,14 @@ Not all Gen2 cards can be identified with `hf 14a info`, only those replying to
- To identify the other ones, you've to try to write to block0 and see if it works...
- 
- ### Magic commands
-+^[Top](#top)
- 
- Android compatible
- 
- * issue regular write to block0
- 
- ### Characteristics
-+^[Top](#top)
- 
- * UID: 4b and 7b versions
- * ATQA:
-@@ -282,6 +305,7 @@ Android compatible
-   * some reply with an ATS
- 
- #### MIFARE Classic DirectWrite flavour 1
-+^[Top](#top)
- 
- * UID 4b
- * ATQA: play blindly the block0 ATQA bytes, beware!
-@@ -291,6 +315,7 @@ Android compatible
- * PRNG: weak
- 
- #### MIFARE Classic DirectWrite flavour 2
-+^[Top](#top)
- 
- * UID 4b
- * ATQA: fixed
-@@ -300,6 +325,7 @@ Android compatible
- * PRNG: weak
- 
- #### MIFARE Classic DirectWrite flavour 3
-+^[Top](#top)
- 
- * UID 4b
- * ATQA: play blindly the block0 ATQA bytes, beware!
-@@ -309,6 +335,7 @@ Android compatible
- * PRNG: weak
- 
- #### MIFARE Classic DirectWrite flavour 4
-+^[Top](#top)
- 
- * UID 7b
- * ATQA: fixed
-@@ -318,6 +345,7 @@ Android compatible
- * PRNG: static 00000000
- 
- #### MIFARE Classic DirectWrite flavour 5
-+^[Top](#top)
- 
- * UID 4b
- * ATQA: fixed
-@@ -327,6 +355,7 @@ Android compatible
- * PRNG: weak
- 
- #### MIFARE Classic DirectWrite flavour 6
-+^[Top](#top)
- 
- **TODO** need more info
- 
-@@ -334,6 +363,7 @@ Android compatible
- * ATS: 0D780071028849A13020150608563D
- 
- ### Proxmark3 commands
-+^[Top](#top)
- 
- ```
- hf mf wrbl --blk 0 -k FFFFFFFFFFFF -d 11223344440804006263646566676869
-@@ -367,12 +397,14 @@ hf 14a config --std
- hf 14a reader
- ```
- ## MIFARE Classic DirectWrite, FUID version aka 1-write
-+^[Top](#top)
- 
- Same as MIFARE Classic DirectWrite, but block0 can be written only once.
- 
- Initial UID is AA55C396
- 
- ### Identify
-+^[Top](#top)
- 
- Only possible before personalization.
- 
-@@ -383,14 +415,17 @@ hf 14a info
- ```
- 
- ## MIFARE Classic DirectWrite, UFUID version
-+^[Top](#top)
- 
- Same as MIFARE Classic DirectWrite, but block0 can be locked with special command.
- 
- ### Identify
-+^[Top](#top)
- 
- **TODO**
- 
- ### Proxmark3 commands
-+^[Top](#top)
- 
- To lock definitively block0:
- ```
-@@ -401,6 +436,7 @@ hf 14a raw       -c   85000000000000000000000000000008
- ```
- 
- ## MIFARE Classic, other versions
-+^[Top](#top)
- 
- **TODO**
- 
-@@ -408,8 +444,10 @@ hf 14a raw       -c   85000000000000000000000000000008
- * Some cards exhibit a specific SAK=28 ??
- 
- ## MIFARE Classic Gen3 aka APDU
-+^[Top](#top)
- 
- ### Identify
-+^[Top](#top)
- 
- ```
- hf 14a info
-@@ -418,6 +456,7 @@ hf 14a info
- ```
- 
- ### Magic commands
-+^[Top](#top)
- 
- Android compatible
- 
-@@ -442,6 +481,7 @@ Writing to block 0 has some side-effects:
- * On 4-byte UID cards, BCC byte is automatically corrected.
- 
- ### Characteristics
-+^[Top](#top)
- 
- * UID: 4b and 7b versions
- * ATQA/SAK: fixed
-@@ -449,6 +489,7 @@ Writing to block 0 has some side-effects:
- * ATS: none
- 
- ### Proxmark3 commands
-+^[Top](#top)
- 
- ```
- # change just UID:
-@@ -476,6 +517,7 @@ hf 14a raw -s -c 90FD111100
- ```
- 
- ## MIFARE Classic Super
-+^[Top](#top)
- 
- It behaves like DirectWrite but records reader auth attempts.
- 
-@@ -487,6 +529,7 @@ To do reader-only attack: at least two versions exist.
- * type 2: https://github.com/netscylla/super-card/blob/master/libnfc-1.7.1/utils/nfc-super.c for ??
- 
- ### Identify
-+^[Top](#top)
- 
- Only type 1 at the moment:
- 
-@@ -497,8 +540,10 @@ hf 14a info
- ```
- 
- # MIFARE Ultralight
-+^[Top](#top)
- 
- ## MIFARE Ultralight blocks 0..2
-+^[Top](#top)
- 
- ```
- SN0  SN1  SN2  BCC0
-@@ -518,6 +563,7 @@ Anticol shortcut (CL1/3000) is supported for UL, ULC, NTAG except NTAG I2C
- 
- 
- ## MIFARE Ultralight Gen1A
-+^[Top](#top)
- 
- ### Identify
- 
-@@ -538,6 +584,7 @@ Only 7b versions
- **TODO** need more tests
- 
- ### Proxmark3 commands
-+^[Top](#top)
- 
- ```
- script run hf_mfu_setuid -h
-@@ -551,8 +598,10 @@ script run hf_mf_magicrevive -u
- ```
- 
- ## MIFARE Ultralight DirectWrite
-+^[Top](#top)
- 
- ### Identify
-+^[Top](#top)
- 
- ```
- hf 14a info
-@@ -563,10 +612,12 @@ hf 14a info
- It seems so far that all MFUL DW have an ATS.
- 
- ### Magic commands
-+^[Top](#top)
- 
- Issue three regular MFU write commands in a row to write first three blocks.
- 
- ### Characteristics
-+^[Top](#top)
- 
- * UID: Only 7b versions
- * ATQA:
-@@ -580,18 +631,21 @@ Issue three regular MFU write commands in a row to write first three blocks.
-   * all cards reply with an ATS
- 
- #### MIFARE Ultralight DirectWrite flavour 1
-+^[Top](#top)
- 
- * BCC: computed
- * ATS: 0A78008102DBA0C119402AB5
- * Anticol shortcut (CL1/3000): fails
- 
- #### MIFARE Ultralight DirectWrite flavour 2
-+^[Top](#top)
- 
- * BCC: play blindly the block0 BCC0 and block2 BCC1 bytes, beware!
- * ATS: 850000A00A000AB00000000000000000184D
- * Anticol shortcut (CL1/3000): succeeds
- 
- ### Proxmark3 commands
-+^[Top](#top)
- 
- ```
- hf mfu setuid -h
-@@ -620,6 +674,7 @@ hf 14a reader
- ```
- 
- ### libnfc commands
-+^[Top](#top)
- 
- ```
- nfc-mfultralight -h
-@@ -627,14 +682,17 @@ nfc-mfultralight -h
- See `--uid` and `--full`
- 
- ### Android
-+^[Top](#top)
- 
- * MIFARE++ Ultralight
- 
- ## MIFARE Ultralight EV1 DirectWrite
-+^[Top](#top)
- 
- Similar to MFUL DirectWrite
- 
- ### Identify
-+^[Top](#top)
- 
- ```
- hf 14a info
-@@ -643,6 +701,7 @@ hf 14a info
- ```
- 
- ### Characteristics
-+^[Top](#top)
- 
- * UID: Only 7b versions
- * ATQA:
-@@ -655,24 +714,29 @@ hf 14a info
-   * all cards reply with an ATS
- 
- #### MIFARE Ultralight EV1 DirectWrite flavour 1
-+^[Top](#top)
- 
- * BCC: play blindly the block0 BCC0 and block2 BCC1 bytes, beware!
- * ATS: 850000A000000AC30004030101000B0341DF
- 
- #### MIFARE Ultralight EV1 DirectWrite flavour 2
-+^[Top](#top)
- 
- * BCC: play blindly the block0 BCC0 and block2 BCC1 bytes, beware!
- * ATS: 850000A00A000AC30004030101000B0316D7
- 
- ## MIFARE Ultralight C Gen1A
-+^[Top](#top)
- 
- Similar to MFUL Gen1A
- 
- ## MIFARE Ultralight C DirectWrite
-+^[Top](#top)
- 
- Similar to MFUL DirectWrite
- 
- ### Identify
-+^[Top](#top)
- 
- ```
- hf 14a info
-@@ -681,6 +745,7 @@ hf 14a info
- ```
- 
- ### Characteristics
-+^[Top](#top)
- 
- * UID: Only 7b versions
- * ATQA:
-@@ -693,18 +758,22 @@ hf 14a info
-   * all cards reply with an ATS
- 
- #### MIFARE Ultralight C DirectWrite flavour 1
-+^[Top](#top)
- 
- * BCC: computed
- * ATS: 0A78008102DBA0C119402AB5
- * Anticol shortcut (CL1/3000): fails
- 
- # NTAG
-+^[Top](#top)
- 
- ## NTAG213 DirectWrite
-+^[Top](#top)
- 
- Similar to MFUL DirectWrite
- 
- ### Identify
-+^[Top](#top)
- 
- ```
- hf 14a info
-@@ -713,6 +782,7 @@ hf 14a info
- ```
- 
- ### Characteristics
-+^[Top](#top)
- 
- * UID: Only 7b versions
- * ATQA:
-@@ -725,14 +795,17 @@ hf 14a info
-   * all cards reply with an ATS
- 
- #### NTAG213 DirectWrite flavour 1
-+^[Top](#top)
- 
- * BCC: play blindly the block0 BCC0 and block2 BCC1 bytes, beware!
- * ATS: 0A78008102DBA0C119402AB5
- * Anticol shortcut (CL1/3000): succeeds
- 
- ## NTAG21x
-+^[Top](#top)
- 
- ### Identify
-+^[Top](#top)
- 
- ```
- hf 14a info
-@@ -741,6 +814,7 @@ hf 14a info
- ```
- 
- ### Characteristics
-+^[Top](#top)
- 
- Emulates fully NTAG213, 213F, 215, 216, 216F
- 
-@@ -749,12 +823,14 @@ Emulates partially  UL EV1 48k/128k, NTAG210, NTAG212, NTAGI2C 1K/2K, NTAGI2C 1K
- Anticol shortcut (CL1/3000): fails
- 
- ### Proxmark3 commands
-+^[Top](#top)
- 
- ```
- script run hf_mfu_magicwrite -h
- ```
- 
- # DESFire
-+^[Top](#top)
- 
- ## "DESFire" APDU, 7b UID
- 
-@@ -769,6 +845,7 @@ Android compatible
- * issue special APDUs
- 
- ### Characteristics
-+^[Top](#top)
- 
- * ATQA: 0344
- * SAK: 20
-@@ -777,6 +854,7 @@ Android compatible
- Only mimics DESFire anticollision (but wrong ATS), no further DESFire support
- 
- ### Proxmark commands
-+^[Top](#top)
- 
- UID 04112233445566
- ```
-@@ -788,6 +866,7 @@ hf 14a apdu -s 00ab00000704112233445566
- ```
- 
- ### libnfc commands
-+^[Top](#top)
- 
- ```
- pn53x-tamashell
-@@ -795,14 +874,17 @@ pn53x-tamashell
- 420200ab00000704112233445566
- ```
- ## "DESFire" APDU, 4b UID
-+^[Top](#top)
- 
- ### Magic commands
-+^[Top](#top)
- 
- Android compatible
- 
- * issue special APDUs
- 
- ### Characteristics
-+^[Top](#top)
- 
- * ATQA: 0008 ??? This is not DESFire, 0008/20 doesn't match anything
- * SAK: 20
-@@ -811,6 +893,7 @@ Android compatible
- Only mimics DESFire anticollision (but wrong ATS), no further DESFire support
- 
- ### Proxmark commands
-+^[Top](#top)
- 
- UID 04112233445566
- ```
-@@ -824,12 +907,14 @@ hf 14a apdu -s 00ab00000411223344
- It accepts longer UID but that doesn't affect BCC/ATQA/SAK
- 
- ### pn53x-tamashell commands
-+^[Top](#top)
- ```
- 4a0100
- 420200ab00000411223344
- ```
- 
- ### Remarks
-+^[Top](#top)
- 
- The same effect (with better ATQA!) can be obtained with a MFC Gen1A that uses SAK defined in block0:
- 
-@@ -844,22 +929,27 @@ hf 14a info
- ```
- 
- # ISO14443B
-+^[Top](#top)
- 
- ## ISO14443B magic
-+^[Top](#top)
- 
- No such card is available.
- 
- Some vendor allow to specify an ID (PUPI) when ordering a card.
- 
- # ISO15693
-+^[Top](#top)
- 
- ## ISO15693 magic
-+^[Top](#top)
- 
- ### Identify
- 
- **TODO**
- 
- ### Proxmark3 commands
-+^[Top](#top)
- 
- Always set a UID starting with `E0`.
- 
-@@ -874,8 +964,11 @@ script run hf_15_magic -u E004013344556677
- <a id="g4top"></a>
- 
- # Multi
-+^[Top](#top)
- 
- ## Gen 4 GTU
-+^[Top](#top)
+diff --git a/doc/desfire.md b/doc/desfire.md
+index 6739d3322..95bdc4c58 100644
+--- a/doc/desfire.md
++++ b/doc/desfire.md
+@@ -1,6 +1,35 @@
++<a id="Top"></a>
 +
- A.k.a ultimate magic card,  most promenent feature is shadow mode (GTU) and optional password protected backdoor commands.
+ # DESFire card
  
++# Table of Contents
++
++- [DESFire card](#desfire-card)
++- [Table of Contents](#table-of-contents)
++  - [Documentation](#documentation)
++  - [Source code](#source-code)
++  - [Communication channel with a card](#communication-channel-with-a-card)
++  - [Card architecture](#card-architecture)
++  - [Card structure](#card-structure)
++  - [DESFire Light](#desfire-light)
++  - [How to](#how-to)
++    - [How to get card UID](#how-to-get-card-uid)
++    - [How to get/set default communication channel settings](#how-to-getset-default-communication-channel-settings)
++    - [How to guess default communication channel settings](#how-to-guess-default-communication-channel-settings)
++    - [How to try communication channel settings](#how-to-try-communication-channel-settings)
++    - [How to look at the application list on the card](#how-to-look-at-the-application-list-on-the-card)
++    - [How to look/dump files from the application file list](#how-to-lookdump-files-from-the-application-file-list)
++    - [How to change key](#how-to-change-key)
++    - [How to create the application](#how-to-create-the-application)
++    - [How to create files](#how-to-create-files)
++    - [How to delete files](#how-to-delete-files)
++    - [How to read/write files](#how-to-readwrite-files)
++    - [How to work with transaction mac](#how-to-work-with-transaction-mac)
++    - [How to switch DESFire Light to LRP mode](#how-to-switch-desfire-light-to-lrp-mode)
++
++
+ ## Documentation
++^[Top](#top)
+ 
+ [DESFire Light datasheet MF2DL(H)x0](https://www.nxp.com/docs/en/data-sheet/MF2DLHX0.pdf)
+ 
+@@ -21,6 +50,7 @@
+ [Symmetric key diversifications AN10922](https://www.nxp.com/docs/en/application-note/AN10922.pdf)
+ 
+ ## Source code
++^[Top](#top)
+ 
+ [desfire_crypto from proxmark3](https://github.com/RfidResearchGroup/proxmark3/blob/master/armsrc/desfire_crypto.c)
+ 
+@@ -36,7 +66,8 @@
+ 
+ [LRP/ev2 nfc-ev2-crypto](https://github.com/icedevml/nfc-ev2-crypto)
+ 
+-## Communication channel with a card:
++## Communication channel with a card
++^[Top](#top)
+ 
+ The card can work with a combination of: key type - command set - secure channel - communication mode
+ 
+@@ -75,6 +106,7 @@ The card can work with a combination of: key type - command set - secure channel
+ **encrypted** - encrypted data in the request/response/both in the ev2 channel data signed with mac.
+ 
+ ## Card architecture
++^[Top](#top)
+ 
+ The card has several applications on it and the applications have files and some other objects.
+ 
+@@ -84,7 +116,8 @@ Master application has many keys with different purposes, but commands show that
+ 
+ Each application may have its own key type and set of keys. Each file can only have links to these keys in its access rights.
+ 
+-## Card structure:
++## Card structure
++^[Top](#top)
+ 
+ - Application
+ - Application number: 1 byte
+@@ -101,7 +134,8 @@ Each application may have its own key type and set of keys. Each file can only h
+   - File communication mode: plain/maced/encrypted
+   - File access right: there are 4 modes: read/write/read-write/change settings. And each mode access can be: key0..keyD, E - free access, F - deny access
+ 
+-## DESFire Light:
++## DESFire Light
++^[Top](#top)
+ 
+ The card has one preinstalled master file (ISO ID 0x3f00) and one application (0xdf01)
+ 
+@@ -131,7 +165,9 @@ If it needs to have more space for FCI - just change the ID of one of the bigger
+ 
+ ## How to
+ 
++
+ ### How to get card UID
++^[Top](#top)
+ 
+ The card can return UID in encrypted communication mode. Needs to authenticate with any key from the card.
+ 
+@@ -142,6 +178,7 @@ The card can return UID in encrypted communication mode. Needs to authenticate w
+ `hf mfdes getuid -s ev2 -t aes -k 11223344556677889900112233445566` - via ev2 secure channel with specified aes key
+ 
+ ### How to get/set default communication channel settings
++^[Top](#top)
+ 
+ All the commands use these settings by default if a more important setting is not specified in the command line.
+ 
+@@ -150,6 +187,7 @@ All the commands use these settings by default if a more important setting is no
+ `hf mfdes default -n 1 -t aes` - set key number 1 and key type aes
+ 
+ ### How to guess default communication channel settings
++^[Top](#top)
+ 
+ `hf mfdes detect` - simply detect key for master application (PICC level)
+ 
+@@ -162,12 +200,14 @@ All the commands use these settings by default if a more important setting is no
+ `hf mfdes detect --aid 123456 -n 2` - detect key 2 from application with AID 123456
+ 
+ ### How to try communication channel settings
++^[Top](#top)
+ 
+ `hf mfdes auth -n 0 -t des -k 1122334455667788 --aid 123456` - try application 123456 master key
+ 
+ `hf mfdes auth -n 0 -t aes --save` - try PICC AES master key and save the configuration to defaults if authentication succeeds
+ 
+ ### How to look at the application list on the card
++^[Top](#top)
+ 
+ `hf mfdes lsapp --no-auth` - show applications list without authentication
+ 
+@@ -178,12 +218,14 @@ All the commands use these settings by default if a more important setting is no
+ `hf mfdes getaids --no-auth` - this command can return a simple AID list if it is enabled in the card settings
+ 
+ ### How to look/dump files from the application file list
++^[Top](#top)
+ 
+ `hf mfdes lsfiles --aid 123456 -t aes` - file list for application 123456 with aes key
+ 
+ `hf mfdes dump --aid 123456` - shows files and their contents from application 123456
+ 
+ ### How to change key
++^[Top](#top)
+ 
+ Changing key algorithm can be done only in one case - change card master key.
+ 
+@@ -196,12 +238,14 @@ Key algorithm for application can be chosen only on its creation.
+ `hf mfdes changekey --aid 123456 -t des -n 0 --newkeyno 1 --oldkey 5555555555555555 --newkey 1122334455667788` - change key 1 with authentication with key 0 (app master key)
+ 
+ ### How to create the application
++^[Top](#top)
+ 
+ `hf mfdes createapp --aid 123456 --fid 2345 --dfname aid123456 --dstalgo aes` - create an application with ISO file ID, df name, and key algorithm AES
+ 
+ `hf mfdes createapp --aid 123456` - create an application 123456 with DES key algorithm and without ISO file ID. in this case, iso file id can't be provided for application's files
+ 
+ ### How to create files
++^[Top](#top)
+ 
+ `hf mfdes createfile --aid 123456 --fid 01 --isofid 0001 --size 000010` - create standard file with ISO ID and default access settings
+ 
+@@ -220,10 +264,12 @@ Create standard file with mac access mode and specified access settings. access
+ `hf mfdes createmacfile --aid 123456 --fid 01 --rawrights 0FF0 --mackey 00112233445566778899aabbccddeeff --mackeyver 01` - create transaction mac file
+ 
+ ### How to delete files
++^[Top](#top)
+ 
+ `hf mfdes deletefile --aid 123456 --fid 01` - delete file
+ 
+ ### How to read/write files
++^[Top](#top)
+ 
+ *read:*
+ 
+@@ -270,6 +316,7 @@ For more detailed samples look at the next howto.
+ `hf mfdes write --aid 123456 --fid 01 -d 01020304 --readerid 010203` write data to the file with CommitReaderID command before and CommitTransaction after write
+ 
+ ### How to work with transaction mac
++^[Top](#top)
+ 
+ There are two types of transactions with mac: with and without the CommitReaderID command. The type can be chosen by `hf mfdes createmacfile` command.
+ 
+@@ -328,6 +375,7 @@ step 2. write something to a file with CommitReaderID command and provide the ke
+ `hf mfdes write --aid 123456 --fid 01 -d 01020304 --readerid 010203 --trkey 00112233445566778899aabbccddeeff`
+ 
+ ### How to switch DESFire Light to LRP mode
++^[Top](#top)
+ 
+ Remove failed authentication counters (if needs, but strongly recommended)
  
