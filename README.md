@@ -1,20 +1,19 @@
-commit f9a5cfdb9bd82eb092c973f346f4e02da90aa2cf
-Author: Iceman <iceman@iuse.se>
-Date:   Thu Dec 30 15:12:25 2021 +0100
+commit 0cb1cfee6b399ee810bbfc6b615b9679342e2bbc
+Author: iceman1001 <iceman@iuse.se>
+Date:   Thu Dec 30 22:06:43 2021 +0100
 
-    Update checklist-for-release.md
+    text
 
-diff --git a/.github/ISSUE_TEMPLATE/checklist-for-release.md b/.github/ISSUE_TEMPLATE/checklist-for-release.md
-index 193516862..4825270d5 100644
---- a/.github/ISSUE_TEMPLATE/checklist-for-release.md
-+++ b/.github/ISSUE_TEMPLATE/checklist-for-release.md
-@@ -51,7 +51,8 @@ make hitag2crack/clean && make hitag2crack && tools/pm3_tests.sh hitag2crack ||
- - [ ] Fedora
- - [ ] OpenSuse Leap
- - [ ] OpenSuse Tumbleweed
--- [ ] OSX
-+- [ ] OSX (MacPorts)
-+- [ ] OSX (Homebrew)
- - [ ] Android
- - [ ] Termux
+diff --git a/client/src/proxmark3.c b/client/src/proxmark3.c
+index 99403eab2..286463845 100644
+--- a/client/src/proxmark3.c
++++ b/client/src/proxmark3.c
+@@ -38,7 +38,7 @@
  
+ #ifndef LIBPM3
+ #define BANNERMSG1 ""
+-#define BANNERMSG2 "   [ :snowflake: Iceman :snowflake: ]"
++#define BANNERMSG2 "   [ Iceman :snowflake: ]"
+ #define BANNERMSG3 ""
+ 
+ typedef enum LogoMode { UTF8, ANSI, ASCII } LogoMode;
