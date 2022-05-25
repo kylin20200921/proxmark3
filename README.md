@@ -1,19 +1,35 @@
-commit a37fdb1ccf57f1b129c214be999c3d48b7d77dfa
+commit 5b803d2dd4bae4cb09682cf20c256a865c520886
 Author: iceman1001 <iceman@iuse.se>
-Date:   Wed Jan 26 06:51:34 2022 +0100
+Date:   Thu Jan 27 06:10:20 2022 +0100
 
-    added getversion response for 14a -t 3,  (simulation of desfire anticollision)
+    should fix thread safe call on Mingw (thanks to @gator96100)
 
-diff --git a/armsrc/iso14443a.c b/armsrc/iso14443a.c
-index bb0f56693..17eb156f6 100644
---- a/armsrc/iso14443a.c
-+++ b/armsrc/iso14443a.c
-@@ -1610,6 +1610,8 @@ void SimulateIso14443aTag(uint8_t tagType, uint16_t flags, uint8_t *data, uint8_
-             order = ORDER_HALTED;
-         } else if (receivedCmd[0] == MIFARE_ULEV1_VERSION && len == 3 && (tagType == 2 || tagType == 7)) {
-             p_response = &responses[RESP_INDEX_VERSION];
-+        } else if (receivedCmd[0] == MFDES_GET_VERSION && len == 4 && (tagType == 3)) {
-+            p_response = &responses[RESP_INDEX_VERSION];
-         } else if ((receivedCmd[0] == MIFARE_AUTH_KEYA || receivedCmd[0] == MIFARE_AUTH_KEYB) && len == 4 && tagType != 2 && tagType != 7) {    // Received an authentication request
-             cardAUTHKEY = receivedCmd[0] - 0x60;
-             cardAUTHSC = receivedCmd[1] / 4; // received block num
+diff --git a/tools/mfd_aes_brute/mfd_aes_brute.c b/tools/mfd_aes_brute/mfd_aes_brute.c
+index a10d43f7a..4e39ea93f 100644
+--- a/tools/mfd_aes_brute/mfd_aes_brute.c
++++ b/tools/mfd_aes_brute/mfd_aes_brute.c
+@@ -18,6 +18,10 @@
+ 
+ #define __STDC_FORMAT_MACROS
+ 
++#if !defined(_WIN32)
++    #define _POSIX_C_SOURCE 200112L  // need localtime_r()
++#endif
++
+ #include <stdio.h>
+ #include <stdint.h>
+ #include <stdlib.h>
+@@ -128,7 +132,12 @@ static void print_time(uint64_t at) {
+ 
+     time_t t = at;
+     struct tm lt;
+-    (void) localtime_r(&t, &lt);
++
++#if defined(_WIN32)
++        (void)localtime_s(&lt, &t);
++#else
++        (void)localtime_r(&t, &lt);
++#endif
+ 
+     char res[32];
+     strftime(res, sizeof(res), "%Y-%m-%d %H:%M:%S", &lt);
