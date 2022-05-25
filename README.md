@@ -1,122 +1,40 @@
-commit 49ee82be194d49826854a56091b1c9b12382225f
+commit cbf06104bd8f8c3155b7b478ba0cdb9086c2f9a4
 Author: iceman1001 <iceman@iuse.se>
-Date:   Fri Dec 24 15:24:32 2021 +0100
+Date:   Sat Dec 25 13:46:00 2021 +0100
 
-    zx now builds after fixing corrent header.
+    different rats for DESFire simulation (suggestion from @mosci)
 
-diff --git a/armsrc/appmain.c b/armsrc/appmain.c
-index 71254684b..59597d497 100644
---- a/armsrc/appmain.c
-+++ b/armsrc/appmain.c
-@@ -48,7 +48,7 @@
- #include "ticks.h"
- #include "commonutil.h"
- #include "crc16.h"
--#include "zx8211.h"
-+#include "lfzx.h"
+diff --git a/armsrc/iso14443a.c b/armsrc/iso14443a.c
+index 1e83baff9..7f3040685 100644
+--- a/armsrc/iso14443a.c
++++ b/armsrc/iso14443a.c
+@@ -1017,7 +1017,7 @@ bool SimulateIso14443aInit(int tagType, int flags, uint8_t *data, tag_response_i
+     static uint8_t rSAKc3[3]  = { 0x00 };
+     // dummy ATS (pseudo-ATR), answer to RATS
+ //    static uint8_t rRATS[] = { 0x04, 0x58, 0x80, 0x02, 0x00, 0x00 };
+-    static uint8_t rRATS[] = { 0x05, 0x75, 0x80, 0x60, 0x02, 0x00, 0x00 };
++    static uint8_t rRATS[] = { 0x05, 0x75, 0x80, 0x60, 0x02, 0x00, 0x00, 0x00 };
  
+     // GET_VERSION response for EV1/NTAG
+     static uint8_t rVERSION[10] = { 0x00 };
+@@ -1044,6 +1044,7 @@ bool SimulateIso14443aInit(int tagType, int flags, uint8_t *data, tag_response_i
+             rATQA[0] = 0x04;
+             rATQA[1] = 0x03;
+             sak = 0x20;
++            memcpy(rRATS, "\x06\x75\x77\x81\x02\x00\x00\x00", 8);
+         }
+         break;
+         case 4: { // ISO/IEC 14443-4 - javacard (JCOP)
+@@ -1227,9 +1228,9 @@ bool SimulateIso14443aInit(int tagType, int flags, uint8_t *data, tag_response_i
  
- #ifdef WITH_LCD
-diff --git a/armsrc/lfzx.c b/armsrc/lfzx.c
-index 823903407..ac22807ab 100644
---- a/armsrc/lfzx.c
-+++ b/armsrc/lfzx.c
-@@ -11,14 +11,61 @@
- #define __LFOPS_H
+     // "precompile" responses. There are 11 predefined responses with a total of 80 bytes data to transmit.
+     // Coded responses need one byte per bit to transfer (data, parity, start, stop, correction)
+-    // 80 * 8 data bits, 80 * 1 parity bits, 11 start bits, 11 stop bits, 11 correction bits
+-    // 80 * 8 + 80 + 11 + 11 + 11 == 753
+-#define ALLOCATED_TAG_MODULATION_BUFFER_SIZE 753
++    // 81 * 8 data bits, 81 * 1 parity bits, 11 start bits, 11 stop bits, 11 correction bits
++    // 81 * 8 + 81 + 11 + 11 + 11 == 762
++#define ALLOCATED_TAG_MODULATION_BUFFER_SIZE 762
  
- #include "lfzx.h"
-+#include "fpgaloader.h"
-+#include "ticks.h"
-+#include "dbprint.h"
-+#include "lfadc.h"
- #include "pm3_cmd.h" // struct
- #include "zx8211.h"
- 
-+
-+static void zx8211_setup_read(void) {
-+
-+    FpgaDownloadAndGo(FPGA_BITSTREAM_LF);
-+    FpgaWriteConfWord(FPGA_MAJOR_MODE_LF_ADC | FPGA_LF_ADC_READER_FIELD);
-+
-+    // 50ms for the resonant antenna to settle.
-+    SpinDelay(50);
-+
-+    // Now set up the SSC to get the ADC samples that are now streaming at us.
-+    FpgaSetupSsc(FPGA_MAJOR_MODE_LF_READER);
-+
-+    FpgaSendCommand(FPGA_CMD_SET_DIVISOR, LF_DIVISOR_125);
-+
-+    // Connect the A/D to the peak-detected low-frequency path.
-+    SetAdcMuxFor(GPIO_MUXSEL_LOPKD);
-+
-+    // Steal this pin from the SSP (SPI communication channel with fpga) and
-+    // use it to control the modulation
-+    AT91C_BASE_PIOA->PIO_PER = GPIO_SSC_DOUT;
-+    AT91C_BASE_PIOA->PIO_OER = GPIO_SSC_DOUT;
-+
-+    // Disable modulation at default, which means enable the field
-+    LOW(GPIO_SSC_DOUT);
-+
-+    // Start the timer
-+    StartTicks();
-+
-+    // Watchdog hit
-+    WDT_HIT();
-+}
-+
-+
- int zx8211_read(zx8211_data_t *zxd, bool ledcontrol) {
-+    zx8211_setup_read();
-+
-+    StopTicks();
-+    lf_finalize(ledcontrol);
-+    //reply_ng(CMD_LF_ZX_READ, status, tag.data, sizeof(tag.data));
-     return PM3_SUCCESS;
- }
- 
- int zx8211_write(zx8211_data_t *zxd, bool ledcontrol) {
-+    zx8211_setup_read();
-+
-+    StopTicks();
-+    lf_finalize(ledcontrol);
-+    //reply_ng(CMD_LF_ZX_WRITE, status, tag.data, sizeof(tag.data));
-     return PM3_SUCCESS;
- }
- 
-diff --git a/armsrc/lfzx.h b/armsrc/lfzx.h
-index 0dbfec491..6b80b1c8a 100644
---- a/armsrc/lfzx.h
-+++ b/armsrc/lfzx.h
-@@ -11,7 +11,6 @@
- #define __LFZX_H
- 
- #include "common.h"
--#include "pm3_cmd.h" // struct
- #include "zx8211.h"
- 
- int zx8211_read(zx8211_data_t *zxd, bool ledcontrol);
-diff --git a/common_arm/Makefile.hal b/common_arm/Makefile.hal
-index 15dd78686..e3d219348 100644
---- a/common_arm/Makefile.hal
-+++ b/common_arm/Makefile.hal
-@@ -64,6 +64,7 @@ SKIP_FELICA=1
- SKIP_NFCBARCODE=1
- SKIP_HFSNIFF=1
- SKIP_HFPLOT=1
-+SKIP_ZX8211=1
- endef
- 
- define KNOWN_DEFINITIONS
-diff --git a/doc/md/Use_of_Proxmark/4_Advanced-compilation-parameters.md b/doc/md/Use_of_Proxmark/4_Advanced-compilation-parameters.md
-index 458b8ea67..920974c51 100644
---- a/doc/md/Use_of_Proxmark/4_Advanced-compilation-parameters.md
-+++ b/doc/md/Use_of_Proxmark/4_Advanced-compilation-parameters.md
-@@ -139,7 +139,7 @@ a series of `SKIP_*` allow to skip some of the functionalities and to get a smal
- |SKIP_NFCBARCODE=1    | 1.4kb
- |SKIP_HFSNIFF=1       | 0.5kb
- |SKIP_HFPLOT=1        | 0.3kb
--
-+|SKIP_ZX8211=1        | unknown yet
- 
- So for example, at the time of writing, this is a valid `Makefile.platform` compiling an image for 256k:
- ```
+     uint8_t *free_buffer = BigBuf_malloc(ALLOCATED_TAG_MODULATION_BUFFER_SIZE);
+     // modulation buffer pointer and current buffer free space size
