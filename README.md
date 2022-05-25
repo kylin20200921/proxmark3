@@ -1,19 +1,22 @@
-commit 03efd9c50f91102f1d65ccaf9ab6d56217fd7846
+commit f581f682a962b0a9397b247816aeb729f9fa1cda
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun Oct 17 16:10:07 2021 +0200
+Date:   Sat Oct 23 18:13:46 2021 +0200
 
-    text
+    new passwords from wCopy NSR102-IDIC, (Thanks wolftech!)
 
-diff --git a/CHANGELOG.md b/CHANGELOG.md
-index e95125238..e9e91a4fb 100644
---- a/CHANGELOG.md
-+++ b/CHANGELOG.md
-@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
- This project uses the changelog in accordance with [keepchangelog](http://keepachangelog.com/). Please use this to write notable changes, which is not the same as git commit log...
- 
- ## [unreleased][unreleased]
-+ - Changed `trace list -t 14a` - now annotate ECP (@iceman1001)
-+ - Added enhanced contactless polling (thanks to @relays user at gitlab) (@iceman1001)
-  - Added trace of VISA Apple transactions (thanks @a66at )
-  - Added trace of reading a MIFARE UL-C with 3DES authentication (thanks @rad1game)
-  - Added ATR fingerprinting (@iceman1001, @doegox)
+diff --git a/client/dictionaries/t55xx_default_pwds.dic b/client/dictionaries/t55xx_default_pwds.dic
+index 65e0ebbc2..22808d134 100644
+--- a/client/dictionaries/t55xx_default_pwds.dic
++++ b/client/dictionaries/t55xx_default_pwds.dic
+@@ -42,6 +42,11 @@ E9920427
+ 65857569
+ # password found on discord
+ 5469616E
++# wCopy NSR102-IDIC
++# ref. http://www.proxmark.org/forum/viewtopic.php?pid=43670#p43670
++7686962A
++C0F5009A
++07CEE75D
+ # Default pwd, simple:
+ 00000000
+ 11111111
