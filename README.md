@@ -1,288 +1,144 @@
-commit 05576ba06b8c595f1c44b8903caaef782aaccacc
+commit 6dbde61c4e625b3cd1cb9164ef8b3649f97e2b3d
 Author: iceman1001 <iceman@iuse.se>
-Date:   Thu Jan 6 21:00:16 2022 +0100
+Date:   Thu Jan 6 21:08:22 2022 +0100
 
     cppcheck fixes
 
-diff --git a/client/src/cmdanalyse.c b/client/src/cmdanalyse.c
-index 4d3352da8..f4624dbb7 100644
---- a/client/src/cmdanalyse.c
-+++ b/client/src/cmdanalyse.c
-@@ -56,7 +56,7 @@ static uint16_t shiftadd ( uint8_t* bytes, uint8_t len){
+diff --git a/client/src/cmdhfemrtd.c b/client/src/cmdhfemrtd.c
+index 2afefff1d..493720853 100644
+--- a/client/src/cmdhfemrtd.c
++++ b/client/src/cmdhfemrtd.c
+@@ -1118,7 +1118,7 @@ static void emrtd_print_legal_sex(char *legal_sex) {
+     PrintAndLogEx(SUCCESS, "Legal Sex Marker......: " _YELLOW_("%s"), sex);
+ }
+ 
+-static int emrtd_mrz_determine_length(char *mrz, int offset, int max_length) {
++static int emrtd_mrz_determine_length(const char *mrz, int offset, int max_length) {
+     int i;
+     for (i = max_length; i >= 1; i--) {
+         if (mrz[offset + i - 1] != '<') {
+@@ -1129,7 +1129,7 @@ static int emrtd_mrz_determine_length(char *mrz, int offset, int max_length) {
      return 0;
  }
- */
--static uint16_t calcSumCrumbAdd(uint8_t *bytes, uint8_t len, uint32_t mask) {
-+static uint16_t calcSumCrumbAdd(const uint8_t *bytes, uint8_t len, uint32_t mask) {
-     uint32_t sum = 0;
-     for (uint8_t i = 0; i < len; i++) {
-         sum += CRUMB(bytes[i], 0);
-@@ -67,10 +67,10 @@ static uint16_t calcSumCrumbAdd(uint8_t *bytes, uint8_t len, uint32_t mask) {
-     sum &= mask;
-     return (sum & 0xFFFF);
- }
--static uint16_t calcSumCrumbAddOnes(uint8_t *bytes, uint8_t len, uint32_t mask) {
-+static uint16_t calcSumCrumbAddOnes(const uint8_t *bytes, uint8_t len, uint32_t mask) {
-     return (~calcSumCrumbAdd(bytes, len, mask) & mask);
- }
--static uint16_t calcSumNibbleAdd(uint8_t *bytes, uint8_t len, uint32_t mask) {
-+static uint16_t calcSumNibbleAdd(const uint8_t *bytes, uint8_t len, uint32_t mask) {
-     uint32_t sum = 0;
-     for (uint8_t i = 0; i < len; i++) {
-         sum += NIBBLE_LOW(bytes[i]);
-@@ -82,7 +82,7 @@ static uint16_t calcSumNibbleAdd(uint8_t *bytes, uint8_t len, uint32_t mask) {
- static uint16_t calcSumNibbleAddOnes(uint8_t *bytes, uint8_t len, uint32_t mask) {
-     return (~calcSumNibbleAdd(bytes, len, mask) & mask);
- }
--static uint16_t calcSumCrumbXor(uint8_t *bytes, uint8_t len, uint32_t mask) {
-+static uint16_t calcSumCrumbXor(const uint8_t *bytes, uint8_t len, uint32_t mask) {
-     uint32_t sum = 0;
-     for (uint8_t i = 0; i < len; i++) {
-         sum ^= CRUMB(bytes[i], 0);
-@@ -93,7 +93,7 @@ static uint16_t calcSumCrumbXor(uint8_t *bytes, uint8_t len, uint32_t mask) {
-     sum &= mask;
-     return (sum & 0xFFFF);
- }
--static uint16_t calcSumNibbleXor(uint8_t *bytes, uint8_t len, uint32_t mask) {
-+static uint16_t calcSumNibbleXor(const uint8_t *bytes, uint8_t len, uint32_t mask) {
-     uint32_t sum = 0;
-     for (uint8_t i = 0; i < len; i++) {
-         sum ^= NIBBLE_LOW(bytes[i]);
-@@ -102,7 +102,7 @@ static uint16_t calcSumNibbleXor(uint8_t *bytes, uint8_t len, uint32_t mask) {
-     sum &= mask;
-     return (sum & 0xFFFF);
- }
--static uint16_t calcSumByteXor(uint8_t *bytes, uint8_t len, uint32_t mask) {
-+static uint16_t calcSumByteXor(const uint8_t *bytes, uint8_t len, uint32_t mask) {
-     uint32_t sum = 0;
-     for (uint8_t i = 0; i < len; i++) {
-         sum ^= bytes[i];
-@@ -110,7 +110,7 @@ static uint16_t calcSumByteXor(uint8_t *bytes, uint8_t len, uint32_t mask) {
-     sum &= mask;
-     return (sum & 0xFFFF);
- }
--static uint16_t calcSumByteAdd(uint8_t *bytes, uint8_t len, uint32_t mask) {
-+static uint16_t calcSumByteAdd(const uint8_t *bytes, uint8_t len, uint32_t mask) {
-     uint32_t sum = 0;
-     for (uint8_t i = 0; i < len; i++) {
-         sum += bytes[i];
-@@ -123,7 +123,7 @@ static uint16_t calcSumByteAddOnes(uint8_t *bytes, uint8_t len, uint32_t mask) {
-     return (~calcSumByteAdd(bytes, len, mask) & mask);
- }
  
--static uint16_t calcSumByteSub(uint8_t *bytes, uint8_t len, uint32_t mask) {
-+static uint16_t calcSumByteSub(const uint8_t *bytes, uint8_t len, uint32_t mask) {
-     uint32_t sum = 0;
-     for (uint8_t i = 0; i < len; i++) {
-         sum -= bytes[i];
-@@ -134,7 +134,7 @@ static uint16_t calcSumByteSub(uint8_t *bytes, uint8_t len, uint32_t mask) {
- static uint16_t calcSumByteSubOnes(uint8_t *bytes, uint8_t len, uint32_t mask) {
-     return (~calcSumByteSub(bytes, len, mask) & mask);
- }
--static uint16_t calcSumNibbleSub(uint8_t *bytes, uint8_t len, uint32_t mask) {
-+static uint16_t calcSumNibbleSub(const uint8_t *bytes, uint8_t len, uint32_t mask) {
-     uint32_t sum = 0;
-     for (uint8_t i = 0; i < len; i++) {
-         sum -= NIBBLE_LOW(bytes[i]);
-@@ -148,7 +148,7 @@ static uint16_t calcSumNibbleSubOnes(uint8_t *bytes, uint8_t len, uint32_t mask)
- }
- 
- // BSD shift checksum 8bit version
--static uint16_t calcBSDchecksum8(uint8_t *bytes, uint8_t len, uint32_t mask) {
-+static uint16_t calcBSDchecksum8(const uint8_t *bytes, uint8_t len, uint32_t mask) {
-     uint32_t sum = 0;
-     for (uint8_t i = 0; i < len; i++) {
-         sum = ((sum & 0xFF) >> 1) | ((sum & 0x1) << 7);   // rotate accumulator
-@@ -159,7 +159,7 @@ static uint16_t calcBSDchecksum8(uint8_t *bytes, uint8_t len, uint32_t mask) {
-     return (sum & 0xFFFF);
- }
- // BSD shift checksum 4bit version
--static uint16_t calcBSDchecksum4(uint8_t *bytes, uint8_t len, uint32_t mask) {
-+static uint16_t calcBSDchecksum4(const uint8_t *bytes, uint8_t len, uint32_t mask) {
-     uint32_t sum = 0;
-     for (uint8_t i = 0; i < len; i++) {
-         sum = ((sum & 0xF) >> 1) | ((sum & 0x1) << 3);   // rotate accumulator
-diff --git a/client/src/cmddata.c b/client/src/cmddata.c
-index 70bc65b44..5c70a99eb 100644
---- a/client/src/cmddata.c
-+++ b/client/src/cmddata.c
-@@ -36,9 +36,8 @@ int g_DemodClock = 0;
- 
- static int CmdHelp(const char *Cmd);
- 
--//set the g_DemodBuffer with given array ofq binary (one bit per byte)
--//by marshmellow
--void setDemodBuff(uint8_t *buff, size_t size, size_t start_idx) {
-+// set the g_DemodBuffer with given array ofq binary (one bit per byte)
-+void setDemodBuff(const uint8_t *buff, size_t size, size_t start_idx) {
-     if (buff == NULL) return;
- 
-     if (size > MAX_DEMOD_BUF_LEN - start_idx)
-diff --git a/client/src/cmddata.h b/client/src/cmddata.h
-index ed8f076c7..4bddfcf0a 100644
---- a/client/src/cmddata.h
-+++ b/client/src/cmddata.h
-@@ -12,6 +12,7 @@
- #define CMDDATA_H__
- 
- #include "common.h"
-+#include <stdbool.h>
- 
- #ifdef __cplusplus
- extern "C" {
-@@ -70,7 +71,7 @@ int NRZrawDemod(int clk, int invert, int maxErr, bool verbose);
- 
- int printDemodBuff(uint8_t offset, bool strip_leading, bool invert, bool print_hex);
- 
--void setDemodBuff(uint8_t *buff, size_t size, size_t start_idx);
-+void setDemodBuff(const uint8_t *buff, size_t size, size_t start_idx);
- bool getDemodBuff(uint8_t *buff, size_t *size);
- void save_restoreDB(uint8_t saveOpt);// option '1' to save g_DemodBuffer any other to restore
- int AutoCorrelate(const int *in, int *out, size_t len, size_t window, bool SaveGrph, bool verbose);
-diff --git a/client/src/cmdhf14a.c b/client/src/cmdhf14a.c
-index d127010d5..6d3a89fa4 100644
---- a/client/src/cmdhf14a.c
-+++ b/client/src/cmdhf14a.c
-@@ -2234,14 +2234,6 @@ int infoHF14A4Applications(bool verbose) {
-     return found;
- }
- 
--static uint16_t get_sw(uint8_t *d, uint8_t n) {
--    if (n < 2) {
--        return 0;
--    }
--    n -= 2;
--    return d[n] * 0x0100 + d[n + 1];
--}
--
- static uint64_t inc_sw_error_occurrence(uint16_t sw, uint64_t all_sw[256][256]) {
-     uint8_t sw1 = (uint8_t)(sw >> 8);
-     uint8_t sw2 = (uint8_t)(0xff & sw);
-diff --git a/client/src/cmdhf14b.c b/client/src/cmdhf14b.c
-index 04e0a1a52..38aeb7f62 100644
---- a/client/src/cmdhf14b.c
-+++ b/client/src/cmdhf14b.c
-@@ -54,14 +54,6 @@ static int switch_off_field_14b(void) {
-     return PM3_SUCCESS;
- }
- 
--static uint16_t get_sw(uint8_t *d, uint8_t n) {
--    if (n < 2)
--        return 0;
--
--    n -= 2;
--    return d[n] * 0x0100 + d[n + 1];
--}
--
- static void hf14b_aid_search(bool verbose) {
- 
-     json_t *root = AIDSearchInit(verbose);
-diff --git a/client/src/cmdhfmfp.c b/client/src/cmdhfmfp.c
-index 5eb4f4f2f..d422a2c2b 100644
---- a/client/src/cmdhfmfp.c
-+++ b/client/src/cmdhfmfp.c
-@@ -1237,7 +1237,7 @@ static int CmdHFMFPChk(const char *Cmd) {
+-static int emrtd_mrz_determine_separator(char *mrz, int offset, int max_length) {
++static int emrtd_mrz_determine_separator(const char *mrz, int offset, int max_length) {
+     // Note: this function does not account for len=0
+     int i;
+     for (i = max_length - 1; i > 0; i--) {
+diff --git a/client/src/cmdhffelica.c b/client/src/cmdhffelica.c
+index d6a03f0ef..7a9c5acac 100644
+--- a/client/src/cmdhffelica.c
++++ b/client/src/cmdhffelica.c
+@@ -560,7 +560,7 @@ static int send_wr_plain(uint8_t flags, uint16_t datalen, uint8_t *data, bool ve
+  * @param length in bytes of the master secret.
+  * @param reverse_master_key output in which the reversed secret is stored.
+  */
+-static void reverse_3des_key(uint8_t *master_key, int length, uint8_t *reverse_master_key) {
++static void reverse_3des_key(const uint8_t *master_key, int length, uint8_t *reverse_master_key) {
+     for (int i = 0; i < length; i++) {
+         reverse_master_key[i] = master_key[(length - 1) - i];
      }
- 
-     if (verbose == false)
--        PrintAndLogEx(NORMAL, "Search keys");
-+        PrintAndLogEx(INFO, "Search keys");
- 
-     while (true) {
-         res = MFPKeyCheck(startSector, endSector, startKeyAB, endKeyAB, keyList, keyListLen, foundKeys, verbose);
-diff --git a/client/src/cmdhfseos.c b/client/src/cmdhfseos.c
-index a28198d2f..a27bad605 100644
---- a/client/src/cmdhfseos.c
-+++ b/client/src/cmdhfseos.c
-@@ -19,19 +19,12 @@
- #include "ui.h"
- #include "cmdhf14a.h"           // manufacture
- #include "protocols.h"          // definitions of ISO14A/7816 protocol
--#include "iso7816/apduinfo.h"       // GetAPDUCodeDescription
-+#include "iso7816/apduinfo.h"   // GetAPDUCodeDescription
- #include "crypto/asn1utils.h"   // ASN1 decode / print
-+#include "commonutil.h"         // get_sw
- 
- static int CmdHelp(const char *Cmd);
- 
--static uint16_t get_sw(const uint8_t *d, uint8_t n) {
--    if (n < 2)
--        return 0;
--
--    n -= 2;
--    return d[n] * 0x0100 + d[n + 1];
--}
--
- static int seos_select(void) {
-     bool activate_field = true;
-     bool keep_field_on = true;
-diff --git a/client/src/cmdhfst25ta.c b/client/src/cmdhfst25ta.c
-index 83efcd365..111ea4b5f 100644
---- a/client/src/cmdhfst25ta.c
-+++ b/client/src/cmdhfst25ta.c
-@@ -12,16 +12,17 @@
- #include "cmdhfst.h"
- #include <ctype.h>
- #include "fileutils.h"
--#include "cmdparser.h"     // command_t
--#include "comms.h"         // clearCommandBuffer
-+#include "cmdparser.h"         // command_t
-+#include "comms.h"             // clearCommandBuffer
- #include "cmdtrace.h"
- #include "cliparser.h"
- #include "crc16.h"
- #include "cmdhf14a.h"
--#include "protocols.h"     // definitions of ISO14A/7816 protocol
-+#include "protocols.h"         // definitions of ISO14A/7816 protocol
- #include "iso7816/apduinfo.h"  // GetAPDUCodeDescription
--#include "nfc/ndef.h"      // NDEFRecordsDecodeAndPrint
--#include "cmdnfc.h"        // print_type4_cc_info
-+#include "nfc/ndef.h"          // NDEFRecordsDecodeAndPrint
-+#include "cmdnfc.h"            // print_type4_cc_info
-+#include "commonutil.h"        // get_sw
- 
- #define TIMEOUT 2000
- 
-@@ -103,14 +104,6 @@ static void print_st25ta_system_info(uint8_t *d, uint8_t n) {
-     */
+diff --git a/client/src/cmdhfgallagher.c b/client/src/cmdhfgallagher.c
+index 801699480..e95e25bcc 100644
+--- a/client/src/cmdhfgallagher.c
++++ b/client/src/cmdhfgallagher.c
+@@ -82,7 +82,7 @@ static void reverse_aid(uint8_t *aid) {
+  * @brief Converts a Card Application Directory format application ID to an integer.
+  * Note: the CAD stores AIDs in reverse order, so this is different to DesfireAIDByteToUint().
+  */
+-static uint32_t cad_aid_byte_to_uint(uint8_t *data) {
++static uint32_t cad_aid_byte_to_uint(const uint8_t *data) {
+     return data[2] + (data[1] << 8) + (data[0] << 16);
  }
  
--static uint16_t get_sw(const uint8_t *d, uint8_t n) {
--    if (n < 2)
--        return 0;
--
--    n -= 2;
--    return d[n] * 0x0100 + d[n + 1];
--}
--
- // ST25TA
- static int infoHFST25TA(void) {
- 
-diff --git a/common/commonutil.c b/common/commonutil.c
-index 1eb62b826..e460014d7 100644
---- a/common/commonutil.c
-+++ b/common/commonutil.c
-@@ -230,3 +230,11 @@ uint32_t rotr(uint32_t a, uint8_t n) {
-     n &= 31;
-     return (a >> n) | (a << (32 - n));
+@@ -100,7 +100,7 @@ static void cad_aid_uint_to_byte(uint32_t aid, uint8_t *data) {
+  * @brief Returns true if the Card Application Directory entry
+  * is for the specified region & facility, false otherwise.
+  */
+-static bool cad_facility_match(uint8_t *entry, uint8_t region_code, uint16_t facility_code) {
++static bool cad_facility_match(const uint8_t *entry, uint8_t region_code, uint16_t facility_code) {
+     return entry[0] == region_code && (entry[1] << 8) + entry[2] == facility_code;
  }
-+
-+uint16_t get_sw(const uint8_t *d, uint8_t n) {
-+    if (n < 2)
-+        return 0;
-+
-+    n -= 2;
-+    return d[n] * 0x0100 + d[n + 1];
-+}
-\ No newline at end of file
-diff --git a/common/commonutil.h b/common/commonutil.h
-index 7b548bd15..1a859e6fb 100644
---- a/common/commonutil.h
-+++ b/common/commonutil.h
-@@ -75,4 +75,6 @@ void htole24(uint32_t val, uint8_t data[3]);
- // rol on a u32
- uint32_t rotl(uint32_t a, uint8_t n);
- uint32_t rotr(uint32_t a, uint8_t n);
-+
-+uint16_t get_sw(const uint8_t *d, uint8_t n);
- #endif
+ 
+diff --git a/client/src/cmdhfgallagher.h b/client/src/cmdhfgallagher.h
+index 22aee9c2f..c4ed31784 100644
+--- a/client/src/cmdhfgallagher.h
++++ b/client/src/cmdhfgallagher.h
+@@ -15,7 +15,7 @@
+ #include "common.h"
+ #include <stdint.h>
+ 
+-int CmdHFGallagher(const char *Cmd);
++int CmdHFGallagher(const char *cmd);
+ 
+ /**
+  * @brief Create Gallagher Application Master Key by diversifying
+@@ -29,7 +29,8 @@ int CmdHFGallagher(const char *Cmd);
+  * @param keyOut Buffer to copy the diversified key into (must be 16 bytes).
+  * @return PM3_SUCCESS if successful, PM3_EINVARG if an argument is invalid.
+  */
+-int hfgal_diversify_key(uint8_t *sitekey, uint8_t *uid, uint8_t uidLen, uint8_t keyNum, uint32_t aid, uint8_t *keyOut);
++int hfgal_diversify_key(uint8_t *site_key, uint8_t *uid, uint8_t uid_len,
++                        uint8_t key_num, uint32_t aid, uint8_t *key_output);
+ 
+ // Return error
+ #define HFGAL_RET_ERR(err, ...)  { PrintAndLogEx(ERR, __VA_ARGS__); return err; }
+diff --git a/client/src/cmdhficlass.c b/client/src/cmdhficlass.c
+index 7810f38b0..3880361dc 100644
+--- a/client/src/cmdhficlass.c
++++ b/client/src/cmdhficlass.c
+@@ -3603,7 +3603,7 @@ static void permute_rev(uint8_t *data, uint8_t len, uint8_t *output) {
+     permute(output, len, data);
+     permute(data, len, output);
+ }
+-static void simple_crc(uint8_t *data, uint8_t len, uint8_t *output) {
++static void simple_crc(const uint8_t *data, uint8_t len, uint8_t *output) {
+     uint8_t crc = 0;
+     for (uint8_t i = 0; i < len; ++i) {
+         // seventh byte contains the crc.
+diff --git a/client/src/cmdhflist.c b/client/src/cmdhflist.c
+index 362a665bc..ea22f4f31 100644
+--- a/client/src/cmdhflist.c
++++ b/client/src/cmdhflist.c
+@@ -1403,7 +1403,8 @@ void annotateLTO(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize) {
+     }
+ }
+ 
+-void annotateMifare(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize, uint8_t *parity, uint8_t paritysize, bool isResponse) {
++void annotateMifare(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize,
++                    const uint8_t *parity, uint8_t paritysize, bool isResponse) {
+     if (!isResponse && cmdsize == 1) {
+         switch (cmd[0]) {
+             case ISO14443A_CMD_WUPA:
+@@ -1716,7 +1717,7 @@ bool NestedCheckKey(uint64_t key, AuthData_t *ad, uint8_t *cmd, uint8_t cmdsize,
+     return true;
+ }
+ 
+-bool CheckCrypto1Parity(uint8_t *cmd_enc, uint8_t cmdsize, uint8_t *cmd, uint8_t *parity_enc) {
++bool CheckCrypto1Parity(const uint8_t *cmd_enc, uint8_t cmdsize, uint8_t *cmd, const uint8_t *parity_enc) {
+     for (int i = 0; i < cmdsize - 1; i++) {
+         if (oddparity8(cmd[i]) ^ (cmd[i + 1] & 0x01) ^ ((parity_enc[i / 8] >> (7 - i % 8)) & 0x01) ^ (cmd_enc[i + 1] & 0x01))
+             return false;
+diff --git a/client/src/cmdhflist.h b/client/src/cmdhflist.h
+index 081b3b20f..06a6d3abe 100644
+--- a/client/src/cmdhflist.h
++++ b/client/src/cmdhflist.h
+@@ -48,14 +48,15 @@ void annotateIso7816(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize);
+ void annotateIso14443b(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize);
+ void annotateIso14443a(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize, bool is_response);
+ void annotateMfDesfire(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize);
+-void annotateMifare(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize, uint8_t *parity, uint8_t paritysize, bool isResponse);
++void annotateMifare(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize,
++                    const uint8_t *parity, uint8_t paritysize, bool isResponse);
+ void annotateLTO(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize);
+ void annotateCryptoRF(char *exp, size_t size, uint8_t *cmd, uint8_t cmdsize);
+ 
+ bool DecodeMifareData(uint8_t *cmd, uint8_t cmdsize, uint8_t *parity, bool isResponse, uint8_t *mfData, size_t *mfDataLen, const uint64_t *dicKeys, uint32_t dicKeysCount);
+ bool NTParityChk(AuthData_t *ad, uint32_t ntx);
+ bool NestedCheckKey(uint64_t key, AuthData_t *ad, uint8_t *cmd, uint8_t cmdsize, uint8_t *parity);
+-bool CheckCrypto1Parity(uint8_t *cmd_enc, uint8_t cmdsize, uint8_t *cmd, uint8_t *parity_enc);
++bool CheckCrypto1Parity(const uint8_t *cmd_enc, uint8_t cmdsize, uint8_t *cmd, const uint8_t *parity_enc);
+ uint64_t GetCrypto1ProbableKey(AuthData_t *ad);
+ 
+ #endif // CMDHFLIST
