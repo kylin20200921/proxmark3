@@ -1,22 +1,28 @@
-commit 738701e8e7905fe536c7d12672c2010ec51a7ef8
+commit cb5cd18ff21409a7ac5e97576ef8de4027195159
 Author: iceman1001 <iceman@iuse.se>
-Date:   Fri Dec 31 16:13:49 2021 +0100
+Date:   Fri Dec 31 16:14:11 2021 +0100
 
-    text
+    make even more obvious
 
-diff --git a/doc/md/Use_of_Proxmark/1_Validation.md b/doc/md/Use_of_Proxmark/1_Validation.md
-index 97852e9a1..01669c01b 100644
---- a/doc/md/Use_of_Proxmark/1_Validation.md
-+++ b/doc/md/Use_of_Proxmark/1_Validation.md
-@@ -1,9 +1,9 @@
- <a id="Top"></a>
+diff --git a/client/src/flash.c b/client/src/flash.c
+index 869cd1630..c0ef1d25b 100644
+--- a/client/src/flash.c
++++ b/client/src/flash.c
+@@ -411,11 +411,15 @@ static void flash_suggest_update_bootloader(void) {
  
--# 1. Validating proxmark client functionality
-+# 1. Validating Proxmark3 client functionality
+     PrintAndLogEx(ERR, _RED_("It is recommended that you first" _YELLOW_(" update your bootloader") _RED_(" alone,")));
+     PrintAndLogEx(ERR, _RED_("reboot the Proxmark3 then only update the main firmware") "\n");
+-    PrintAndLogEx(ERR, "Follow these steps :");
++    PrintAndLogEx(NORMAL, "");
++    PrintAndLogEx(ERR, "------------- " _CYAN_("Follow these steps") " -------------------");
++    PrintAndLogEx(NORMAL, "");
+     PrintAndLogEx(ERR, " 1)   ./pm3-flash-bootrom");
+     PrintAndLogEx(ERR, " 2)   ./pm3-flash-all");
+     PrintAndLogEx(ERR, " 3)   ./pm3");
+-    PrintAndLogEx(INFO, "--------------------------------------------------------");
++    PrintAndLogEx(NORMAL, "");
++    PrintAndLogEx(INFO, "---------------------------------------------------");
++    PrintAndLogEx(NORMAL, "");
+     gs_printed_msg = true;
+ }
  
- # Table of Contents
--- [1. Validating proxmark client functionality](#1-validating-proxmark-client-functionality)
-+- [1. Validating Proxmark3 client functionality](#1-validating-proxmark3-client-functionality)
- - [Table of Contents](#table-of-contents)
-     - [To get interactive help](#to-get-interactive-help)
-     - [First tests](#first-tests)
