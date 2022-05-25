@@ -1,55 +1,53 @@
-commit e6cc0ed83644a085204d11c6d0d6ce7e1fc83596
+commit 0bcaf5b47a014e52b7b203a4258559477bbd43b4
 Author: iceman1001 <iceman@iuse.se>
-Date:   Wed Nov 24 20:23:34 2021 +0100
+Date:   Wed Nov 24 20:24:45 2021 +0100
 
-    nfc decode - detects and prints application/json
+    nfc decode - now acts text files as input if they have the extension EML.  hacky..
 
-diff --git a/client/src/nfc/ndef.c b/client/src/nfc/ndef.c
-index 7e698eb80..7e07639ad 100644
---- a/client/src/nfc/ndef.c
-+++ b/client/src/nfc/ndef.c
-@@ -25,9 +25,11 @@
- 
- #define NDEF_WIFIAPPL   "application/vnd.wfa"
- #define NDEF_BLUEAPPL   "application/vnd.bluetooth"
-+#define NDEF_JSONAPPL   "application/json"
- #define NDEF_VCARDTEXT  "text/vcard"
- #define NDEF_XVCARDTEXT "text/x-vcard"
- 
+diff --git a/client/src/cmdnfc.c b/client/src/cmdnfc.c
+index ff356a980..ca0f31a15 100644
+--- a/client/src/cmdnfc.c
++++ b/client/src/cmdnfc.c
+@@ -93,17 +93,38 @@ static int CmdNfcDecode(const char *Cmd) {
+     }
+     int res = PM3_SUCCESS;
+     if (fnlen != 0) {
+-        size_t dumplen = 0;
 +
- static const char *TypeNameFormat_s[] = {
-     "Empty Record",
-     "Well Known Record",
-@@ -517,6 +519,14 @@ static int ndefDecodeMime_vcard(NDEFHeader_t *ndef) {
-     }
-     return PM3_SUCCESS;
- }
-+static int ndefDecodeMime_json(NDEFHeader_t *ndef) {
-+    PrintAndLogEx(INFO, _CYAN_("JSON details"));
-+    if (ndef->PayloadLen > 1) {
-+        PrintAndLogEx(INFO, "");
-+        PrintAndLogEx(INFO, _GREEN_("%.*s"), (int)ndef->PayloadLen, ndef->Payload);
-+    }
-+    return PM3_SUCCESS;
-+}
- 
- static int ndefDecodeMime_bt(NDEFHeader_t *ndef) {
-     PrintAndLogEx(INFO, "Type............ " _YELLOW_("%.*s"), (int)ndef->TypeLen, ndef->Type);
-@@ -651,6 +661,9 @@ static int ndefDecodePayload(NDEFHeader_t *ndef) {
-             if (str_startswith(begin, NDEF_BLUEAPPL)) {
-                 ndefDecodeMime_bt(ndef);
-             }
-+            if (str_startswith(begin, NDEF_JSONAPPL)) {
-+                ndefDecodeMime_json(ndef);
+         uint8_t *dump = NULL;
+-        if (loadFile_safe(filename, ".bin", (void **)&dump, &dumplen) != PM3_SUCCESS) {
++        size_t bytes_read = 4096;
++        DumpFileType_t dftype = getfiletype(filename);
++        switch (dftype) {
++            case BIN: {
++                res = loadFile_safe(filename, ".bin", (void **)&dump, &bytes_read);
++                break;
 +            }
- 
-             free(begin);
-             begin = NULL;
-@@ -673,6 +686,7 @@ static int ndefDecodePayload(NDEFHeader_t *ndef) {
-             PrintAndLogEx(INFO, "- decoder to be impl -");
-             break;
-     }
-+    PrintAndLogEx(INFO, "");
-     return PM3_SUCCESS;
- }
- 
++            case EML: {
++                res = loadFileEML_safe(filename, (void **)&dump, &bytes_read);
++                break;
++            }
++            case JSON:
++            case DICTIONARY: {
++                free(dump);
++                PrintAndLogEx(ERR, "Error: Only BIN/EML formats allowed");
++                return PM3_EINVARG;
++            }
++        }
++
++        if (res != PM3_SUCCESS) {
+             PrintAndLogEx(ERR, "error, something went wrong when loading file");
+             free(dump);
+             return PM3_EFILE;
+         }
+-        res = NDEFDecodeAndPrint(dump, dumplen, verbose);
++
++
++        res = NDEFDecodeAndPrint(dump, bytes_read, verbose);
+         if (res != PM3_SUCCESS) {
+             PrintAndLogEx(INFO, "Trying to parse NDEF records w/o NDEF header");
+-            res = NDEFRecordsDecodeAndPrint(dump, dumplen);
++            res = NDEFRecordsDecodeAndPrint(dump, bytes_read);
+         }
+         free(dump);
+     } else {
