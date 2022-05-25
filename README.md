@@ -1,167 +1,212 @@
-commit 3491157345763053a6879729ccbe2e9ce26982c8
+commit cd825bfac89a878d6717d5a326bd1377d93d067c
 Author: iceman1001 <iceman@iuse.se>
-Date:   Mon Jan 3 22:17:40 2022 +0100
+Date:   Tue Jan 4 07:28:20 2022 +0100
 
-    cppcheck fixes and other minor stuff
+    cppcheck fixes
 
-diff --git a/armsrc/Standalone/hf_colin.c b/armsrc/Standalone/hf_colin.c
-index 93c92f92a..a48d839db 100644
---- a/armsrc/Standalone/hf_colin.c
-+++ b/armsrc/Standalone/hf_colin.c
-@@ -564,7 +564,7 @@ failtag:
-                 err = 1;
-                 allKeysFound = false;
-                 // used in portable imlementation on microcontroller: it reports back the fail and open the
--                // standalone lock reply_old(CMD_CJB_FSMSTATE_MENU, 0, 0, 0, 0, 0);
-+                // standalone lock reply_ng(CMD_CJB_FSMSTATE_MENU, NULL, 0);
-                 break;
-             } else if (key == -2) {
-                 err = 1; // Can't select card.
-diff --git a/armsrc/hitag2.c b/armsrc/hitag2.c
-index 70f048bab..376971a97 100644
---- a/armsrc/hitag2.c
-+++ b/armsrc/hitag2.c
-@@ -1369,10 +1369,12 @@ void SimulateHitag2(bool ledcontrol) {
-         // use malloc
-         initSampleBufferEx(&signal_size, true);
+diff --git a/client/src/cmdhfwaveshare.c b/client/src/cmdhfwaveshare.c
+index 6e6a4fd30..01dc7d63c 100644
+--- a/client/src/cmdhfwaveshare.c
++++ b/client/src/cmdhfwaveshare.c
+@@ -179,7 +179,7 @@ static void dither_chan_inplace(int16_t *chan, uint16_t width, uint16_t height)
+             int16_t newp = oldp > 127 ? 255 : 0;
+             chan[X + Y * width] = newp;
+             int16_t err = oldp - newp;
+-            float m[] = {7, 3, 5, 1};
++            const float m[] = {7, 3, 5, 1};
+             if (X < width - 1) {
+                 chan[X + 1 +  Y      * width] = chan[X + 1 +  Y      * width] + m[0] / 16 * err;
+             }
+@@ -239,7 +239,7 @@ static void dither_rgb_inplace(int16_t *chanR, int16_t *chanG, int16_t *chanB, u
+             int16_t errR = oldR - newR;
+             int16_t errG = oldG - newG;
+             int16_t errB = oldB - newB;
+-            float m[] = {7, 3, 5, 1};
++            const float m[] = {7, 3, 5, 1};
+             if (Y % 2) {
+                 if (XX > 0) {
+                     chanR[XX - 1 +  Y      * width] = (chanR[XX - 1 +  Y      * width] + m[0] / 16 * errR);
+@@ -593,7 +593,7 @@ static int start_drawing_1in54B(uint8_t model_nr, uint8_t *black, uint8_t *red)
+     uint8_t step_4[2] = {0xcd, 0x04};
+     uint8_t step_6[2] = {0xcd, 0x06};
+     uint8_t rx[20] = {0};
+-    uint16_t actrxlen[20], i = 0, progress = 0;
++    uint16_t actrxlen[20], i, progress;
  
--        if (ledcontrol) LED_D_ON();
-+        if (ledcontrol) {
-+            LED_D_ON();
-+            LED_A_OFF();
-+        }
- 
- //        lf_reset_counter();
--        if (ledcontrol) LED_A_OFF();
-         WDT_HIT();
- 
-         /*
-diff --git a/armsrc/lfzx.c b/armsrc/lfzx.c
-index 364af4abc..b392eba0e 100644
---- a/armsrc/lfzx.c
-+++ b/armsrc/lfzx.c
-@@ -87,7 +87,6 @@ static void zx8211_setup_read(void) {
-     sample_config *sc = getSamplingConfig();
-     LFSetupFPGAForADC(sc->divisor, true);
- 
--
-     FpgaWriteConfWord(FPGA_MAJOR_MODE_LF_READER | FPGA_LF_ADC_READER_FIELD);
- 
-     // 50ms for the resonant antenna to settle.
-@@ -132,6 +131,26 @@ static void zx_send(uint8_t *cmd, uint8_t clen) {
-     turn_read_lf_on(ZX_TEOF * 8);
- }
- 
-+static void zx_get(bool ledcontrol) {
+     if (model_nr == M1in54B) {
+         step_5[2] = 100;
+@@ -616,6 +616,7 @@ static int start_drawing_1in54B(uint8_t model_nr, uint8_t *black, uint8_t *red)
+     if (ret != PM3_SUCCESS) {
+         return ret;
+     }
 +
-+    while (BUTTON_PRESS() == false) {
+     PrintAndLogEx(DEBUG, "1.54_Step7: e-paper config2 (red)");
+     if (model_nr == M1in54B) {       //1.54inch B Keychain
+         for (i = 0; i < 50; i++) {
+@@ -635,12 +636,13 @@ static int start_drawing_1in54B(uint8_t model_nr, uint8_t *black, uint8_t *red)
+     if (ret != PM3_SUCCESS) {
+         return ret;
+     }
 +
-+        WDT_HIT();
-+
-+        if (ledcontrol && (AT91C_BASE_SSC->SSC_SR & AT91C_SSC_TXRDY)) {
-+            LED_D_ON();
-+        }
-+
-+        if (AT91C_BASE_SSC->SSC_SR & AT91C_SSC_RXRDY) {
-+            volatile uint8_t sample = (uint8_t)AT91C_BASE_SSC->SSC_RHR;
-+            (void)sample;
-+
-+            // Test point 8 (TP8) can be used to trigger oscilloscope
-+            if (ledcontrol) LED_D_OFF();
-+
-+        }
-+    }
-+}
- 
- int zx8211_read(zx8211_data_t *zxd, bool ledcontrol) {
-     zx8211_setup_read();
-@@ -144,13 +163,18 @@ int zx8211_read(zx8211_data_t *zxd, bool ledcontrol) {
-     // send GET_UID
-     zx_send(NULL, 0);
- 
-+    FpgaWriteConfWord(FPGA_MAJOR_MODE_LF_READER | FPGA_LF_ADC_READER_FIELD);
-+
-+    zx_get(ledcontrol);
-+
-     //uint32_t cs = CRC8Hitag1(uint8_t *buff, size_t size);
- 
-     if (ledcontrol) LEDsoff();
- 
-     StopTicks();
-     lf_finalize(ledcontrol);
--    //reply_ng(CMD_LF_ZX_READ, status, tag.data, sizeof(tag.data));
-+
-+    reply_ng(CMD_LF_ZX_READ, PM3_SUCCESS, NULL, 0);
+     PrintAndLogEx(DEBUG, "1.54_Step9");
      return PM3_SUCCESS;
  }
  
-diff --git a/client/src/cmdhfemrtd.c b/client/src/cmdhfemrtd.c
-index 613c0a055..2afefff1d 100644
---- a/client/src/cmdhfemrtd.c
-+++ b/client/src/cmdhfemrtd.c
-@@ -201,7 +201,7 @@ static int emrtd_exchange_commands_noout(sAPDU_t apdu, bool activate_field, bool
- }
+ static int start_drawing(uint8_t model_nr, uint8_t *black, uint8_t *red) {
+-    uint8_t progress = 0;
++    uint8_t progress;
+     uint8_t step0[2] = {0xcd, 0x0d};
+     uint8_t step1[3] = {0xcd, 0x00, 10};  // select e-paper type and reset e-paper
+     //  4 :2.13inch e-Paper
+@@ -667,14 +669,12 @@ static int start_drawing(uint8_t model_nr, uint8_t *black, uint8_t *red) {
+ // uint8_t step13[2]={0xcd,0x0b};     // Judge whether the power supply is turned off successfully
+ // uint8_t step14[2]={0xcd,0x0c};     // The end of the transmission
+     uint8_t rx[20];
+-    uint16_t actrxlen[20], i = 0;
+-
+-
++    uint16_t actrxlen[20], i;
  
- static char emrtd_calculate_check_digit(char *data) {
--    int mrz_weight[] = {7, 3, 1};
-+    const int mrz_weight[] = {7, 3, 1};
-     int value, cd = 0;
- 
-     for (int i = 0; i < strlen(data); i++) {
-@@ -295,7 +295,7 @@ static void des3_decrypt_cbc(uint8_t *iv, uint8_t *key, uint8_t *input, int inpu
- }
- 
- static int pad_block(uint8_t *input, int inputlen, uint8_t *output) {
--    uint8_t padding[8] = {0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-+    const uint8_t padding[8] = {0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
- 
-     memcpy(output, input, inputlen);
- 
-diff --git a/client/src/cmdhfepa.c b/client/src/cmdhfepa.c
-index acc89d4c4..9864cc55e 100644
---- a/client/src/cmdhfepa.c
-+++ b/client/src/cmdhfepa.c
-@@ -132,7 +132,7 @@ static int CmdHFEPAPACEReplay(const char *Cmd) {
- 
-     uint8_t apdu_lengths[5] = {msesa_len, gn_len, map_len, pka_len, ma_len};
-     // pointers to the arrays to be able to iterate
--    uint8_t *apdus[] = {msesa_apdu, gn_apdu, map_apdu, pka_apdu, ma_apdu};
-+    const uint8_t *apdus[] = {msesa_apdu, gn_apdu, map_apdu, pka_apdu, ma_apdu};
- 
-     // Proxmark response
+     clearCommandBuffer();
+     SendCommandMIX(CMD_HF_ISO14443A_READER, ISO14A_CONNECT | ISO14A_NO_DISCONNECT, 0, 0, NULL, 0);
      PacketResponseNG resp;
-diff --git a/client/src/cmdhfjooki.c b/client/src/cmdhfjooki.c
-index a789fb762..0c89406ba 100644
---- a/client/src/cmdhfjooki.c
-+++ b/client/src/cmdhfjooki.c
-@@ -135,7 +135,7 @@ static int jooki_encode(uint8_t *iv, uint8_t tid, uint8_t fid, uint8_t *uid, uin
-         return PM3_EINVARG;
+-    if (!WaitForResponseTimeout(CMD_ACK, &resp, 2500)) {
++    if (WaitForResponseTimeout(CMD_ACK, &resp, 2500) == false) {
+         PrintAndLogEx(ERR, "No tag found");
+         DropField();
+         return PM3_ETIMEOUT;
+@@ -711,40 +711,41 @@ static int start_drawing(uint8_t model_nr, uint8_t *black, uint8_t *red) {
+         return PM3_ESOFT;
+     }
+     PrintAndLogEx(DEBUG, "model_nr = %d", model_nr);
+-    int ret;
++
+     PrintAndLogEx(DEBUG, "Step0");
+-    ret = transceive_blocking(step0, 2, rx, 20, actrxlen, true);  //cd 0d
++    int ret = transceive_blocking(step0, 2, rx, 20, actrxlen, true);  //cd 0d
+     if (ret != PM3_SUCCESS) {
+         return ret;
+     }
++
+     PrintAndLogEx(DEBUG, "Step1: e-paper config");
+-    //step1[2] screen model
+-    //step8[2] nr of bytes sent at once
+-    //step13[2] nr of bytes sent for the second time
++    // step1[2] screen model
++    // step8[2] nr of bytes sent at once
++    // step13[2] nr of bytes sent for the second time
+     // generally, step8 sends a black image, step13 sends a red image
+-    if (model_nr == M2in13) {        //2.13inch
++    if (model_nr == M2in13) {        // 2.13inch
+         step1[2] = EPD_2IN13V2;
+         step8[2] = 16;
+         step13[2] = 0;
+-    } else if (model_nr == M2in9) {  //2.9inch
++    } else if (model_nr == M2in9) {  // 2.9inch
+         step1[2] = EPD_2IN9;
+         step8[2] = 16;
+         step13[2] = 0;
+-    } else if (model_nr == M4in2) {  //4.2inch
++    } else if (model_nr == M4in2) {  // 4.2inch
+         step1[2] = EPD_4IN2;
+         step8[2] = 100;
+         step13[2] = 0;
+-    } else if (model_nr == M7in5) {  //7.5inch
++    } else if (model_nr == M7in5) {  // 7.5inch
+         step1[2] = EPD_7IN5V2;
+         step8[2] = 120;
+         step13[2] = 0;
+-    } else if (model_nr == M2in7) {  //2.7inch
++    } else if (model_nr == M2in7) {  // 2.7inch
+         step1[2] = EPD_2IN7;
+         step8[2] = 121;
+         // Send blank data for the first time, and send other data to 0xff without processing the bottom layer
+         step13[2] = 121;
+-        //Sending the second data is the real image data. If the previous 0xff is not sent, the last output image is abnormally black
+-    } else if (model_nr == M2in13B) {  //2.13inch B
++        // Sending the second data is the real image data. If the previous 0xff is not sent, the last output image is abnormally black
++    } else if (model_nr == M2in13B) {  // 2.13inch B
+         step1[2] = EPD_2IN13BC;
+         step8[2] = 106;
+         step13[2] = 106;
+@@ -755,31 +756,35 @@ static int start_drawing(uint8_t model_nr, uint8_t *black, uint8_t *red) {
      }
  
--    uint8_t d[JOOKI_PLAIN_LEN] = {iv[0], iv[1], iv[2], tid, fid, uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]};
-+    const uint8_t d[JOOKI_PLAIN_LEN] = {iv[0], iv[1], iv[2], tid, fid, uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]};
-     uint8_t enc[JOOKI_PLAIN_LEN] = {0};
-     for (uint8_t i = 0; i < JOOKI_PLAIN_LEN; i++) {
- 
-diff --git a/client/src/cmdlfzx8211.c b/client/src/cmdlfzx8211.c
-index c6c8d7337..893875e50 100644
---- a/client/src/cmdlfzx8211.c
-+++ b/client/src/cmdlfzx8211.c
-@@ -74,6 +74,17 @@ int demodzx(bool verbose) {
- }
- 
- static int lf_Zx_read(void) {
+     if (model_nr == M1in54B) {
+-        ret = transceive_blocking(step1, 2, rx, 20, actrxlen, true);  //cd 00
++        ret = transceive_blocking(step1, 2, rx, 20, actrxlen, true);  // cd 00
+     } else {
+         ret = transceive_blocking(step1, 3, rx, 20, actrxlen, true);
+     }
+     if (ret != PM3_SUCCESS) {
+         return ret;
+     }
 +
-+    PacketResponseNG resp;
-+    clearCommandBuffer();
+     msleep(100);
+     PrintAndLogEx(DEBUG, "Step2: e-paper normal mode type");
+-    ret = transceive_blocking(step2, 2, rx, 20, actrxlen, true);   //cd 01
++    ret = transceive_blocking(step2, 2, rx, 20, actrxlen, true);  // cd 01
+     if (ret != PM3_SUCCESS) {
+         return ret;
+     }
 +
-+    SendCommandNG(CMD_LF_ZX_READ, NULL, 0);
+     msleep(100);
+     PrintAndLogEx(DEBUG, "Step3: e-paper config1");
+-    ret = transceive_blocking(step3, 2, rx, 20, actrxlen, true); //cd 02
++    ret = transceive_blocking(step3, 2, rx, 20, actrxlen, true); // cd 02
+     if (ret != PM3_SUCCESS) {
+         return ret;
+     }
 +
-+    if (WaitForResponseTimeout(CMD_LF_ZX_READ, &resp, 1000) == false) {
-+        PrintAndLogEx(ERR, "Error occurred, device did not respond during read operation.");
-+        return PM3_ETIMEOUT;
-+    }
+     msleep(200);
+     PrintAndLogEx(DEBUG, "Step4: e-paper power on");
+-    ret = transceive_blocking(step4, 2, rx, 20, actrxlen, true); //cd 03
++    ret = transceive_blocking(step4, 2, rx, 20, actrxlen, true); // cd 03
+     if (ret != PM3_SUCCESS) {
+         return ret;
+     }
 +
-     return PM3_SUCCESS;
- }
- 
+     if (model_nr == M1in54B) {
+         // 1.54B Keychain handler
+         PrintAndLogEx(DEBUG, "Start_Drawing_1in54B");
+@@ -787,27 +792,27 @@ static int start_drawing(uint8_t model_nr, uint8_t *black, uint8_t *red) {
+         if (ret != PM3_SUCCESS) {
+             return ret;
+         }
+-        //1.54B Data transfer is complete and wait for refresh
++        // 1.54B Data transfer is complete and wait for refresh
+     } else {
+         PrintAndLogEx(DEBUG, "Step5: e-paper config2");
+-        ret = transceive_blocking(step5, 2, rx, 20, actrxlen, true);   //cd 05
++        ret = transceive_blocking(step5, 2, rx, 20, actrxlen, true); // cd 05
+         if (ret != PM3_SUCCESS) {
+             return ret;
+         }
+         msleep(100);
+         PrintAndLogEx(DEBUG, "Step6: EDP load to main") ;
+-        ret = transceive_blocking(step6, 2, rx, 20, actrxlen, true); //cd 06
++        ret = transceive_blocking(step6, 2, rx, 20, actrxlen, true); // cd 06
+         if (ret != PM3_SUCCESS) {
+             return ret;
+         }
+         msleep(100);
+         PrintAndLogEx(DEBUG, "Step7: Data preparation");
+-        ret = transceive_blocking(step7, 2, rx, 20, actrxlen, true); //cd 07
++        ret = transceive_blocking(step7, 2, rx, 20, actrxlen, true); // cd 07
+         if (ret != PM3_SUCCESS) {
+             return ret;
+         }
+         PrintAndLogEx(DEBUG, "Step8: Start data transfer");
+-        if (model_nr == M2in13) {      //2.13inch
++        if (model_nr == M2in13) {      // 2.13inch
+             for (i = 0; i < 250; i++) {
+                 read_black(i, step8, model_nr, black);
+                 ret = transceive_blocking(step8, 19, rx, 20, actrxlen, true); // cd 08
+@@ -939,6 +944,7 @@ static int start_drawing(uint8_t model_nr, uint8_t *black, uint8_t *red) {
+     } else if (model_nr == M7in5HD) {
+         msleep(1000);
+     }
++
+     uint8_t fail_num = 0;
+     while (1) {
+         if (model_nr == M1in54B) {
