@@ -1,47 +1,80 @@
-commit d330d22c482c1db1b620f25bb8b928b0c5cd9057
+commit 4facebb34d6f474f578fdf566940ad6326100303
 Author: iceman1001 <iceman@iuse.se>
-Date:   Tue Jun 22 10:46:21 2021 +0200
+Date:   Tue Jun 22 10:52:08 2021 +0200
 
-    text
+    input sanitizing
 
 diff --git a/client/src/cipurse/cipursecore.c b/client/src/cipurse/cipursecore.c
-index c3024a9b2..3d5cd7e8b 100644
+index 3d5cd7e8b..a72011717 100644
 --- a/client/src/cipurse/cipursecore.c
 +++ b/client/src/cipurse/cipursecore.c
-@@ -227,27 +227,28 @@ void CIPURSECSetActChannelSecurityLevels(CipurseChannelSecurityLevel req, Cipurs
+@@ -27,14 +27,14 @@ CipurseContext cipurseContext;
  
- static void CIPURSEPrintPersoMode(uint8_t data) {
-     if ((data & 0x01) == 0x01)
--        PrintAndLogEx(INFO, "Perso: filesystem");
-+        PrintAndLogEx(INFO, "Perso... " _YELLOW_("filesystem"));
-     if ((data & 0x02) == 0x02)
--        PrintAndLogEx(INFO, "Perso: EMV");
-+        PrintAndLogEx(INFO, "Perso... " _YELLOW_("EMV"));
-     if ((data & 0x04) == 0x04)
--        PrintAndLogEx(INFO, "Perso: transaction supported");
-+        PrintAndLogEx(INFO, "Perso... " _YELLOW_("transaction supported"));
- }
+ static int CIPURSEExchangeEx(bool activate_field, bool leave_field_on, sAPDU apdu, bool include_le,
+                              uint16_t le, uint8_t *result, size_t max_result_len, size_t *result_len, uint16_t *sw) {
+-    uint8_t data[APDU_RES_LEN] = {0};
+-    uint8_t securedata[APDU_RES_LEN] = {0};
+-    sAPDU secapdu;
  
-+// 2021 iceman: what is the description text of profile L,S,T ?
- static void CIPURSEPrintProfileInfo(uint8_t data) {
-     if ((data & 0x01) == 0x01)
--        PrintAndLogEx(INFO, "Profile: L");
-+        PrintAndLogEx(INFO, "Profile... L");
-     if ((data & 0x02) == 0x02)
--        PrintAndLogEx(INFO, "Profile: S");
-+        PrintAndLogEx(INFO, "Profile... S");
-     if ((data & 0x04) == 0x04)
--        PrintAndLogEx(INFO, "Profile: T");
-+        PrintAndLogEx(INFO, "Profile... T");
- }
+-    if (result_len) {
+-        *result_len = 0;
++    if (result_len == NULL) {
++        PrintAndLogEx(FAILED, "CIPURSEExchangeEx, result_len is NULL");
++        return PM3_EINVARG;
+     }
  
- static void CIPURSEPrintManufacturerInfo(uint8_t data) {
-     if (data == 0)
--        PrintAndLogEx(INFO, "Manufacturer: n/a");
-+        PrintAndLogEx(INFO, "Manufacturer... n/a");
-     else
--        PrintAndLogEx(INFO, "Manufacturer: %s", getTagInfo(data)); // getTagInfo from cmfhf14a.h
-+        PrintAndLogEx(INFO, "Manufacturer... %s", getTagInfo(data)); // getTagInfo from cmfhf14a.h
- }
++    *result_len = 0;
++
+     if (sw) {
+         *sw = 0;
+     }
+@@ -53,26 +53,32 @@ static int CIPURSEExchangeEx(bool activate_field, bool leave_field_on, sAPDU apd
+     // COMPUTE APDU
+     int datalen = 0;
+     uint16_t xle = include_le ? 0x100 : 0x00;
+-    if (xle == 0x100 && le != 0)
++    if (xle == 0x100 && le != 0) {
+         xle = le;
++    }
  
- void CIPURSEPrintInfoFile(uint8_t *data, size_t len) {
++    sAPDU secapdu;
++    uint8_t securedata[APDU_RES_LEN] = {0};
+     CipurseCAPDUReqEncode(&cipurseContext, &apdu, &secapdu, securedata, include_le, le);
+ 
++    uint8_t data[APDU_RES_LEN] = {0};
+     if (APDUEncodeS(&secapdu, false, xle, data, &datalen)) {
+         PrintAndLogEx(ERR, "APDU encoding error.");
+         return 201;
+     }
+ 
+-    if (GetAPDULogging())
++    if (GetAPDULogging()) {
+         PrintAndLogEx(SUCCESS, ">>>> %s", sprint_hex(data, datalen));
++    }
+ 
+     res = ExchangeAPDU14a(data, datalen, activate_field, leave_field_on, result, (int)max_result_len, (int *)result_len);
+     if (res) {
+         return res;
+     }
+ 
+-    if (GetAPDULogging())
++    if (GetAPDULogging()) {
+         PrintAndLogEx(SUCCESS, "<<<< %s", sprint_hex(result, *result_len));
++    }
+ 
+     if (*result_len < 2) {
+         return 200;
+@@ -80,10 +86,12 @@ static int CIPURSEExchangeEx(bool activate_field, bool leave_field_on, sAPDU apd
+ 
+     size_t rlen = 0;
+     if (*result_len == 2) {
+-        if (cipurseContext.RequestSecurity == CPSMACed || cipurseContext.RequestSecurity == CPSEncrypted)
++        if (cipurseContext.RequestSecurity == CPSMACed || cipurseContext.RequestSecurity == CPSEncrypted) {
+             CipurseCClearContext(&cipurseContext);
++        }
+ 
+         isw = result[0] * 0x0100 + result[1];
++
+     } else {
+         CipurseCAPDURespDecode(&cipurseContext, result, *result_len, securedata, &rlen, &isw);
+         memcpy(result, securedata, rlen);
