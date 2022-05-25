@@ -1,365 +1,181 @@
-commit 34a695547c977a17e8e9c124094bdd1ba44018dc
+commit 37b89c7b119c4f66aa4bef8f9ed7f8bc338bc080
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sat Oct 16 15:45:32 2021 +0200
+Date:   Sun Oct 17 11:38:37 2021 +0200
 
-    remove unused appveyor config file
+    add ehanced contactless polling to 14a reader/raw commands
 
-diff --git a/appveyor.yml.old b/appveyor.yml.old
-deleted file mode 100644
-index b07bce303..000000000
---- a/appveyor.yml.old
-+++ /dev/null
-@@ -1,352 +0,0 @@
--version: 3.0.1.{build}
--image: Visual Studio 2019
--clone_folder: C:\ProxSpace\pm3\proxmark
--cache:
--  - C:\ps-cache -> appveyor.yml
--environment:
--  proxspace_url: https://github.com/Gator96100/ProxSpace/archive/master.zip
--  proxspace_zip_file: \proxspace.zip
--  proxspace_zip_folder_name: ProxSpace-*
--  proxspace_path: C:\ProxSpace
--  proxspace_home_path: \ProxSpace\pm3
--  proxspace_cache_path: C:\ps-cache
--  wsl_git_path: C:\proxmark
--  APPVEYOR_SAVE_CACHE_ON_ERROR: true
--
--init:
--- ps: >-
--    $psversiontable
--
--    #Get-ChildItem Env:
--
--    $releasename=""
--
--    $env:APPVEYOR_REPO_COMMIT_SHORT = $env:APPVEYOR_REPO_COMMIT.Substring(0, 8)
--
--    if ($env:appveyor_repo_tag -match "true"){
--      $releasename=$env:APPVEYOR_REPO_TAG_NAME + "/"
--    }
--
--    $releasename+=$env:APPVEYOR_BUILD_VERSION + " [" + $env:APPVEYOR_REPO_COMMIT_SHORT + "]"
--
--    Write-Host "repository: $env:appveyor_repo_name branch:$env:APPVEYOR_REPO_BRANCH release: $releasename" -ForegroundColor Yellow
--
--    Add-AppveyorMessage -Message "[$env:APPVEYOR_REPO_COMMIT_SHORT]$env:appveyor_repo_name($env:APPVEYOR_REPO_BRANCH)" -Category Information -Details "repository: $env:appveyor_repo_name branch: $env:APPVEYOR_REPO_BRANCH release: $releasename"
--
--    # iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
--clone_script:
--- ps: >-
--    
--    Function GitClone($Text, $Folder) {
--        Write-Host "$Text" -NoNewLine
--        if(-not $env:appveyor_pull_request_number) {
--            git clone -q --branch=$env:appveyor_repo_branch https://github.com/$env:appveyor_repo_name.git $Folder
--            cd $Folder
--            git checkout -qf $env:appveyor_repo_commit
--        } else {
--            git clone -q https://github.com/$env:appveyor_repo_name.git $Folder
--            cd $Folder
--            git fetch -q origin +refs/pull/$env:appveyor_pull_request_number/merge:
--            git checkout -qf FETCH_HEAD
--        }
--        Write-Host "[ OK ]" -ForegroundColor Green 
--    }
--    
--    $WSLjob = Start-Job -Name WSLInstall -ScriptBlock { 
--        Function WSLExec($Text, $Cmd) {
--            Write-Host "$Text" 
--            wsl -- bash -c $Cmd
--            Write-Host "$Text" -NoNewLine 
--            Write-Host "[ OK ]" -ForegroundColor Green
--        }
--    
--        $WSLInstallTime=[System.Environment]::TickCount
--        WSLExec "WSL update..." "sudo apt-get update 1>/dev/null"
--        WSLExec "WSL upgrade..." "sudo apt-get upgrade -y 1>/dev/null" 
--        WSLExec "WSL cleanup..." "sudo apt-get auto-remove -y 1>/dev/null" 
--        WSLExec "WSL install..." "sudo apt-get -y install --reinstall --no-install-recommends git ca-certificates build-essential pkg-config libreadline-dev gcc-arm-none-eabi libnewlib-dev libbz2-dev qtbase5-dev cmake libpython3-dev python3 python3-pip python3-dev libpython3-all-dev 1>/dev/null" 
--        WSLExec "WSL QT fix..." "sudo strip --remove-section=.note.ABI-tag /usr/lib/x86_64-linux-gnu/libQt5Core.so.5"
--        WSLExec "WSL install python dependencies..." "sudo python3 -m pip install --upgrade pip 1>/dev/null"
--        WSLExec "WSL install pip..." "sudo python3 -m pip install setuptools 1>/dev/null"
--        WSLExec "WSL install pip continue..." "sudo python3 -m pip install ansicolors sslcrypto 1>/dev/null"
--
--        Add-AppveyorMessage -Message "WSL setup took $(([System.Environment]::TickCount-$WSLInstallTime) / 1000) sec" -Category Information
--        New-Item -ItemType "file" -Path "C:\WSL-Finished.txt" -Force | Out-Null
--    }
--    
--    $env:PSInstallTime=[System.Environment]::TickCount
--    
--    Write-Host "ProxSpace: Removing folder..." -NoNewLine
--    
--    cd \
--    
--    Remove-Item -Recurse -Force -Path $env:proxspace_path -ErrorAction SilentlyContinue
--    
--    Write-Host "[ OK ]" -ForegroundColor Green
--
--    Write-Host "ProxSpace: downloading..." -NoNewLine
--    
--    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
--    
--    Invoke-WebRequest "$env:proxspace_url" -outfile "$env:proxspace_zip_file"
--    
--    Write-Host "[ OK ]" -ForegroundColor Green
--    
--    Write-Host "ProxSpace: extracting..." -NoNewLine
--    
--    Expand-Archive -LiteralPath "$env:proxspace_zip_file" -DestinationPath "\"
--    
--    Remove-Item "$env:proxspace_zip_file"
--    
--    Write-Host "[ OK ]" -ForegroundColor Green
--    
--    Write-Host "ProxSpace: renaming folder..." -NoNewLine
--    
--    Get-ChildItem -Path "\$env:proxspace_zip_folder_name" | Rename-Item -NewName (Split-Path $env:proxspace_path -Leaf)
--    
--    Write-Host "[ OK ]" -ForegroundColor Gree 
--    
--    $psversion = (Select-String -Pattern 'PSVERSION=' -SimpleMatch -Path "$env:proxspace_path\setup\09-proxspace_setup.post").Line.Split("""")[1]
--    
--    Write-Host "ProxSpace version: $psversion" -ForegroundColor Yellow
--    
--    GitClone "ProxSpace: Cloning repository <$env:appveyor_repo_name> to $env:appveyor_build_folder ..." $env:appveyor_build_folder
--    
--    GitClone "WSL: Cloning repository <$env:appveyor_repo_name> to $env:wsl_git_path ..." $env:wsl_git_path
--    
--
--install:
--- ps: >-
--    
--    Function ExecUpdate($Text, $firstStart) {
--        Write-Host "$Text"
--        
--        $PSjob = Start-Job -Name PSInstall -ScriptBlock { 
--            cd $env:proxspace_path
--            ./runme64.bat -c "exit"
--        }
--        
--        $StartTime=[System.Environment]::TickCount
--        Start-Sleep -s 10
--        while($true) {            
--            if ($PSjob.State -eq 'Completed') {
--                Write-Host "$Text" -NoNewLine 
--                Write-Host "[ OK ]" -ForegroundColor Green
--                break
--            }
--            
--            if ($PSjob.State -eq 'Failed') {
--                Write-Host "$Text" -NoNewLine 
--                Write-Host "[ Failed ]" -ForegroundColor Red
--                break
--            }
--            
--            if ($firstStart -And (Test-Path "$env:proxspace_path\msys2\etc\pacman.conf.pacnew")) {
--                Start-Sleep -s 5
--                Stop-Job -Job $PSjob
--                Start-Sleep -s 5
--                Write-Host "$Text" -NoNewLine 
--                Write-Host "Exit by pacman.conf" -ForegroundColor Green
--                break           
--            }
--            
--            if ([System.Environment]::TickCount-$StartTime -gt 1000000) {
--                Stop-Job -Job $PSjob
--                Write-Host "$Text" -NoNewLine 
--                Write-host "Exit by timeout" -ForegroundColor Yellow
--                break
--            }
--            
--            Start-Sleep -s 5
--            Receive-Job -Name WSLInstall -ErrorAction SilentlyContinue
--        }
--        #Receive-Job -Wait -Name PSInstall
--    }
--    
--    Function GitClone($Text, $Folder) {
--        Write-Host "$Text" -NoNewLine
--        if(-not $env:appveyor_pull_request_number) {
--            git clone -q --branch=$env:appveyor_repo_branch https://github.com/$env:appveyor_repo_name.git $Folder
--            cd $Folder
--            git checkout -qf $env:appveyor_repo_commit
--        } else {
--            git clone -q https://github.com/$env:appveyor_repo_name.git $Folder
--            cd $Folder
--            git fetch -q origin +refs/pull/$env:appveyor_pull_request_number/merge:
--            git checkout -qf FETCH_HEAD
--        }
--        Write-Host "[ OK ]" -ForegroundColor Green 
--    }
--    
--    Write-Host "ProxSpace: move cache..." -NoNewLine
--    
--    New-Item -ItemType Directory -Force -Path "$env:proxspace_path\msys2\var\cache\" | Out-Null
--    
--    Copy-Item -Path "$env:proxspace_cache_path\*" -Destination "$env:proxspace_path\msys2\var\cache\" -Force -Recurse -ErrorAction SilentlyContinue
--    
--    Write-Host "[ OK ]" -ForegroundColor Gree 
--
--    ExecUpdate "ProxSpace: initial msys2 startup..." $true
--    
--    ExecUpdate "ProxSpace: installing required packages..." $false    
--    
--    Add-AppveyorMessage -Message "ProxSpace download and update took $(([System.Environment]::TickCount-$env:PSInstallTime) / 1000) sec" -Category Information
--
--build_script:
--- ps: >-
--
--    $pmfolder = Split-Path $env:appveyor_build_folder -Leaf
--    
--    Function ExecMinGWCmd($Cmd) {
--        cd $env:proxspace_path
--        ./runme64.bat -c "cd $pmfolder && $Cmd"
--    }
--    
--    Function ExecCheck($Name) {
--        $testspass = ($LASTEXITCODE -eq 0)
--    
--        $global:TestsPassed=$testspass
--
--        if ($testspass) {
--            Add-AppveyorTest -Name $Name -Framework NUnit -Filename $Name -Outcome Passed -Duration "$([System.Environment]::TickCount-$TestTime)"
--            Write-Host "$Name [ OK ]" -ForegroundColor Green
--        } else {
--            Add-AppveyorTest -Name $Name -Framework NUnit -Filename $Name -Outcome Failed -Duration "$([System.Environment]::TickCount-$TestTime)"
--            Write-Host "$Name [ ERROR ]" -ForegroundColor Red
--            throw "Tests error."
--        }
--    }
--    
--    $WSLjob = Start-Job -Name WSLCompile -ScriptBlock { 
--        Function ExecWSLCmd($Cmd) {
--            cd $env:wsl_git_path   
--            wsl -- bash -c $Cmd
--        }
--        
--        Function ExecCheck($Name) {
--            $testspass = ($LASTEXITCODE -eq 0)
--        
--            $global:TestsPassed=$testspass
--    
--            if ($testspass) {
--                Add-AppveyorTest -Name $Name -Framework NUnit -Filename $Name -Outcome Passed -Duration "$([System.Environment]::TickCount-$TestTime)"
--                Write-Host "$Name [ OK ]" -ForegroundColor Green
--            } else {
--                Add-AppveyorTest -Name $Name -Framework NUnit -Filename $Name -Outcome Failed -Duration "$([System.Environment]::TickCount-$TestTime)"
--                Write-Host "$Name [ ERROR ]" -ForegroundColor Red
--                throw "Tests error."
--            }
--        }
--        
--        #WSL: wait for installation to finish
--        if(!(Test-Path "C:\WSL-Finished.txt")){
--            Write-Host "Waiting for WSL installation to finish..." -NoNewLine
--            while(!(Test-Path "C:\WSL-Finished.txt")) {
--                Start-Sleep -s 5
--            }
--            Remove-Item -Force "C:\WSL-Finished.txt" -ErrorAction SilentlyContinue
--            Write-Host "$Name [ OK ]" -ForegroundColor Green       
--        }
--    
--        #Windows Subsystem for Linux (WSL)
--        Write-Host "---------- WSL make ----------" -ForegroundColor Yellow   
--        $TestTime=[System.Environment]::TickCount
--        ExecWSLCmd "make clean;make V=1"  
--        #some checks
--        if(!(Test-Path "$env:wsl_git_path\client\proxmark3")){
--            throw "Main file proxmark3 not exists."
--        }
--        
--        ExecWSLCmd "make check"
--        ExecCheck "WSL make Tests"
--        Start-Sleep -s 2  
--        Write-Host "---------- WSL btaddon ----------" -ForegroundColor Yellow   
--        $TestTime=[System.Environment]::TickCount   
--        ExecWSLCmd "make clean;make V=1 PLATFORM_EXTRAS=BTADDON"  
--        ExecWSLCmd "make check"
--        ExecCheck "WSL BTaddon Tests"   
--        Start-Sleep -s 2  
--        Write-Host "---------- WSL make clean ----------" -ForegroundColor Yellow  
--        ExecWSLCmd 'make clean'  
--        Write-Host "---------- WSL cmake ----------" -ForegroundColor Yellow  
--        $TestTime=[System.Environment]::TickCount 
--        ExecWSLCmd 'mkdir -p client/build; cd client/build; cmake ..; make VERBOSE=1;' 
--        Write-Host "---------- WSL cmake tests ----------" -ForegroundColor Yellow
--        ExecWSLCmd './tools/pm3_tests.sh --clientbin client/build/proxmark3 client'  
--        ExecCheck "WSL cmake Tests"
--    }
--    
--    #ProxSpace
--    
--    Write-Host "ProxSpace: create new cache..." -NoNewLine
--    
--    cd $env:proxspace_path
--    
--    ./runme64.bat -c "yes | pacman -Sc > /dev/null 2>&1"
--
--    Remove-Item -Recurse -Force -Path "$env:proxspace_cache_path" -ErrorAction SilentlyContinue
--    
--    Move-Item -Path "$env:proxspace_path\msys2\var\cache" -Destination "$env:proxspace_cache_path" -Force
--    
--    Write-Host "[ OK ]" -ForegroundColor Gree 
--    
--    Write-Host "---------- PS make ----------" -ForegroundColor Yellow
--    
--    $TestTime=[System.Environment]::TickCount  
--    
--    ExecMinGWCmd "make clean;make V=1"
--
--    if(!(Test-Path "$env:proxspace_home_path\$pmfolder\client\proxmark3.exe")){
--
--        throw "Main file proxmark3.exe not exists."
--
--    }
--
--    ExecMinGWCmd 'make check'
--
--    ExecCheck "PS make Tests"
--    
--    Write-Host "---------- PS btaddon ----------" -ForegroundColor Yellow
--    
--    $TestTime=[System.Environment]::TickCount
--
--    ExecMinGWCmd 'make clean;make V=1 PLATFORM_EXTRAS=BTADDON'
--
--    ExecMinGWCmd 'make check'
--    
--    ExecCheck "PS BTaddon Tests"
--    
--    Write-Host "---------- PS make clean ----------" -ForegroundColor Yellow
--    
--    ExecMinGWCmd 'make clean'
--    
--    Write-Host "---------- PS cmake ----------" -ForegroundColor Yellow
--    
--    $TestTime=[System.Environment]::TickCount
--    
--    ExecMinGWCmd 'mkdir -p client/build; cd client/build; cmake -G""MSYS Makefiles"" ..; make VERBOSE=1;'
--    
--    Write-Host "---------- PS cmake tests ----------" -ForegroundColor Yellow
--
--    ExecMinGWCmd './tools/pm3_tests.sh --clientbin client/build/proxmark3.exe client'
--    
--    ExecCheck "PS cmake Tests"
--    
--    Receive-Job -Wait -Name WSLInstall -ErrorAction SilentlyContinue
--    
--    Receive-Job -Wait -Job $WSLjob
--    
--test_script:
--- ps: >-
--    if ($global:TestsPassed) {
--      Write-Host "Tests [ OK ]" -ForegroundColor Green
--    } else {
--      Write-Host "Tests [ ERROR ]" -ForegroundColor Red
--      throw "Tests error."
--    }
--on_success:
--- ps: Write-Host "Build success..." -ForegroundColor Green
--on_failure:
--- ps: Write-Host "Build error." -ForegroundColor Red
--on_finish:
--- ps: # $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-\ No newline at end of file
+diff --git a/armsrc/iso14443a.c b/armsrc/iso14443a.c
+index 60f510269..8df4729ab 100644
+--- a/armsrc/iso14443a.c
++++ b/armsrc/iso14443a.c
+@@ -2427,11 +2427,12 @@ static void iso14a_set_ATS_times(uint8_t *ats) {
+     }
+ }
+ 
+-static int GetATQA(uint8_t *resp, uint8_t *resp_par) {
++static int GetATQA(uint8_t *resp, uint8_t *resp_par, bool use_ecp) {
+ 
++#define ECP_DELAY 1000
+ #define WUPA_RETRY_TIMEOUT 10    // 10ms
+-    uint8_t wupa[] = { ISO14443A_CMD_WUPA };  // 0x26 - REQA  0x52 - WAKE-UP
+ 
++    uint8_t wupa[] = { ISO14443A_CMD_WUPA };  // 0x26 - REQA  0x52 - WAKE-UP
+     uint32_t save_iso14a_timeout = iso14a_get_timeout();
+     iso14a_set_timeout(1236 / 128 + 1);  // response to WUPA is expected at exactly 1236/fc. No need to wait longer.
+ 
+@@ -2440,6 +2441,12 @@ static int GetATQA(uint8_t *resp, uint8_t *resp_par) {
+ 
+     // we may need several tries if we did send an unknown command or a wrong authentication before...
+     do {
++        if (use_ecp) {
++            uint8_t ecp[] = { 0x6a, 0x02, 0xC8, 0x01, 0x00, 0x03, 0x00, 0x02, 0x79, 0x00, 0x00, 0x00, 0x00, 0xC2, 0xD8};
++            ReaderTransmit(ecp, sizeof(ecp), NULL);
++            SpinDelay(ECP_DELAY);
++        }
++
+         // Broadcast for a card, WUPA (0x52) will force response from all cards in the field
+         ReaderTransmitBitsPar(wupa, 7, NULL, NULL);
+         // Receive the ATQA
+@@ -2450,13 +2457,17 @@ static int GetATQA(uint8_t *resp, uint8_t *resp_par) {
+     return len;
+ }
+ 
++int iso14443a_select_card(uint8_t *uid_ptr, iso14a_card_select_t *p_card, uint32_t *cuid_ptr, bool anticollision, uint8_t num_cascades, bool no_rats) {
++    return iso14443a_select_cardEx(uid_ptr, p_card, cuid_ptr, anticollision, num_cascades, no_rats, false);
++}
++
+ // performs iso14443a anticollision (optional) and card select procedure
+ // fills the uid and cuid pointer unless NULL
+ // fills the card info record unless NULL
+ // if anticollision is false, then the UID must be provided in uid_ptr[]
+ // and num_cascades must be set (1: 4 Byte UID, 2: 7 Byte UID, 3: 10 Byte UID)
+ // requests ATS unless no_rats is true
+-int iso14443a_select_card(uint8_t *uid_ptr, iso14a_card_select_t *p_card, uint32_t *cuid_ptr, bool anticollision, uint8_t num_cascades, bool no_rats) {
++int iso14443a_select_cardEx(uint8_t *uid_ptr, iso14a_card_select_t *p_card, uint32_t *cuid_ptr, bool anticollision, uint8_t num_cascades, bool no_rats, bool use_ecp) {
+ 
+     uint8_t resp[MAX_FRAME_SIZE] = {0}; // theoretically. A usual RATS will be much smaller
+     uint8_t resp_par[MAX_PARITY_SIZE] = {0};
+@@ -2471,7 +2482,7 @@ int iso14443a_select_card(uint8_t *uid_ptr, iso14a_card_select_t *p_card, uint32
+         p_card->ats_len = 0;
+     }
+ 
+-    if (!GetATQA(resp, resp_par)) {
++    if (!GetATQA(resp, resp_par, use_ecp)) {
+         return 0;
+     }
+ 
+@@ -2669,7 +2680,7 @@ int iso14443a_fast_select_card(uint8_t *uid_ptr, uint8_t num_cascades) {
+     uint8_t sak = 0x04; // cascade uid
+     int cascade_level = 0;
+ 
+-    if (!GetATQA(resp, resp_par)) {
++    if (!GetATQA(resp, resp_par, false)) {
+         return 0;
+     }
+ 
+@@ -2878,7 +2889,7 @@ void ReaderIso14443a(PacketCommandNG *c) {
+         // if failed selecting, turn off antenna and quite.
+         if (!(param & ISO14A_NO_SELECT)) {
+             iso14a_card_select_t *card = (iso14a_card_select_t *)buf;
+-            arg0 = iso14443a_select_card(NULL, card, NULL, true, 0, param & ISO14A_NO_RATS);
++            arg0 = iso14443a_select_cardEx(NULL, card, NULL, true, 0, (param & ISO14A_NO_RATS), (param & ISO14A_USE_ECP));
+             FpgaDisableTracing();
+ 
+             reply_mix(CMD_ACK, arg0, card->uidlen, 0, buf, sizeof(iso14a_card_select_t));
+diff --git a/armsrc/iso14443a.h b/armsrc/iso14443a.h
+index 54764d223..8acbc8716 100644
+--- a/armsrc/iso14443a.h
++++ b/armsrc/iso14443a.h
+@@ -142,6 +142,7 @@ int ReaderReceive(uint8_t *receivedAnswer, uint8_t *par);
+ void iso14443a_setup(uint8_t fpga_minor_mode);
+ int iso14_apdu(uint8_t *cmd, uint16_t cmd_len, bool send_chaining, void *data, uint8_t *res);
+ int iso14443a_select_card(uint8_t *uid_ptr, iso14a_card_select_t *p_card, uint32_t *cuid_ptr, bool anticollision, uint8_t num_cascades, bool no_rats);
++int iso14443a_select_cardEx(uint8_t *uid_ptr, iso14a_card_select_t *p_card, uint32_t *cuid_ptr, bool anticollision, uint8_t num_cascades, bool no_rats, bool use_ecp);
+ int iso14443a_fast_select_card(uint8_t *uid_ptr, uint8_t num_cascades);
+ void iso14a_set_trigger(bool enable);
+ 
+diff --git a/client/lualibs/read14a.lua b/client/lualibs/read14a.lua
+index 59de3c11f..beaea0fe5 100644
+--- a/client/lualibs/read14a.lua
++++ b/client/lualibs/read14a.lua
+@@ -27,7 +27,9 @@ local ISO14A_COMMAND = {
+     ISO14A_SET_TIMEOUT = 0x40,
+     ISO14A_NO_SELECT = 0x80,
+     ISO14A_TOPAZMODE = 0x100,
+-    ISO14A_NO_RATS = 0x200
++    ISO14A_NO_RATS = 0x200,
++    ISO14A_SEND_CHAINING = 0x400,
++    ISO14A_USE_ECP = 0x800
+ }
+ 
+ local ISO14443a_TYPES = {}
+diff --git a/client/src/cmdhf14a.c b/client/src/cmdhf14a.c
+index 053b1f60a..213ac6753 100644
+--- a/client/src/cmdhf14a.c
++++ b/client/src/cmdhf14a.c
+@@ -425,6 +425,7 @@ static int CmdHF14AReader(const char *Cmd) {
+         arg_lit0("s", "silent", "silent (no messages)"),
+         arg_lit0(NULL, "drop", "just drop the signal field"),
+         arg_lit0(NULL, "skip", "ISO14443-3 select only (skip RATS)"),
++        arg_lit0(NULL, "ecp", "Use enhanced contactless polling"),
+         arg_lit0("@", NULL, "continuous reader mode"),
+         arg_param_end
+     };
+@@ -446,7 +447,11 @@ static int CmdHF14AReader(const char *Cmd) {
+         cm |= ISO14A_NO_RATS;
+     }
+ 
+-    bool continuous = arg_get_lit(ctx, 5);
++    if (arg_get_lit(ctx, 5)) {
++        cm |= ISO14A_USE_ECP;
++    }
++
++    bool continuous = arg_get_lit(ctx, 6);
+ 
+     CLIParserFree(ctx);
+ 
+@@ -1214,6 +1219,7 @@ static int CmdHF14ACmdRaw(const char *Cmd) {
+         arg_int0("t",  "timeout", "<ms>", "timeout in milliseconds"),
+         arg_lit0("v",  "verbose", "Verbose output"),
+         arg_lit0(NULL, "topaz", "use Topaz protocol to send command"),
++        arg_lit0(NULL, "ecp", "Use enhanced contactless polling"),        
+         arg_strx1(NULL, NULL, "<hex>", "raw bytes to send"),
+         arg_param_end
+     };
+@@ -1229,10 +1235,11 @@ static int CmdHF14ACmdRaw(const char *Cmd) {
+     uint32_t timeout = (uint32_t)arg_get_int_def(ctx, 8, 0);
+     bool verbose = arg_get_lit(ctx, 9);
+     bool topazmode = arg_get_lit(ctx, 10);
++    bool use_ecp = arg_get_lit(ctx, 11);
+ 
+     int datalen = 0;
+     uint8_t data[PM3_CMD_DATA_SIZE];
+-    CLIGetHexWithReturn(ctx, 11, data, &datalen);
++    CLIGetHexWithReturn(ctx, 12, data, &datalen);
+     CLIParserFree(ctx);
+ 
+     bool bTimeout = (timeout) ? true : false;
+@@ -1288,6 +1295,9 @@ static int CmdHF14ACmdRaw(const char *Cmd) {
+     if (no_rats) {
+         flags |= ISO14A_NO_RATS;
+     }
++    if (use_ecp){
++        flags |= ISO14A_USE_ECP;
++    }
+ 
+     // Max buffer is PM3_CMD_DATA_SIZE
+     datalen = (datalen > PM3_CMD_DATA_SIZE) ? PM3_CMD_DATA_SIZE : datalen;
+diff --git a/include/mifare.h b/include/mifare.h
+index 1c8fc7f42..0a0156ef7 100644
+--- a/include/mifare.h
++++ b/include/mifare.h
+@@ -65,7 +65,8 @@ typedef enum ISO14A_COMMAND {
+     ISO14A_NO_SELECT = (1 << 7),
+     ISO14A_TOPAZMODE = (1 << 8),
+     ISO14A_NO_RATS = (1 << 9),
+-    ISO14A_SEND_CHAINING = (1 << 10)
++    ISO14A_SEND_CHAINING = (1 << 10),
++    ISO14A_USE_ECP = (1 << 11)
+ } iso14a_command_t;
+ 
+ typedef struct {
