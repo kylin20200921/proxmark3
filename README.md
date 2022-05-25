@@ -1,32 +1,19 @@
-commit 5da59e55351fa23d768e73aecbe951ce53b7e374
+commit b93de4388a442b68d43591a3119a7e97dde9ac36
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun Jun 20 08:40:32 2021 +0200
+Date:   Sun Jun 20 08:41:18 2021 +0200
 
-    fix coverity CID 349303
+    textual
 
-diff --git a/client/src/cmdhfemrtd.c b/client/src/cmdhfemrtd.c
-index fb56aa4f6..45ea6887b 100644
---- a/client/src/cmdhfemrtd.c
-+++ b/client/src/cmdhfemrtd.c
-@@ -698,18 +698,18 @@ static bool emrtd_lds_get_data_by_tag(uint8_t *datain, size_t datainlen, uint8_t
- static bool emrtd_select_and_read(uint8_t *dataout, size_t *dataoutlen, uint16_t file, uint8_t *ks_enc, uint8_t *ks_mac, uint8_t *ssc, bool use_secure) {
-     if (use_secure) {
-         if (emrtd_secure_select_file_by_ef(ks_enc, ks_mac, ssc, file) == false) {
--            PrintAndLogEx(ERR, "Failed to secure select %s.", file);
-+            PrintAndLogEx(ERR, "Failed to secure select %04X", file);
-             return false;
-         }
-     } else {
-         if (emrtd_select_file_by_ef(file) == false) {
--            PrintAndLogEx(ERR, "Failed to select %04X.", file);
-+            PrintAndLogEx(ERR, "Failed to select %04X", file);
-             return false;
-         }
-     }
+diff --git a/client/src/cmdhfcipurse.c b/client/src/cmdhfcipurse.c
+index faeea6dab..427340ca4 100644
+--- a/client/src/cmdhfcipurse.c
++++ b/client/src/cmdhfcipurse.c
+@@ -67,7 +67,7 @@ static int CmdHFCipurseInfo(const char *Cmd) {
+         if (sw)
+             PrintAndLogEx(INFO, "Not a CIPURSE card. APDU response: %04x - %s", sw, GetAPDUCodeDescription(sw >> 8, sw & 0xff));
+         else
+-            PrintAndLogEx(ERR, "APDU exchange error. Card returns 0x0000.");
++            PrintAndLogEx(ERR, "APDU exchange error. Card returns 0x0000");
  
-     if (emrtd_read_file(dataout, dataoutlen, ks_enc, ks_mac, ssc, use_secure) == false) {
--        PrintAndLogEx(ERR, "Failed to read %04X.", file);
-+        PrintAndLogEx(ERR, "Failed to read %04X", file);
-         return false;
-     }
-     return true;
+         DropField();
+         return PM3_SUCCESS;
