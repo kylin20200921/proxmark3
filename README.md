@@ -1,47 +1,58 @@
-commit 69ffcd31851daee96861f98d1b5f71ab62ffaa2c
+commit 1b00c8911578e545fed8791c3b7e2508e86fea71
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sat Dec 25 16:13:42 2021 +0100
+Date:   Sat Dec 25 18:51:23 2021 +0100
 
-    wrong byte in rats, and adapted two standalone modes
+    fixing hf 15 dump
 
-diff --git a/armsrc/Standalone/hf_craftbyte.c b/armsrc/Standalone/hf_craftbyte.c
-index e13dd0310..2e8704e5e 100644
---- a/armsrc/Standalone/hf_craftbyte.c
-+++ b/armsrc/Standalone/hf_craftbyte.c
-@@ -98,6 +98,9 @@ void RunMod(void) {
-                     } else if (card.sak == 0x20 && card.atqa[0] == 0x04 && card.atqa[1] == 0x03) {
-                         DbpString("Mifare DESFire");
-                         SimulateIso14443aTag(3, flags, card.uid, 0);
-+                    } else if (card.sak == 0x20 && card.atqa[0] == 0x44 && card.atqa[1] == 0x03) {
-+                        DbpString("Mifare DESFire Ev1/Plus/JCOP");
-+                        SimulateIso14443aTag(3, flags, card.uid, 0);
-                     } else {
-                         Dbprintf("Unrecognized tag type -- defaulting to Mifare Classic emulation");
-                         SimulateIso14443aTag(1, flags, card.uid, 0);
-diff --git a/armsrc/Standalone/hf_young.c b/armsrc/Standalone/hf_young.c
-index e7b69d550..aed5e0dd6 100644
---- a/armsrc/Standalone/hf_young.c
-+++ b/armsrc/Standalone/hf_young.c
-@@ -257,6 +257,9 @@ void RunMod(void) {
-                     } else if (uids[selected].sak == 0x20 && uids[selected].atqa[0] == 0x04 && uids[selected].atqa[1] == 0x03) {
-                         DbpString("Mifare DESFire");
-                         SimulateIso14443aTag(3, flags, data, 0);
-+                    } else if (uids[selected].sak == 0x20 && uids[selected].atqa[0] == 0x44 && uids[selected].atqa[1] == 0x03) {
-+                        DbpString("Mifare DESFire Ev1/Plus/JCOP");
-+                        SimulateIso14443aTag(3, flags, data, 0);
-                     } else {
-                         Dbprintf("Unrecognized tag type -- defaulting to Mifare Classic emulation");
-                         SimulateIso14443aTag(1, flags, data, 0);
-diff --git a/armsrc/iso14443a.c b/armsrc/iso14443a.c
-index 7f3040685..f8aec2a81 100644
---- a/armsrc/iso14443a.c
-+++ b/armsrc/iso14443a.c
-@@ -1044,7 +1044,7 @@ bool SimulateIso14443aInit(int tagType, int flags, uint8_t *data, tag_response_i
-             rATQA[0] = 0x04;
-             rATQA[1] = 0x03;
-             sak = 0x20;
--            memcpy(rRATS, "\x06\x75\x77\x81\x02\x00\x00\x00", 8);
-+            memcpy(rRATS, "\x06\x75\x77\x81\x02\x80\x00\x00", 8);
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 16e3d08cc..0fcb5eb0f 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
+ This project uses the changelog in accordance with [keepchangelog](http://keepachangelog.com/). Please use this to write notable changes, which is not the same as git commit log...
+ 
+ ## [unreleased][unreleased]
++ - Fixed `hf 15 dump` - now correctly dumps 256 blocks w/o crashing the client (@iceman1001)
+  - Changed `hf 14a sim -t 3` - anticollision for DESFire simulation now uses different RATS (@mosci)
+  - Fixed `hf mfdes` - works with dynamic apdu and encode/decode buffers (@merlokk)
+  - Added luascript `hf_ntag_bruteforce.lua` - ntag password bruteforce with the option to do NFC Tools MD5 versions of passwords (@keldnorman)
+diff --git a/client/src/cmdhf15.c b/client/src/cmdhf15.c
+index 54eeb4b02..92db238e9 100644
+--- a/client/src/cmdhf15.c
++++ b/client/src/cmdhf15.c
+@@ -660,7 +660,7 @@ static int NxpSysInfo(uint8_t *uid) {
+     PacketResponseNG resp;
+     clearCommandBuffer();
+     SendCommandMIX(CMD_HF_ISO15693_COMMAND, reqlen, fast, reply, req, reqlen);
+-    if (!WaitForResponseTimeout(CMD_ACK, &resp, 2000)) {
++    if (WaitForResponseTimeout(CMD_ACK, &resp, 2000) == false) {
+         PrintAndLogEx(WARNING, "iso15693 timeout");
+         DropField();
+         return PM3_ETIMEOUT;
+@@ -1344,8 +1344,7 @@ static int CmdHF15Dump(const char *Cmd) {
+     uint8_t data[256 * 4] = {0};
+     memset(data, 0, sizeof(data));
+ 
+-    PrintAndLogEx(INFO, "." NOLF);
+-    for (int retry = 0; retry < 5; retry++) {
++    for (int retry = 0; (retry < 5 && blocknum < 0x100); retry++) {
+ 
+         req[10] = blocknum;
+         AddCrc15(req, 11);
+@@ -1392,14 +1391,13 @@ static int CmdHF15Dump(const char *Cmd) {
+             retry = 0;
+             blocknum++;
+ 
+-            PrintAndLogEx(NORMAL, "." NOLF);
+-            fflush(stdout);
++            PrintAndLogEx(INPLACE, "blk %3d", blocknum );
          }
-         break;
-         case 4: { // ISO/IEC 14443-4 - javacard (JCOP)
+     }
+ 
+     DropField();
+ 
+-    PrintAndLogEx(NORMAL, "");
++    PrintAndLogEx(NORMAL, "\n");
+     PrintAndLogEx(INFO, "block#   | data         |lck| ascii");
+     PrintAndLogEx(INFO, "---------+--------------+---+----------");
+     for (int i = 0; i < blocknum; i++) {
