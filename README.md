@@ -1,55 +1,36 @@
-commit 6a444eb20880760d5fbbcf51557e90376c37d276
+commit 436fedcbe41601cfdba1a2e29202f323af92b2b4
 Author: iceman1001 <iceman@iuse.se>
-Date:   Thu May 20 10:07:51 2021 +0200
+Date:   Thu May 20 10:11:41 2021 +0200
 
-    style clean
+    fix coverity CID 344485, 344482, 344481
 
-diff --git a/include/pm3_cmd.h b/include/pm3_cmd.h
-index 97dc91e49..ed96c8467 100644
---- a/include/pm3_cmd.h
-+++ b/include/pm3_cmd.h
-@@ -145,17 +145,7 @@ typedef struct {
- #define TRACELOG_HDR_LEN        sizeof(tracelog_hdr_t)
- #define TRACELOG_PARITY_LEN(x)  (((x)->data_len - 1) / 8 + 1)
+diff --git a/tools/fpga_compress/fpga_compress.c b/tools/fpga_compress/fpga_compress.c
+index f5f5fde49..cfbd30cbb 100644
+--- a/tools/fpga_compress/fpga_compress.c
++++ b/tools/fpga_compress/fpga_compress.c
+@@ -40,9 +40,13 @@ static bool all_feof(FILE *infile[], uint8_t num_infiles) {
+ }
  
--/*
--typedef struct {
--    uint16_t start_gap;
--    uint16_t write_gap;
--    uint16_t write_0;
--    uint16_t write_1;
--    uint16_t read_gap;
--} t55xx_config;
--*/
--
--// Extended to support 1 of 4 timing
-+// T55XX - Extended to support 1 of 4 timing
- typedef struct  {
-     uint16_t start_gap;
-     uint16_t write_gap;
-@@ -166,22 +156,14 @@ typedef struct  {
-     uint16_t write_3;
- } t55xx_config_t;
+ static int zlib_compress(FILE *infile[], uint8_t num_infiles, FILE *outfile) {
+-    uint8_t *fpga_config;
  
--// This setup will allow for the 4 downlink modes "m" as well as other items if needed.
-+// T55XX - This setup will allow for the 4 downlink modes "m" as well as other items if needed.
- // Given the one struct we can then read/write to flash/client in one go.
- typedef struct {
-     t55xx_config_t m[4]; // mode
- } t55xx_configurations_t;
- 
--/*typedef struct  {
--    uint16_t start_gap [4];
--    uint16_t write_gap [4];
--    uint16_t write_0   [4];
--    uint16_t write_1   [4];
--    uint16_t write_2   [4];
--    uint16_t write_3   [4];
--    uint16_t read_gap  [4];
--} t55xx_config;
--*/
+-    fpga_config = calloc(num_infiles * FPGA_CONFIG_SIZE, sizeof(uint8_t));
++    uint8_t *fpga_config = calloc(num_infiles * FPGA_CONFIG_SIZE, sizeof(uint8_t));
++    if (fpga_config == NULL) {
++        fprintf(stderr, "failed to allocate memory");
++        return (EXIT_FAILURE);
++    }
 +
-+// Capabilities struct to keep track of what functions was compiled in the device firmware
- typedef struct {
-     uint8_t version;
-     uint32_t baudrate;
+     // read the input files. Interleave them into fpga_config[]
+     uint32_t total_size = 0;
+     do {
+@@ -99,6 +103,9 @@ static int zlib_compress(FILE *infile[], uint8_t num_infiles, FILE *outfile) {
+         int cmp_bytes = LZ4_compress_HC_continue(lz4_streamhc, ring_buffer, outbuf, bytes_to_copy, outsize_max);
+         if (cmp_bytes < 0 ){
+             fprintf(stderr, "(lz4 - zlib_compress) error,  got negative number of bytes from LZ4_compress_HC_continue call. got %d ", cmp_bytes);
++            free(ring_buffer);
++            free(outbuf);
++            free(fpga_config);
+             return (EXIT_FAILURE);
+         }
+         fwrite(&cmp_bytes, sizeof(int), 1, outfile);
