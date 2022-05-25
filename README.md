@@ -1,33 +1,24 @@
-commit ed10409bfd7114ec6ec99c8a68372f9eb64c386e
+commit a7f3a42aff1a65d8a101a31d5d26e3818bec169e
 Author: iceman1001 <iceman@iuse.se>
-Date:   Tue Jan 4 07:31:10 2022 +0100
+Date:   Tue Jan 4 07:32:21 2022 +0100
 
-    cppcheck fix uninitvar
+    cppcheck fix const
 
-diff --git a/client/src/cmdhf14a.c b/client/src/cmdhf14a.c
-index 123f3d929..d127010d5 100644
---- a/client/src/cmdhf14a.c
-+++ b/client/src/cmdhf14a.c
-@@ -743,13 +743,16 @@ int CmdHF14ASim(const char *Cmd) {
-         keypress = kbd_enter_pressed();
-     }
+diff --git a/client/src/cmdlfkeri.c b/client/src/cmdlfkeri.c
+index e4c16fe2a..ec57d5bf8 100644
+--- a/client/src/cmdlfkeri.c
++++ b/client/src/cmdlfkeri.c
+@@ -29,11 +29,11 @@ typedef enum  {Scramble = 0, Descramble = 1} KeriMSScramble_t;
  
--    if (keypress && (flags & FLAG_NR_AR_ATTACK) == FLAG_NR_AR_ATTACK) {
--        // inform device to break the sim loop since client has exited
--        SendCommandNG(CMD_BREAK_LOOP, NULL, 0);
--    }
-+    if (keypress) {
-+        if ((flags & FLAG_NR_AR_ATTACK) == FLAG_NR_AR_ATTACK) {
-+            // inform device to break the sim loop since client has exited
-+            SendCommandNG(CMD_BREAK_LOOP, NULL, 0);
-+        }
+ static int CmdKeriMSScramble(KeriMSScramble_t Action, uint32_t *FC, uint32_t *ID, uint32_t *CardID) {
+     // 255 = Not used/Unknown other values are the bit offset in the ID/FC values
+-    uint8_t CardToID [] = { 255, 255, 255, 255, 13, 12, 20,  5, 16,  6, 21, 17,  8, 255,  0,  7,
++    const uint8_t CardToID [] = { 255, 255, 255, 255, 13, 12, 20,  5, 16,  6, 21, 17,  8, 255,  0,  7,
+                             10, 15, 255, 11,  4,  1, 255, 18, 255, 19,  2, 14,  3,  9, 255, 255
+                           };
  
--    if (resp.status == PM3_EOPABORTED && ((flags & FLAG_NR_AR_ATTACK) == FLAG_NR_AR_ATTACK))
--        showSectorTable(k_sector, k_sectorsCount);
-+        if (resp.status == PM3_EOPABORTED && ((flags & FLAG_NR_AR_ATTACK) == FLAG_NR_AR_ATTACK)) {
-+            showSectorTable(k_sector, k_sectorsCount);
-+        }
-+    }
+-    uint8_t CardToFC [] = { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,  0, 255, 255,
++    const uint8_t CardToFC [] = { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,  0, 255, 255,
+                             255, 255,  2, 255, 255, 255,  3, 255,  4, 255, 255, 255, 255, 255,  1, 255
+                           };
  
-     PrintAndLogEx(INFO, "Done");
-     return PM3_SUCCESS;
