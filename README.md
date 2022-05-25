@@ -1,18 +1,60 @@
-commit 347b5c96147c9f17ba188e83342e8e8c646c3cb2
+commit f4209bd1ddd9b0523e86f66adf306d132a8e06f1
 Author: iceman1001 <iceman@iuse.se>
-Date:   Wed Sep 22 22:30:25 2021 +0200
+Date:   Wed Sep 29 19:20:50 2021 +0200
 
-    textual
+    remove duplicates
 
-diff --git a/client/src/cmdtrace.c b/client/src/cmdtrace.c
-index 68f254e9c..b4f4264d8 100644
---- a/client/src/cmdtrace.c
-+++ b/client/src/cmdtrace.c
-@@ -593,6 +593,7 @@ static int CmdTraceLoad(const char *Cmd) {
-     gs_traceLen = (long)len;
- 
-     PrintAndLogEx(SUCCESS, "Recorded Activity (TraceLen = " _YELLOW_("%lu") " bytes)", gs_traceLen);
-+    PrintAndLogEx(HINT, "try " _YELLOW_("`trace list -1 -t ...`") " to view trace.  Remember the " _YELLOW_("`-1`") " param");
-     return PM3_SUCCESS;
- }
- 
+diff --git a/client/dictionaries/mfc_default_keys.dic b/client/dictionaries/mfc_default_keys.dic
+index 735d6a05a..bf77053eb 100644
+--- a/client/dictionaries/mfc_default_keys.dic
++++ b/client/dictionaries/mfc_default_keys.dic
+@@ -1193,8 +1193,6 @@ b84d52971107
+ # Data from https://pastebin.com/cLSQQ9xN
+ ca3a24669d45
+ 4087c6a75a96
+-160a91d29a9c
+-b7bf0c13066e
+ 403f09848b87
+ d73438698eea
+ 5f31f6fcd3a0
+@@ -1307,7 +1305,6 @@ D0DDDF2933EC
+ # bursakart
+ # bursa transport card
+ #
+-A0A1A2A3A4A5
+ 755D49191A78
+ DAC7E0CBA8FD
+ 68D3263A8CD6
+@@ -1374,8 +1371,6 @@ D973D917A4C7
+ 130662240200    
+ 9386E2A48280    
+ 52750A0E592A
+-541C417E57C0
+-D14E615E0545
+ 075D1A4DD323
+ 32CA52054416
+ 460661C93045
+@@ -1396,12 +1391,8 @@ F7FA2F629BB1
+ 43E69C28F08C    
+ 735175696421     
+ 424C0FFBF657    
+-D01AFEEB890A
+-75CCB59C9BED
+-4B791BEA7BCC
+ 51E97FFF51E9
+-E7316853E731
+-5C8FF9990DA2    
++E7316853E731   
+ 00460740D722     
+ 35D152154017    
+ 5D0762D13401     
+@@ -1409,8 +1400,7 @@ E7316853E731
+ 1170553E4304     
+ 0C4233587119         
+ F678905568C3    
+-50240A68D1D8    
+-69D92108C8B5    
++50240A68D1D8   
+ 2E71D3BD262A    
+ 540D5E6355CC     
+ D1417E431949    
