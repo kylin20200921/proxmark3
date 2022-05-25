@@ -1,58 +1,34 @@
-commit 7b61c35948ee92c5a74cdd8d758e7ccd89623874
+commit 92d4cea9193bc19603625cda87c883d954ddabca
 Author: iceman1001 <iceman@iuse.se>
-Date:   Mon Jan 3 22:12:30 2022 +0100
+Date:   Mon Jan 3 22:13:26 2022 +0100
 
-    textual change to trace list -h
+    text..  plus.. the deprecated code is way behind
 
-diff --git a/client/src/cmdtrace.c b/client/src/cmdtrace.c
-index 75b3eff50..068588d99 100644
---- a/client/src/cmdtrace.c
-+++ b/client/src/cmdtrace.c
-@@ -695,22 +695,22 @@ int CmdTraceList(const char *Cmd) {
-                   "Annotate trace buffer with selected protocol data\n"
-                   "You can load a trace from file (see `trace load -h`) or it be downloaded from device by default\n",
-                   "trace list -t raw      -> just show raw data without annotations\n"
--                  "trace list -t 14a      -> interpret as " _YELLOW_("ISO14443-A") " communications\n"
--                  "trace list -t thinfilm -> interpret as " _YELLOW_("Thinfilm") " communications\n"
--                  "trace list -t topaz    -> interpret as " _YELLOW_("Topaz") " communications\n"
--                  "trace list -t mf       -> interpret as " _YELLOW_("MIFARE Classic") " communications and decrypt crypto1 stream\n"
--                  "trace list -t des      -> interpret as " _YELLOW_("MIFARE DESFire") " communications\n"
--                  "trace list -t 14b      -> interpret as " _YELLOW_("ISO14443-B") " communications\n"
--                  "trace list -t 7816     -> interpret as " _YELLOW_("ISO7816-4") " communications\n"
--                  "trace list -t 15       -> interpret as " _YELLOW_("ISO15693") " communications\n"
--                  "trace list -t iclass   -> interpret as " _YELLOW_("iCLASS") " communications\n"
--                  "trace list -t legic    -> interpret as " _YELLOW_("LEGIC") " communications\n"
--                  "trace list -t felica   -> interpret as " _YELLOW_("ISO18092 / FeliCa") " communications\n"
--                  "trace list -t hitag1   -> interpret as " _YELLOW_("Hitag1") " communications\n"
--                  "trace list -t hitag2   -> interpret as " _YELLOW_("Hitag2") " communications\n"
--                  "trace list -t hitags   -> interpret as " _YELLOW_("HitagS") " communications\n"
--                  "trace list -t lto      -> interpret as " _YELLOW_("LTO-CM") " communications\n"
--                  "trace list -t cryptorf -> interpret as " _YELLOW_("CryptoRF") " communitcations\n"
-+                  "trace list -t 14a      -> interpret as " _YELLOW_("ISO14443-A") "\n"
-+                  "trace list -t thinfilm -> interpret as " _YELLOW_("Thinfilm") "\n"
-+                  "trace list -t topaz    -> interpret as " _YELLOW_("Topaz") "\n"
-+                  "trace list -t mf       -> interpret as " _YELLOW_("MIFARE Classic") " and decrypt crypto1 stream\n"
-+                  "trace list -t des      -> interpret as " _YELLOW_("MIFARE DESFire") "\n"
-+                  "trace list -t 14b      -> interpret as " _YELLOW_("ISO14443-B") "\n"
-+                  "trace list -t 7816     -> interpret as " _YELLOW_("ISO7816-4") "\n"
-+                  "trace list -t 15       -> interpret as " _YELLOW_("ISO15693") "\n"
-+                  "trace list -t iclass   -> interpret as " _YELLOW_("iCLASS") "\n"
-+                  "trace list -t legic    -> interpret as " _YELLOW_("LEGIC") "\n"
-+                  "trace list -t felica   -> interpret as " _YELLOW_("ISO18092 / FeliCa") "\n"
-+                  "trace list -t hitag1   -> interpret as " _YELLOW_("Hitag1") "\n"
-+                  "trace list -t hitag2   -> interpret as " _YELLOW_("Hitag2") "\n"
-+                  "trace list -t hitags   -> interpret as " _YELLOW_("HitagS") "\n"
-+                  "trace list -t lto      -> interpret as " _YELLOW_("LTO-CM") "\n"
-+                  "trace list -t cryptorf -> interpret as " _YELLOW_("CryptoRF") "\n\n"
-                   "trace list -t mf --dict <mfc_default_keys>    -> use dictionary keys file\n"
-                   "trace list -t 14a -f                          -> show frame delay times\n"
-                   "trace list -t 14a -1                          -> use trace buffer "
-@@ -726,7 +726,7 @@ int CmdTraceList(const char *Cmd) {
-         arg_lit0("x", NULL, "show hexdump to convert to pcap(ng)\n"
-                  "                                   or to import into Wireshark using encapsulation type \"ISO 14443\""),
-         arg_str0("t", "type", NULL, "protocol to annotate the trace"),
--        arg_str0(NULL, "dict", "<file>", "use dictionary keys file"),
-+        arg_str0(NULL, "dict", "<fn>", "use dictionary keys file"),
-         arg_param_end
-     };
-     CLIExecWithReturn(ctx, Cmd, argtable, true);
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 7066c0d73..0d7a3bff2 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
+ This project uses the changelog in accordance with [keepchangelog](http://keepachangelog.com/). Please use this to write notable changes, which is not the same as git commit log...
+ 
+ ## [unreleased][unreleased]
++ - Changed `trace list -h` - textual change (@iceman1001)
++ - Fixed `hf iclass config` - not get stuck when trying to make a keyroll config card (@iceman1001)
++ - Changed textual output for iclass (@iceman1001)
++ - Changed `hf iclass reader` to use NG (@iceman1001)
+  - Changed various notes to have ToC and top links (@iceman1001)
+  - Added option `lf gprox demod --raw` - now supports decoding of raw bytes (@iceman1001)
+  - Added option `hf mf gview --pwd` - now supports user supplied password (@iceman1001)
+diff --git a/tools/deprecated-hid-flasher/flasher/usb_cmd.h b/tools/deprecated-hid-flasher/flasher/usb_cmd.h
+index 75136c1f4..90a76a1be 100644
+--- a/tools/deprecated-hid-flasher/flasher/usb_cmd.h
++++ b/tools/deprecated-hid-flasher/flasher/usb_cmd.h
+@@ -223,7 +223,7 @@ typedef struct {
+ #define FLAG_NR_AR_ATTACK       0x20
+ 
+ //Iclass reader flags
+-#define FLAG_ICLASS_READER_ONLY_ONCE    0x01
++//#define FLAG_ICLASS_READER_ONLY_ONCE    0x01
+ #define FLAG_ICLASS_READER_CC           0x02
+ #define FLAG_ICLASS_READER_CSN          0x04
+ #define FLAG_ICLASS_READER_CONF         0x08
