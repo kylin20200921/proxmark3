@@ -1,57 +1,57 @@
-commit e930d49aa59f58062d31a10702f9271d8f82dfc2
+commit 36e86b1ce02ef6e126f781aa1fd0197207fed312
 Author: iceman1001 <iceman@iuse.se>
-Date:   Fri Sep 10 20:40:26 2021 +0200
+Date:   Fri Sep 10 21:02:33 2021 +0200
 
-    textual
+    text
 
-diff --git a/client/src/cmdhfmf.c b/client/src/cmdhfmf.c
-index 4090c74dd..016e749f1 100644
---- a/client/src/cmdhfmf.c
-+++ b/client/src/cmdhfmf.c
-@@ -4526,7 +4526,7 @@ static int CmdHF14AMfCLoad(const char *Cmd) {
-         return PM3_EFILE;
-     }
+diff --git a/client/src/cmdhficlass.c b/client/src/cmdhficlass.c
+index 15fb5d72f..415aec9d5 100644
+--- a/client/src/cmdhficlass.c
++++ b/client/src/cmdhficlass.c
+@@ -2478,7 +2478,10 @@ void printIclassDumpContents(uint8_t *iclass_dump, uint8_t startblock, uint8_t e
+     PrintAndLogEx(NORMAL, "");
+     PrintAndLogEx(INFO, " block#  | data                    | ascii    |lck| info");
+     PrintAndLogEx(INFO, "---------+-------------------------+----------+---+--------------");
+-    PrintAndLogEx(INFO, "  0/0x00 | " _GREEN_("%s") " |   | CSN ", sprint_hex_ascii(iclass_dump, 8));
++    PrintAndLogEx(INFO, "  0/0x00 | " _GREEN_("%s") "| " _GREEN_("%s") " |   | CSN "
++        , sprint_hex(iclass_dump, 8)
++        , sprint_ascii(iclass_dump, 8)
++        );
  
--    PrintAndLogEx(SUCCESS, "Card loaded %d blocks from file", blockno);
-+    PrintAndLogEx(SUCCESS, "Card loaded " _YELLOW_("%d") " blocks from file", blockno);
-     PrintAndLogEx(INFO, "Done!");
-     return PM3_SUCCESS;
- }
-@@ -4757,13 +4757,13 @@ static int CmdHF14AMfCSave(const char *Cmd) {
-                 g_conn.block_after_ACK = false;
+     if (i != 1)
+         PrintAndLogEx(INFO, "....");
+@@ -2531,14 +2534,32 @@ void printIclassDumpContents(uint8_t *iclass_dump, uint8_t startblock, uint8_t e
+                 s = info_nonks[i];
              }
-             if (mfEmlSetMem(dump + (i * MFBLOCK_SIZE), i, 5) != PM3_SUCCESS) {
--                PrintAndLogEx(WARNING, "Can't set emul block: %d", i);
-+                PrintAndLogEx(WARNING, "Can't set emul block: " _YELLOW_("%d"), i);
+ 
+-            PrintAndLogEx(INFO, "%3d/0x%02X | %s | %s | %s ", i, i, sprint_hex_ascii(blk, 8), lockstr, s);
++            PrintAndLogEx(INFO, "%3d/0x%02X | %s | %s | %s "
++                , i
++                , i
++                , sprint_hex_ascii(blk, 8)
++                , lockstr
++                , s
++                );
++
+         } else {
+             const char *info_ks[] = {"CSN", "Config", "E-purse", "Debit", "Credit", "AIA", "User"};
+             const char *s = info_ks[6];
+             if (i < 6) {
+                 s = info_ks[i];
              }
-             PrintAndLogEx(NORMAL, "." NOLF);
-             fflush(stdout);
+-            PrintAndLogEx(INFO, "%3d/0x%02X | %s | %s | %s ", i, i, sprint_hex_ascii(blk, 8), lockstr, s);
++            if (i >= 6 && i <= 9) {
++                PrintAndLogEx(INFO, "%3d/0x%02X | " _YELLOW_("%s") "| " _YELLOW_("%s") " | %s | %s "
++                    , i
++                    , i
++                    , sprint_hex(blk, 8)
++                    , sprint_ascii(blk, 8)
++                    , lockstr
++                    , s
++                    );
++            } else {
++                PrintAndLogEx(INFO, "%3d/0x%02X | %s | %s | %s ", i, i, sprint_hex_ascii(blk, 8), lockstr, s);
++            }
          }
-         PrintAndLogEx(NORMAL, "");
--        PrintAndLogEx(SUCCESS, "uploaded %d bytes to emulator memory", bytes);
-+        PrintAndLogEx(SUCCESS, "uploaded " _YELLOW_("%d") " bytes to emulator memory", bytes);
+         i++;
      }
- 
-     // user supplied filename?
-@@ -4879,7 +4879,7 @@ static int CmdHF14AMfCView(const char *Cmd) {
-         }
- 
-         if (mfCGetBlock(i, dump + (i * MFBLOCK_SIZE), flags)) {
--            PrintAndLogEx(WARNING, "Can't get magic card block: %u", i);
-+            PrintAndLogEx(WARNING, "Can't get magic card block: " _YELLOW_("%u"), i);
-             PrintAndLogEx(HINT, "Verify your card size, and try again or try another tag position");
-             free(dump);
-             return PM3_ESOFT;
-diff --git a/client/src/mifare/mifarehost.c b/client/src/mifare/mifarehost.c
-index e6cb9570a..95c4966e3 100644
---- a/client/src/mifare/mifarehost.c
-+++ b/client/src/mifare/mifarehost.c
-@@ -306,7 +306,7 @@ int mfCheckKeys_file(uint8_t *destfn, uint64_t *key) {
- 
-         retry--;
-         if (retry == 0) {
--            PrintAndLogEx(WARNING, "Chk keys file, time out");
-+            PrintAndLogEx(WARNING, "Chk keys file, command execution time out");
-             SendCommandNG(CMD_BREAK_LOOP, NULL, 0);
-             return PM3_ETIMEOUT;
-         }
