@@ -1,44 +1,19 @@
-commit ba76aabdf8d61a627988da8ced0d9c29d5f00708
+commit 4e0fe278e4db3e5a3103650a4863a2a7870379d3
 Author: iceman1001 <iceman@iuse.se>
-Date:   Mon Jun 21 09:15:18 2021 +0200
+Date:   Mon Jun 21 10:40:39 2021 +0200
 
-    hf mf fchk - output style
+    added two tests for ndef parsing
 
-diff --git a/client/src/mifare/mifarehost.c b/client/src/mifare/mifarehost.c
-index d068aaac0..9b0c20d36 100644
---- a/client/src/mifare/mifarehost.c
-+++ b/client/src/mifare/mifarehost.c
-@@ -197,16 +197,20 @@ int mfCheckKeys_fast(uint8_t sectorsCnt, uint8_t firstChunk, uint8_t lastChunk,
-                      uint32_t size, uint8_t *keyBlock, sector_t *e_sector, bool use_flashmemory) {
+diff --git a/tools/pm3_tests.sh b/tools/pm3_tests.sh
+index b812bdd03..38d66d23f 100755
+--- a/tools/pm3_tests.sh
++++ b/tools/pm3_tests.sh
+@@ -367,6 +367,8 @@ while true; do
+       if ! CheckExecute "jooki encode test"       "$CLIENTBIN -c 'hf jooki encode -t'" "04 28 F4 DA F0 4A 81  ( ok )"; then break; fi
+       if ! CheckExecute "trace load/list 14a"     "$CLIENTBIN -c 'trace load -f traces/hf_14a_mfu.trace; trace list -1 -t 14a;'" "READBLOCK(8)"; then break; fi
+       if ! CheckExecute "trace load/list x"       "$CLIENTBIN -c 'trace load -f traces/hf_14a_mfu.trace; trace list -x1 -t 14a;'" "0.0101840425"; then break; fi
++      if ! CheckExecute "nfc decode test - oob"           "$CLIENTBIN -c 'nfc decode -d DA2010016170706C69636174696F6E2F766E642E626C7565746F6F74682E65702E6F6F62301000649201B96DFB0709466C65782032'" "Flex 2"; then break; fi
++      if ! CheckExecute "nfc decode test - device info"   "$CLIENTBIN -c 'nfc decode -d d1025744690004536f6e79010752432d533338300220426c61636b204e46432052656164657220636f6e6e656374656420746f2050430310123e4567e89b12d3a45642665544000004124e464320506f72742d3130302076312e3032'" "NFC Port-100 v1.02"; then break; fi
  
-     uint64_t t2 = msclock();
--    uint32_t timeout = 0;
- 
-     // send keychunk
-     clearCommandBuffer();
-     SendCommandOLD(CMD_HF_MIFARE_CHKKEYS_FAST, (sectorsCnt | (firstChunk << 8) | (lastChunk << 12)), ((use_flashmemory << 8) | strategy), size, keyBlock, 6 * size);
-     PacketResponseNG resp;
- 
-+    uint32_t timeout = 0;
-     while (!WaitForResponseTimeout(CMD_ACK, &resp, 2000)) {
-+
-+        PrintAndLogEx((timeout == 0) ? INFO : NORMAL, "." NOLF);
-+        fflush(stdout);
-+
-         timeout++;
--        PrintAndLogEx(NORMAL, "." NOLF);
-+
-         // max timeout for one chunk of 85keys, 60*3sec = 180seconds
-         // s70 with 40*2 keys to check, 80*85 = 6800 auth.
-         // takes about 97s, still some margin before abort
-@@ -217,6 +221,10 @@ int mfCheckKeys_fast(uint8_t sectorsCnt, uint8_t firstChunk, uint8_t lastChunk,
-     }
-     t2 = msclock() - t2;
- 
-+    if (timeout) {
-+        PrintAndLogEx(NORMAL, "");
-+    }
-+
-     // time to convert the returned data.
-     uint8_t curr_keys = resp.oldarg[0];
- 
+       echo -e "\n${C_BLUE}Testing LF:${C_NC}"
+       if ! CheckExecute "lf AWID test"          "$CLIENTBIN -c 'data load -f traces/lf_AWID-15-259.pm3;lf search -1'" "AWID ID found"; then break; fi
