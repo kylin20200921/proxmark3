@@ -1,24 +1,19 @@
-commit a7f3a42aff1a65d8a101a31d5d26e3818bec169e
+commit 5ddfedbad020fc4e8aad59876a2d60220cb67631
 Author: iceman1001 <iceman@iuse.se>
-Date:   Tue Jan 4 07:32:21 2022 +0100
+Date:   Tue Jan 4 07:32:58 2022 +0100
 
     cppcheck fix const
 
-diff --git a/client/src/cmdlfkeri.c b/client/src/cmdlfkeri.c
-index e4c16fe2a..ec57d5bf8 100644
---- a/client/src/cmdlfkeri.c
-+++ b/client/src/cmdlfkeri.c
-@@ -29,11 +29,11 @@ typedef enum  {Scramble = 0, Descramble = 1} KeriMSScramble_t;
+diff --git a/client/src/cmdlfnexwatch.c b/client/src/cmdlfnexwatch.c
+index 3bc05db7b..3b02b798e 100644
+--- a/client/src/cmdlfnexwatch.c
++++ b/client/src/cmdlfnexwatch.c
+@@ -72,7 +72,7 @@ static uint8_t nexwatch_checksum(uint8_t magic, uint32_t id, uint8_t parity) {
+ static int nexwatch_scamble(NexWatchScramble_t action, uint32_t *id, uint32_t *scambled) {
  
- static int CmdKeriMSScramble(KeriMSScramble_t Action, uint32_t *FC, uint32_t *ID, uint32_t *CardID) {
      // 255 = Not used/Unknown other values are the bit offset in the ID/FC values
--    uint8_t CardToID [] = { 255, 255, 255, 255, 13, 12, 20,  5, 16,  6, 21, 17,  8, 255,  0,  7,
-+    const uint8_t CardToID [] = { 255, 255, 255, 255, 13, 12, 20,  5, 16,  6, 21, 17,  8, 255,  0,  7,
-                             10, 15, 255, 11,  4,  1, 255, 18, 255, 19,  2, 14,  3,  9, 255, 255
-                           };
- 
--    uint8_t CardToFC [] = { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,  0, 255, 255,
-+    const uint8_t CardToFC [] = { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,  0, 255, 255,
-                             255, 255,  2, 255, 255, 255,  3, 255,  4, 255, 255, 255, 255, 255,  1, 255
-                           };
- 
+-    uint8_t hex_2_id [] = {
++    const uint8_t hex_2_id [] = {
+         31, 27, 23, 19, 15, 11, 7, 3,
+         30, 26, 22, 18, 14, 10, 6, 2,
+         29, 25, 21, 17, 13, 9, 5, 1,
