@@ -1,9 +1,9 @@
-commit b8f2d689c36bf3410cf79625b1a814d03c88fae3
-Merge: 0bcaf5b47 f940da861
+commit 0b2726619d0d3739f791e7deb671b7a0ff43e4c0
+Merge: b8f2d689c 315e58dac
 Author: Iceman <iceman@iuse.se>
-Date:   Fri Nov 26 20:22:43 2021 +0100
+Date:   Sat Nov 27 17:56:49 2021 +0100
 
-    Merge pull request #1537 from linuxgemini/linuxgemini-patch-1
+    Merge pull request #1528 from dankar/master
     
-    Update Mac-OS-X-MacPorts-Installation-Instructions.md
+    Added standalone mode that can load multiple different modes
 
