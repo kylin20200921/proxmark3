@@ -1,149 +1,58 @@
-commit 405931d5650dc11ca316188a209e1f91d0d3b22f
+commit 3bfc17e110ae8b5db3b815bcdbaf2451579328e2
 Author: iceman1001 <iceman@iuse.se>
-Date:   Tue Sep 14 19:52:05 2021 +0200
+Date:   Fri Sep 17 17:57:08 2021 +0200
 
     textual
 
-diff --git a/tools/hitag2crack/README.md b/tools/hitag2crack/README.md
-index 72fd6baa6..f58753cb5 100644
---- a/tools/hitag2crack/README.md
-+++ b/tools/hitag2crack/README.md
-@@ -17,6 +17,13 @@ Automotive Remote Keyless Entry Systems by Flavio Garcia, David Oswald,
- Timo Kasper and Pierre Pavlides.  The first three attacks come from the first
- paper and the fourth attack comes from the second paper.
+diff --git a/README.md b/README.md
+index 28e5baffa..8dc7ed8df 100644
+--- a/README.md
++++ b/README.md
+@@ -145,14 +145,7 @@ This repo compiles nicely on
  
-+
-+_note_
-+There are no Proxmark3 client implemented commands for these attacks. Only seperate executables to be compiled and run on your own system.
-+No guarantees of working binaries on all systems.  Some work on linux only. 
-+There is no easy way to extract the needed data from a live system and use with these tools.
-+You can use the `RFIdler` device but the Proxmark3 client needs some more love.  Feel free to contribute.
-+
- Attack 1
- --------
  
-@@ -122,14 +129,12 @@ response pair.  The attacker needs to obtain a valid tag and then use this to
- obtain a valid encrypted nonce and challenge response pair.  This can be
- achieved by using the Proxmark3 `lf hitag sniff` command, placing the coil on the RWD and
- presenting the valid tag.  The encrypted nonce and challenge response pairs
--can then be read out.  These values can then
--be used to attack the tag with `lf hitag ht2crack <nR> <aR>`.
-+can then be read out.   
-+
-+_note_  the Proxmark3 hitag sniff command isn't good enough yet to collect the needed data.
- 
- **TODO** example
--```
--pm3 --> lf hitag sniff
--pm3 --> lf hitag ht2crack <nR> <aR>
--```
-+
- 
- Usage details: Attack 2
- -----------------------
-@@ -139,21 +144,12 @@ The table can be generated on a disk with >1.5TB of storage, although it takes
- some time (allow a couple of days, privilege SSD). This can be
- achieved by using the Proxmark3 `lf hitag sniff` command, placing the coil on the RWD and
- presenting the valid tag.  The encrypted nonce and challenge response pairs
--can then be read out.  These values can then
--be used to attack the tag with `lf hitag ht2keystream <nR> <aR>`.
-+can then be read out.  
- 
--**TODO** example
--```
--./ht2crack2buildtable
--pm3 --> lf hitag sniff
--pm3 --> lf hitag ht2keystream <nR> <aR>
--```
-+_note_  the Proxmark3 hitag sniff command isn't good enough yet to collect the needed data.
- 
--It creates a file `Hitag2_<UID>_<nR>_<aR>_keystream.txt`.
-+**TODO** example
- 
--```
--./ht2crack2search Hitag2_<UID>_<nR>_<aR>_keystream.txt <UID> <nR>
--```
- 
- Usage details: Attack 3
- -----------------------
-@@ -164,18 +160,10 @@ to; e.g. you could potentially use any HiTag2 tag as long as the RWD starts
- the crypto handshake with it.  It requires >=136 encrypted nonce and challenge
- response pairs for the same tag UID.
- 
--**TODO** will be ht2 sim or sniff with actual tag ?
+ ## Precompiled binaries
+-We don't maintain any precompiled binaries in this repo. There is community effort over at the Proxmark3 forum where package maintainer [@gator96100](https://github.com/gator96100) has set up a AWS bucket with precompiled Proxspace (MinGW) binaries which are recompiled every night and with that also up-to-date. We link to these files here as to make it easier for users. If you are having troubles with these files, we suggest to read the [homepage of his proxmark builds](https://www.proxmarkbuilds.org/) or read the [sticky thread at forum](http://www.proxmark.org/forum/viewtopic.php?pid=24763#p24763) 
 -
--```
--pm3 --> lf hitag sniff
--```
-+_note_  the Proxmark3 hitag sniff command isn't good enough yet to collect the needed data.
- 
--It creates a file `Hitag2_<UID>_<nR>_<aR>_collection.txt`.
--Stop once you got enough pairs.
-+**TODO** will be ht2 sim or sniff with actual tag ?
- 
--```
--./ht2crack3 <UID> Hitag2_<UID>_<nR>_<aR>_collection.txt
--```
- 
- Usage details: Attack 4
- -----------------------
-@@ -183,19 +171,9 @@ Usage details: Attack 4
- Attack 4 requires the same information as attack 3, but only 16-32 encrypted
- nonce and challenge response pairs are required.
- 
--```
--pm3 --> lf hitag sniff
--```
-+_note_  the Proxmark3 hitag sniff command isn't good enough yet to collect the needed data.
- 
--It creates a file `Hitag2_<UID>_<nR>_<aR>_collection.txt`.
--Stop once you got enough pairs.
+-### Proxmark3 RDV4 devices
+-- [Precompiled builds for RDV40 dedicated x64](https://www.proxmarkbuilds.org/#rdv40-64/)
+-- [Precompiled builds for RDV40 dedicated with Bluetooth addon x64](https://www.proxmarkbuilds.org/#rdv40_bt-64/)
 -
--```
--./ht2crack4 -u <UID> -n Hitag2_<UID>_<nR>_<aR>_collection.txt [-N <number of nonces to use>] [-t <table size>]
--```
+-### Generic Proxmark3 devices
+-- [Precompiled builds for RRG / Iceman repository x64](https://www.proxmarkbuilds.org/#rrg_other-64/)
++See [Proxmark3 precompiled builds](https://www.proxmarkbuilds.org/) 
+ 
+ 
+ ## Official channels
+@@ -179,14 +172,6 @@ The official PM3-GUI from Gaucho will not work. Not to mention is quite old and
+ - [Proxmark3 GUI cross-compiled](https://github.com/wh201906/Proxmark3GUI/) which is recently updated and claims to support latest source of this repo.
+ - [Proxmark3_GUI](https://github.com/Phreak87/Proxmark3_GUI) simple gui in vb.net
+ 
+-# Donations
 -
--Start with -N 16 and -t 500000.  If the attack fails to find the key, double
--the table size and try again, repeating if it still fails.
-+**TODO** example
- 
- Usage details: Attack 5
- -----------------------
-@@ -203,14 +181,8 @@ Usage details: Attack 5
- Attack 5 requires two encrypted nonce and challenge
- response value pairs (nR, aR) for the tag's UID.
- 
--```
--pm3 --> lf hitag sniff
--```
--Stop once you got two pairs.
-+**TODO** example
- 
--```
--$ ./ht2crack5 <UID> <nR1> <aR1> <nR2> <aR2>
--```
- 
- Usage details: Attack 5gpu/5opencl
- ----------------------------------
-@@ -218,20 +190,7 @@ Usage details: Attack 5gpu/5opencl
- Attacks 5gpu and 5opencl require two encrypted nonce and challenge
- response value pairs (nR, aR) for the tag's UID.
- 
--```
--pm3 --> lf hitag sniff
--```
--Stop once you got two pairs.
+-Nothing says thank you as much as a donation. 
 -
--```
--$ ./ht2crack5gpu <UID> <nR1> <aR1> <nR2> <aR2>
--```
+-If you feel the love, do feel free to become a [Iceman patron](https://www.patreon.com/iceman1001).
 -
--or
+-If you are using @gator96100 's Proxspace with pre-compiled binaries do consider buy him a coffee for his efforts.
 -
--```
--$ ./ht2crack5opencl <UID> <nR1> <aR1> <nR2> <aR2>
--```
-+**TODO** example
  
- 5opencl supports a number of additional parameters, see [crack5opencl/README.md](/tools/hitag2crack/crack5opencl/README.md) for details.
+ ## Citation
+ Use this bibtex to cite this repository globally:
+diff --git a/client/src/proxmark3.c b/client/src/proxmark3.c
+index 40eb8c01c..93446104a 100644
+--- a/client/src/proxmark3.c
++++ b/client/src/proxmark3.c
+@@ -36,9 +36,9 @@
+ #include "preferences.h"
+ 
+ #ifndef LIBPM3
+-#define BANNERMSG1 "      Iceman :coffee:"
+-#define BANNERMSG2 "  :snowflake: bleeding edge"
+-#define BANNERMSG3 "  https://github.com/rfidresearchgroup/proxmark3/"
++#define BANNERMSG1 ""
++#define BANNERMSG2 "   [ :snowflake: Iceman :snowflake: ]"
++#define BANNERMSG3 ""
+ 
+ typedef enum LogoMode { UTF8, ANSI, ASCII } LogoMode;
  
