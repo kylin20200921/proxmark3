@@ -1,53 +1,22 @@
-commit 4d95cc2fdba6ac52c10a3812fb91570283490339
+commit 6f2cb98ae498830ae63879d4dc43aa5fa8da80cf
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun Jun 20 11:15:48 2021 +0200
+Date:   Sun Jun 20 11:17:23 2021 +0200
 
-    fix coverity CID 349307
+    fix coverity CID 349310
 
-diff --git a/client/src/cmdhfemrtd.c b/client/src/cmdhfemrtd.c
-index 45ea6887b..7791233dc 100644
---- a/client/src/cmdhfemrtd.c
-+++ b/client/src/cmdhfemrtd.c
-@@ -1034,8 +1034,8 @@ int dumpHF_EMRTD(char *documentnumber, char *dob, char *expiry, bool BAC_availab
- 
-     // Dump EF_CardAccess (if available)
-     if (!emrtd_dump_file(ks_enc, ks_mac, ssc, dg_table[EF_CardAccess].fileid, dg_table[EF_CardAccess].filename, BAC, path)) {
--        PrintAndLogEx(INFO, "Couldn't dump EF_CardAccess, card does not support PACE.");
--        PrintAndLogEx(HINT, "This is expected behavior for cards without PACE, and isn't something to be worried about.");
-+        PrintAndLogEx(INFO, "Couldn't dump EF_CardAccess, card does not support PACE");
-+        PrintAndLogEx(HINT, "This is expected behavior for cards without PACE, and isn't something to be worried about");
-     }
- 
-     // Authenticate with the eMRTD
-@@ -1046,7 +1046,7 @@ int dumpHF_EMRTD(char *documentnumber, char *dob, char *expiry, bool BAC_availab
- 
-     // Select EF_COM
-     if (!emrtd_select_and_read(response, &resplen, dg_table[EF_COM].fileid, ks_enc, ks_mac, ssc, BAC)) {
--        PrintAndLogEx(ERR, "Failed to read EF_COM.");
-+        PrintAndLogEx(ERR, "Failed to read EF_COM");
-         DropField();
-         return PM3_ESOFT;
-     }
-@@ -1055,11 +1055,12 @@ int dumpHF_EMRTD(char *documentnumber, char *dob, char *expiry, bool BAC_availab
-     char *filepath = calloc(strlen(path) + 100, sizeof(char));
-     if (filepath == NULL)
-         return PM3_EMALLOC;
-+
-     strcpy(filepath, path);
-     strncat(filepath, PATHSEP, 2);
-     strcat(filepath, dg_table[EF_COM].filename);
- 
--    PrintAndLogEx(INFO, "Read EF_COM, len: %i.", resplen);
-+    PrintAndLogEx(INFO, "Read EF_COM, len: %zu", resplen);
-     PrintAndLogEx(DEBUG, "Contents (may be incomplete over 2k chars): %s", sprint_hex_inrow(response, resplen));
-     saveFile(filepath, ".BIN", response, resplen);
- 
-@@ -1069,7 +1070,7 @@ int dumpHF_EMRTD(char *documentnumber, char *dob, char *expiry, bool BAC_availab
-     size_t filelistlen = 0;
- 
-     if (emrtd_lds_get_data_by_tag(response, resplen, filelist, &filelistlen, 0x5c, 0x00, false, true, 0) == false) {
--        PrintAndLogEx(ERR, "Failed to read file list from EF_COM.");
-+        PrintAndLogEx(ERR, "Failed to read file list from EF_COM");
-         DropField();
-         return PM3_ESOFT;
-     }
+diff --git a/client/src/nfc/ndef.c b/client/src/nfc/ndef.c
+index 5ecddc09f..2bc841a23 100644
+--- a/client/src/nfc/ndef.c
++++ b/client/src/nfc/ndef.c
+@@ -548,9 +548,9 @@ static int ndefDecodeMime_bt(NDEFHeader_t *ndef) {
+         }  
+         // Let's check payload[9]. If 0x08 then SHORT_NAME or if 0x09 then COMPLETE_NAME  
+         if (ndef->Payload[9] == 0x08 ) {  
+-            PrintAndLogEx(INFO, "Short name...... " _YELLOW_("%.*s"), ndef->PayloadLen - 10, ndef->Payload + 10);
++            PrintAndLogEx(INFO, "Short name...... " _YELLOW_("%.*s"), (int)(ndef->PayloadLen - 10), ndef->Payload + 10);
+         } else if (ndef->Payload[9] == 0x09 ) {  
+-            PrintAndLogEx(INFO, "Complete name... " _YELLOW_("%.*s"), ndef->PayloadLen - 10, ndef->Payload + 10);
++            PrintAndLogEx(INFO, "Complete name... " _YELLOW_("%.*s"), (int)(ndef->PayloadLen - 10), ndef->Payload + 10);
+         } else {  
+             PrintAndLogEx(INFO, "[ %02x ]", ndef->Payload[9]);
+         }
