@@ -1,9 +1,7 @@
-commit 0a66fdf49811d6cd4b5dd35ceaece2f52417963d
-Merge: 1599aa75e cc63ba9f1
-Author: Iceman <iceman@iuse.se>
-Date:   Sat Jun 19 19:40:56 2021 +0200
+commit 449dc7bd48e26c8c36caeec136a8f31aa38668f0
+Merge: 7bfc3d8f5 0a66fdf49
+Author: iceman1001 <iceman@iuse.se>
+Date:   Sat Jun 19 20:14:06 2021 +0200
 
-    Merge pull request #1321 from mwalker33/desfire
-    
-    Update cmdhfmfdes.c
+    Merge branch 'master' of github.com:RfidResearchGroup/proxmark3
 
