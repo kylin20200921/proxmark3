@@ -1,183 +1,161 @@
-commit d2c290c7c38276c3760bd93d61186ff36a8e7ad2
+commit 81c6918ac582d1cd9643404b9e545b5e214eb7a1
 Author: iceman1001 <iceman@iuse.se>
-Date:   Thu Jan 6 23:20:55 2022 +0100
+Date:   Thu Jan 6 23:25:25 2022 +0100
 
-    cppcheck fixes for const
+    cppcheck
 
-diff --git a/client/src/cmdanalyse.c b/client/src/cmdanalyse.c
-index f4624dbb7..d30f7d298 100644
---- a/client/src/cmdanalyse.c
-+++ b/client/src/cmdanalyse.c
-@@ -32,10 +32,10 @@
- 
- static int CmdHelp(const char *Cmd);
- 
--static uint8_t calculateLRC(uint8_t *bytes, uint8_t len) {
-+static uint8_t calculateLRC(const uint8_t *d, uint8_t n) {
-     uint8_t lcr = 0;
--    for (uint8_t i = 0; i < len; i++)
--        lcr ^= bytes[i];
-+    for (uint8_t i = 0; i < n; i++)
-+        lcr ^= d[i];
-     return lcr;
- }
- /*
-diff --git a/client/src/cmdhf14b.c b/client/src/cmdhf14b.c
-index 38aeb7f62..91f84aa0d 100644
---- a/client/src/cmdhf14b.c
-+++ b/client/src/cmdhf14b.c
-@@ -521,7 +521,7 @@ static char *get_st_chip_model(uint8_t data) {
-     return retStr;
+diff --git a/client/deps/hardnested/hardnested_tables.c b/client/deps/hardnested/hardnested_tables.c
+index 1ab600275..b124345d0 100644
+--- a/client/deps/hardnested/hardnested_tables.c
++++ b/client/deps/hardnested/hardnested_tables.c
+@@ -93,41 +93,49 @@ static inline void clear_bitarray24(uint32_t *bitarray) {
+     memset(bitarray, 0x00, sizeof(uint32_t) * (1 << 19));
  }
  
--static char *get_st_lock_info(uint8_t model, uint8_t *lockbytes, uint8_t blk) {
-+static char *get_st_lock_info(uint8_t model, const uint8_t *lockbytes, uint8_t blk) {
- 
-     static char str[16];
-     char *s = str;
-@@ -687,11 +687,11 @@ static char *get_st_lock_info(uint8_t model, uint8_t *lockbytes, uint8_t blk) {
-     return s;
+-
+-static inline uint32_t test_bit24(uint32_t *bitarray, uint32_t index) {
++static inline uint32_t test_bit24(const uint32_t *bitarray, uint32_t index) {
+     return bitarray[index >> 5] & (0x80000000 >> (index & 0x0000001f));
  }
  
--static uint8_t get_st_chipid(uint8_t *uid) {
-+static uint8_t get_st_chipid(const uint8_t *uid) {
-     return uid[5] >> 2;
+-
+ static inline void set_bit24(uint32_t *bitarray, uint32_t index) {
+     bitarray[index >> 5] |= 0x80000000 >> (index & 0x0000001f);
  }
  
--static uint8_t get_st_cardsize(uint8_t *uid) {
-+static uint8_t get_st_cardsize(const uint8_t *uid) {
-     uint8_t chipid = get_st_chipid(uid);
-     switch (chipid) {
-         case 0x0:
-diff --git a/client/src/cmdhfcryptorf.c b/client/src/cmdhfcryptorf.c
-index 1f68b9bd4..a4cdf0272 100644
---- a/client/src/cmdhfcryptorf.c
-+++ b/client/src/cmdhfcryptorf.c
-@@ -314,7 +314,7 @@ static int CmdHFCryptoRFDump(const char *Cmd) {
-     PacketResponseNG resp;
++static inline uint32_t next_state(const uint32_t *bitset, uint32_t state) {
++    if (++state == 1 << 24) {
++        return 1 << 24;
++    }
  
-     // select
--    int status = 0;
-+    int status;
-     if (WaitForResponseTimeout(CMD_HF_ISO14443B_COMMAND, &resp, 2000)) {
-         status = resp.oldarg[0];
-         if (status < 0) {
-diff --git a/client/src/cmdlfem4x05.c b/client/src/cmdlfem4x05.c
-index 1c2b43efa..35f3af226 100644
---- a/client/src/cmdlfem4x05.c
-+++ b/client/src/cmdlfem4x05.c
-@@ -74,7 +74,7 @@ static const char *em_get_card_str(uint32_t config) {
+-static inline uint32_t next_state(uint32_t *bitset, uint32_t state) {
+-    if (++state == 1 << 24) return 1 << 24;
+     uint32_t index = state >> 5;
+     uint_fast8_t bit = state & 0x1f;
+     uint32_t line = bitset[index] << bit;
+     while (bit <= 0x1f) {
+-        if (line & 0x80000000) return state;
++        if (line & 0x80000000) {
++            return state;
++        }
+         state++;
+         bit++;
+         line <<= 1;
+     }
++
+     index++;
+     while (bitset[index] == 0x00000000 && state < 1 << 24) {
+         index++;
+         state += 0x20;
+     }
+-    if (state >= 1 << 24) return 1 << 24;
++
++    if (state >= 1 << 24) {
++        return 1 << 24;
++    }
+ #if defined __GNUC__
+     return state + __builtin_clz(bitset[index]);
+ #else
+     bit = 0x00;
+     line = bitset[index];
+     while (bit <= 0x1f) {
+-        if (line & 0x80000000) return state;
++        if (line & 0x80000000) {
++            return state;
++        }
+         state++;
+         bit++;
+         line <<= 1;
+@@ -137,7 +145,7 @@ static inline uint32_t next_state(uint32_t *bitset, uint32_t state) {
  }
  
- // even parity COLUMN
--static bool em4x05_col_parity_test(uint8_t *bs, size_t size, uint8_t rows, uint8_t cols, uint8_t pType) {
-+static bool em4x05_col_parity_test(const uint8_t *bs, size_t size, uint8_t rows, uint8_t cols, uint8_t pType) {
-     if (rows * cols > size) return false;
-     uint8_t colP = 0;
  
-@@ -1889,7 +1889,7 @@ int CmdEM4x05Unlock(const char *Cmd) {
-     return exit_code;
+-static inline uint32_t next_not_state(uint32_t *bitset, uint32_t state) {
++static inline uint32_t next_not_state(const uint32_t *bitset, uint32_t state) {
+     if (++state == 1 << 24) return 1 << 24;
+     uint32_t index = state >> 5;
+     uint_fast8_t bit = state & 0x1f;
+diff --git a/client/src/fileutils.c b/client/src/fileutils.c
+index b026849b2..c38613959 100644
+--- a/client/src/fileutils.c
++++ b/client/src/fileutils.c
+@@ -686,7 +686,7 @@ int saveFileJSONrootEx(const char *preferredName, void *root, size_t flags, bool
+     return PM3_EFILE;
  }
  
--static size_t em4x05_Sniff_GetNextBitStart(size_t idx, size_t sc, int *data, size_t *pulsesamples) {
-+static size_t em4x05_Sniff_GetNextBitStart(size_t idx, size_t sc, const int *data, size_t *pulsesamples) {
-     while ((idx < sc) && (data[idx] <= 10)) // find a going high
-         idx++;
+-int saveFileWAVE(const char *preferredName, int *data, size_t datalen) {
++int saveFileWAVE(const char *preferredName, const int *data, size_t datalen) {
  
-@@ -1905,7 +1905,7 @@ static size_t em4x05_Sniff_GetNextBitStart(size_t idx, size_t sc, int *data, siz
-     return idx;
+     if (data == NULL) return PM3_EINVARG;
+     char *fileName = newfilenamemcopy(preferredName, ".wav");
+diff --git a/client/src/fileutils.h b/client/src/fileutils.h
+index 616cba740..5e0e3a971 100644
+--- a/client/src/fileutils.h
++++ b/client/src/fileutils.h
+@@ -127,7 +127,7 @@ int saveFileJSONrootEx(const char *preferredName, void *root, size_t flags, bool
+  * @param datalen the length of the data
+  * @return 0 for ok
+  */
+-int saveFileWAVE(const char *preferredName, int *data, size_t datalen);
++int saveFileWAVE(const char *preferredName, const int *data, size_t datalen);
+ 
+ /** STUB
+  * @brief Utility function to save PM3 data to a file. This method takes a preferred name, but if that
+diff --git a/client/src/graph.c b/client/src/graph.c
+index a357fb093..5f0f5ef94 100644
+--- a/client/src/graph.c
++++ b/client/src/graph.c
+@@ -72,8 +72,8 @@ void save_restoreGB(uint8_t saveOpt) {
+     }
  }
  
--uint32_t static em4x05_Sniff_GetBlock(char *bits, bool fwd) {
-+static uint32_t em4x05_Sniff_GetBlock(const char *bits, bool fwd) {
-     uint32_t value = 0;
-     uint8_t idx;
-     bool parityerror = false;
-diff --git a/client/src/cmdlfnexwatch.c b/client/src/cmdlfnexwatch.c
-index 3b02b798e..d69449c46 100644
---- a/client/src/cmdlfnexwatch.c
-+++ b/client/src/cmdlfnexwatch.c
-@@ -44,7 +44,7 @@ static uint8_t nexwatch_parity_swap(uint8_t parity) {
- }
- // parity check
- // from 32b hex id, 4b mode,
--static uint8_t nexwatch_parity(uint8_t hexid[5]) {
-+static uint8_t nexwatch_parity(const uint8_t hexid[5]) {
-     uint8_t p = 0;
-     for (uint8_t i = 0; i < 5; i++) {
-         p ^= NIBBLE_HIGH(hexid[i]);
-diff --git a/client/src/cmdlft55xx.c b/client/src/cmdlft55xx.c
-index 029f595fb..289105d5c 100644
---- a/client/src/cmdlft55xx.c
-+++ b/client/src/cmdlft55xx.c
-@@ -3905,7 +3905,7 @@ static int CmdT55xxProtect(const char *Cmd) {
- // if the difference between a and b is less then or eq to d  i.e. does a = b +/- d
- #define APPROX_EQ(a, b, d) ((abs(a - b) <= d) ? true : false)
+-void setGraphBuf(uint8_t *buff, size_t size) {
+-    if (buff == NULL) return;
++void setGraphBuf(const uint8_t *src, size_t size) {
++    if (src == NULL) return;
  
--static uint8_t t55sniff_get_packet(int *pulseBuffer, char *data, uint8_t width0, uint8_t width1, uint8_t tolerance) {
-+static uint8_t t55sniff_get_packet(const int *pulseBuffer, char *data, uint8_t width0, uint8_t width1, uint8_t tolerance) {
-     int i = 0;
-     bool ok = true;
-     uint8_t len = 0;
-diff --git a/client/src/cmdsmartcard.c b/client/src/cmdsmartcard.c
-index 7384d5a15..8039f44d2 100644
---- a/client/src/cmdsmartcard.c
-+++ b/client/src/cmdsmartcard.c
-@@ -59,7 +59,7 @@ out:
-     return retval;
+     ClearGraph(false);
+ 
+@@ -81,14 +81,14 @@ void setGraphBuf(uint8_t *buff, size_t size) {
+         size = MAX_GRAPH_TRACE_LEN;
+ 
+     for (size_t i = 0; i < size; ++i)
+-        g_GraphBuffer[i] = buff[i] - 128;
++        g_GraphBuffer[i] = src[i] - 128;
+ 
+     g_GraphTraceLen = size;
+     RepaintGraphWindow();
  }
  
--static uint8_t GetATRTA1(uint8_t *atr, size_t atrlen) {
-+static uint8_t GetATRTA1(const uint8_t *atr, size_t atrlen) {
-     if (atrlen > 2) {
-         uint8_t T0 = atr[1];
-         if (T0 & 0x10)
-@@ -258,7 +258,7 @@ static void PrintATR(uint8_t *atr, size_t atrlen) {
+-size_t getFromGraphBuf(uint8_t *buff) {
+-    if (buff == NULL) return 0;
++size_t getFromGraphBuf(uint8_t *dest) {
++    if (dest == NULL) return 0;
+     if (g_GraphTraceLen == 0) return 0;
  
- static int smart_wait(uint8_t *out, int maxoutlen, bool verbose) {
-     int i = 4;
--    uint32_t len = 0;
-+    uint32_t len;
-     do {
-         clearCommandBuffer();
-         PacketResponseNG resp;
-diff --git a/client/src/crypto/libpcrypto.c b/client/src/crypto/libpcrypto.c
-index 5bc03bd9f..6039aa55c 100644
---- a/client/src/crypto/libpcrypto.c
-+++ b/client/src/crypto/libpcrypto.c
-@@ -585,7 +585,7 @@ exit:
-     return res;
+     size_t i;
+@@ -96,7 +96,7 @@ size_t getFromGraphBuf(uint8_t *buff) {
+         //trim
+         if (g_GraphBuffer[i] > 127) g_GraphBuffer[i] = 127;
+         if (g_GraphBuffer[i] < -127) g_GraphBuffer[i] = -127;
+-        buff[i] = (uint8_t)(g_GraphBuffer[i] + 128);
++        dest[i] = (uint8_t)(g_GraphBuffer[i] + 128);
+     }
+     return i;
  }
- 
--void bin_xor(uint8_t *d1, uint8_t *d2, size_t len) {
-+void bin_xor(uint8_t *d1, const uint8_t *d2, size_t len) {
-     for (size_t i = 0; i < len; i++)
-         d1[i] = d1[i] ^ d2[i];
- }
-@@ -598,7 +598,7 @@ void AddISO9797M2Padding(uint8_t *ddata, size_t *ddatalen, uint8_t *sdata, size_
-     ddata[sdatalen] = ISO9797_M2_PAD_BYTE;
- }
- 
--size_t FindISO9797M2PaddingDataLen(uint8_t *data, size_t datalen) {
-+size_t FindISO9797M2PaddingDataLen(const uint8_t *data, size_t datalen) {
-     for (int i = datalen; i > 0; i--) {
-         if (data[i - 1] == 0x80)
-             return i - 1;
-diff --git a/client/src/crypto/libpcrypto.h b/client/src/crypto/libpcrypto.h
-index 89f13f486..f35cdf2d7 100644
---- a/client/src/crypto/libpcrypto.h
-+++ b/client/src/crypto/libpcrypto.h
-@@ -47,11 +47,11 @@ char *ecdsa_get_error(int ret);
- 
- int ecdsa_nist_test(bool verbose);
- 
--void bin_xor(uint8_t *d1, uint8_t *d2, size_t len);
-+void bin_xor(uint8_t *d1, const uint8_t *d2, size_t len);
- 
- #define ISO9797_M2_PAD_BYTE 0x80
- void AddISO9797M2Padding(uint8_t *ddata, size_t *ddatalen, uint8_t *sdata, size_t sdatalen, size_t blocklen);
--size_t FindISO9797M2PaddingDataLen(uint8_t *data, size_t datalen);
-+size_t FindISO9797M2PaddingDataLen(const uint8_t *data, size_t datalen);
- 
- 
- #endif /* libpcrypto.h */
+diff --git a/client/src/graph.h b/client/src/graph.h
+index 04815d52c..5649371a8 100644
+--- a/client/src/graph.h
++++ b/client/src/graph.h
+@@ -20,9 +20,9 @@ extern "C" {
+ void AppendGraph(bool redraw, uint16_t clock, int bit);
+ size_t ClearGraph(bool redraw);
+ bool HasGraphData(void);
+-void setGraphBuf(uint8_t *buff, size_t size);
++void setGraphBuf(const uint8_t *src, size_t size);
+ void save_restoreGB(uint8_t saveOpt);
+-size_t getFromGraphBuf(uint8_t *buff);
++size_t getFromGraphBuf(uint8_t *dest);
+ void convertGraphFromBitstream(void);
+ void convertGraphFromBitstreamEx(int hi, int low);
+ bool isGraphBitstream(void);
