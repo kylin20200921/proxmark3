@@ -1,19 +1,27 @@
-commit 4919d14c13d9d07fbca55a40ca034350bfa82c38
+commit 89becb8d9f13b463129728a0dc511dfcb720a835
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sat Jan 1 16:29:51 2022 +0100
+Date:   Sat Jan 1 17:43:12 2022 +0100
 
-    cppcheck fix
+    cppcheck
 
-diff --git a/client/src/wiegand_formats.c b/client/src/wiegand_formats.c
-index 75f9ea987..7f507d982 100644
---- a/client/src/wiegand_formats.c
-+++ b/client/src/wiegand_formats.c
-@@ -1414,7 +1414,7 @@ int HIDFindCardFormat(const char *format) {
- bool HIDPack(int format_idx, wiegand_card_t *card, wiegand_message_t *packed, bool preamble) {
-     memset(packed, 0, sizeof(wiegand_message_t));
+diff --git a/client/src/cmdlfvisa2000.c b/client/src/cmdlfvisa2000.c
+index 07bdcff30..2a829f2af 100644
+--- a/client/src/cmdlfvisa2000.c
++++ b/client/src/cmdlfvisa2000.c
+@@ -44,12 +44,11 @@ static uint8_t visa_chksum(uint32_t id) {
  
--    if (format_idx < 0 || format_idx >= ARRAYLEN(FormatTable))
-+    if (format_idx < 0 || format_idx >= ARRAYLEN(FormatTable) - 1)
-         return false;
- 
-     return FormatTable[format_idx].Pack(card, packed, preamble);
+ static uint8_t visa_parity(uint32_t id) {
+     // 4bit parity LUT
+-    uint8_t par_lut[] = {
+-        0, 1, 1, 0
+-        , 1, 0, 0, 1
+-        , 1, 0, 0, 1
+-        , 0, 1, 1, 0
++    const uint8_t par_lut[] = {
++        0, 1, 1, 0, 1, 0, 0, 1,
++        1, 0, 0, 1, 0, 1, 1, 0
+     };
++
+     uint8_t par = 0;
+     par |= par_lut[(id >> 28) & 0xF ] << 7;
+     par |= par_lut[(id >> 24) & 0xF ] << 6;
