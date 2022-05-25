@@ -1,19 +1,16 @@
-commit 4e78034a6e7b0710ba47feb8faf4136a70ea0420
+commit 025d4e895a2cf434102821dce38dc04be09bbb11
 Author: iceman1001 <iceman@iuse.se>
-Date:   Tue Jan 11 19:20:33 2022 +0100
+Date:   Thu Jan 13 21:27:33 2022 +0100
 
-    release numbering update
+    Update README.md
 
-diff --git a/CHANGELOG.md b/CHANGELOG.md
-index 982e79169..af93d6654 100644
---- a/CHANGELOG.md
-+++ b/CHANGELOG.md
-@@ -4,7 +4,7 @@ This project uses the changelog in accordance with [keepchangelog](http://keepac
+diff --git a/README.md b/README.md
+index 45ee9d99b..443f96c0d 100644
+--- a/README.md
++++ b/README.md
+@@ -1,4 +1,4 @@
+-# RRG / Iceman - Proxmark3
++# Iceman - Proxmark3
  
- ## [unreleased][unreleased]
  
--## [Frostbit] [2022-01-11]
-+## [Frostbit.4.14831] [2022-01-11]
-  - Changed Wiegand format lookup - now case-insensitive (@iceman1001)
-  - Added new standalone mode `hf_15SNIFF` - Same as `hf_14ASNIFF` standalone mode for RDV4 - flashmem (@startrk1995)
-  - Added support for MIFARE DESFire application creation without authentication (@joswr1ght)
+ | Latest Release | Coverity | Contributors |
