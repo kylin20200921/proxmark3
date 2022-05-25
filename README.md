@@ -1,28 +1,29 @@
-commit 9a9d86de95fd78a8ac5c64f9060397d955de6b67
+commit 86118525e5fd708c27ada5f401567b215ffc2808
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sat May 22 14:20:38 2021 +0200
+Date:   Sat May 22 14:22:41 2021 +0200
 
-    text
+    style
 
-diff --git a/client/src/cmdhfmfdes.c b/client/src/cmdhfmfdes.c
-index 7b6d3e26c..5626e8855 100644
---- a/client/src/cmdhfmfdes.c
-+++ b/client/src/cmdhfmfdes.c
-@@ -5041,7 +5041,7 @@ static int CmdHF14aDesMAD(const char *Cmd) {
+diff --git a/client/src/cmdlfidteck.c b/client/src/cmdlfidteck.c
+index ca188bec0..d62d07093 100644
+--- a/client/src/cmdlfidteck.c
++++ b/client/src/cmdlfidteck.c
+@@ -284,13 +284,16 @@ int detectIdteck(uint8_t *dest, size_t *size) {
+     if (getSignalProperties()->isnoise) return -2;
  
- static command_t CommandTable[] = {
-     {"help",             CmdHelp,                     AlwaysAvailable, "This help"},
--    {"-----------",      CmdHelp,                     IfPm3Iso14443a,  "----------------------- " _CYAN_("general") " -----------------------"},
-+    {"-----------",      CmdHelp,                     IfPm3Iso14443a,  "---------------------- " _CYAN_("general") " ----------------------"},
-     {"auth",             CmdHF14ADesAuth,             IfPm3Iso14443a,  "Tries a MIFARE DesFire Authentication"},
-     {"changekey",        CmdHF14ADesChangeKey,        IfPm3Iso14443a,  "Change Key"},
-     {"chk",              CmdHF14aDesChk,              IfPm3Iso14443a,  "Check keys"},
-@@ -5052,7 +5052,7 @@ static command_t CommandTable[] = {
-     {"list",             CmdHF14ADesList,             AlwaysAvailable, "List DESFire (ISO 14443A) history"},
- //    {"ndef",             CmdHF14aDesNDEF,             IfPm3Iso14443a,  "Prints NDEF records from card"},
- //    {"mad",             CmdHF14aDesMAD,             IfPm3Iso14443a,  "Prints MAD records from card"},
--    {"-----------",      CmdHelp,                     IfPm3Iso14443a,  "----------------------- " _CYAN_("AID") " -----------------------"},
-+    {"-----------",      CmdHelp,                     IfPm3Iso14443a,  "-------------------- " _CYAN_("Applications") " -------------------"},
-     {"bruteaid",         CmdHF14ADesBruteApps,        IfPm3Iso14443a,  "Recover AIDs by bruteforce"},
-     {"createaid",        CmdHF14ADesCreateApp,        IfPm3Iso14443a,  "Create Application ID"},
-     {"deleteaid",        CmdHF14ADesDeleteApp,        IfPm3Iso14443a,  "Delete Application ID"},
+     size_t start_idx = 0;
++    //                    4           9           4           4           5           4           4           B
+     uint8_t preamble[] = {0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1};
+ 
+     //preamble not found
+-    if (!preambleSearch(dest, preamble, sizeof(preamble), size, &start_idx))
++    if (preambleSearch(dest, preamble, sizeof(preamble), size, &start_idx) == false)
+         return -3;
+ 
+     // wrong demoded size
+-    if (*size != 64) return -4;
++    if (*size != 64) {
++        return -4;
++    }
+     return (int)start_idx;
+ }
