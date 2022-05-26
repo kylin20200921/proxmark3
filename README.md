@@ -1,9 +1,9 @@
-commit d5bbb54c8650f7b769c3fc01eba3dd294198cb73
-Merge: 75a814d8b c79cba4bc
+commit 0f98e177ba9a2673ecf3f93f16fa4954f88a697a
+Merge: d5bbb54c8 82227e669
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun Mar 20 21:02:23 2022 +0100
+Date:   Sun Mar 20 21:44:00 2022 +0100
 
-    Merge pull request #1630 from equipter/master
+    Merge pull request #1632 from equipter/master
     
-    Create hf_i2c_recovery.lua
+    Update changelog & rename hf_i2c_recovery.lua
 
