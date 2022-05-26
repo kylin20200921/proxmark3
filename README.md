@@ -1,116 +1,155 @@
-commit 1f470483ec473e88424c7e6540b61056bb143e86
+commit 7310834b69197efdaa9302aa83a510fafb295e04
 Author: iceman1001 <iceman@iuse.se>
-Date:   Fri Feb 18 22:31:34 2022 +0100
+Date:   Sat Feb 19 00:15:34 2022 +0100
 
-    make style
+    added a compact tlv decoder for ATR historical bytes in 14a info
 
-diff --git a/client/src/cmdhfmf.c b/client/src/cmdhfmf.c
-index cdd1bf278..b8275f4b2 100644
---- a/client/src/cmdhfmf.c
-+++ b/client/src/cmdhfmf.c
-@@ -6208,10 +6208,10 @@ static bool mfc_value(const uint8_t *d, uint32_t *val) {
-     uint32_t b = MemLeToUint4byte(d + 8);
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index b4ec94ce5..7279766f6 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -3,16 +3,17 @@ All notable changes to this project will be documented in this file.
+ This project uses the changelog in accordance with [keepchangelog](http://keepachangelog.com/). Please use this to write notable changes, which is not the same as git commit log...
  
-     int val_checks = (
--        (a == b) && (a == ~a_inv) &&
--        (d[12] == (~d[13] & 0xFF)) &&
--        (d[14] == (~d[15] & 0xFF))
--    );
-+                         (a == b) && (a == ~a_inv) &&
-+                         (d[12] == (~d[13] & 0xFF)) &&
-+                         (d[14] == (~d[15] & 0xFF))
-+                     );
- 
-     if (val) {
-         *val = a;
-@@ -6241,7 +6241,7 @@ static int CmdHF14AMfValue(const char *Cmd) {
-     uint32_t value = 0;
- 
-     if (mfc_value(data, &value))  {
--        PrintAndLogEx(SUCCESS, "Dec... " _YELLOW_("%" PRIu32 ), value);
-+        PrintAndLogEx(SUCCESS, "Dec... " _YELLOW_("%" PRIu32), value);
-         PrintAndLogEx(SUCCESS, "Hex... " _YELLOW_("0x%" PRIX32), value);
-     } else {
-         PrintAndLogEx(FAILED, "No value block detected");
-diff --git a/client/src/pm3line_vocabulory.h b/client/src/pm3line_vocabulory.h
-index 8590b0b26..2c514f7cb 100644
---- a/client/src/pm3line_vocabulory.h
-+++ b/client/src/pm3line_vocabulory.h
-@@ -305,6 +305,7 @@ const static vocabulory_t vocabulory[] = {
-     { 0, "hf mf rdsc" }, 
-     { 0, "hf mf restore" }, 
-     { 0, "hf mf setmod" }, 
-+    { 1, "hf mf value" }, 
-     { 1, "hf mf view" }, 
-     { 0, "hf mf wipe" }, 
-     { 0, "hf mf wrbl" }, 
-diff --git a/doc/commands.json b/doc/commands.json
-index 1e63c0baf..829e4c93d 100644
---- a/doc/commands.json
-+++ b/doc/commands.json
-@@ -4098,7 +4098,7 @@
-         },
-         "hf mf help": {
-             "command": "hf mf help",
--            "description": "help this help list list mifare history hardnested nested attack for hardened mifare classic cards decrypt [nt] [ar_enc] [at_enc] [data] - to decrypt sniff or trace acl decode and print mifare classic access rights bytes view display content from tag dump file",
-+            "description": "help this help list list mifare history hardnested nested attack for hardened mifare classic cards decrypt [nt] [ar_enc] [at_enc] [data] - to decrypt sniff or trace acl decode and print mifare classic access rights bytes value decode a value block view display content from tag dump file",
-             "notes": [],
-             "offline": true,
-             "options": [],
-@@ -4358,6 +4358,19 @@
-             ],
-             "usage": "hf mf supercard [-hr]"
-         },
-+        "hf mf value": {
-+            "command": "hf mf value",
-+            "description": "decode of a mifare value block",
-+            "notes": [
-+                "hf mf value -d 87d612007829edff87d6120011ee11ee"
-+            ],
-+            "offline": true,
-+            "options": [
-+                "-h, --help this help",
-+                "-d, --data <hex> 16 hex bytes"
-+            ],
-+            "usage": "hf mf value [-h] -d <hex>"
-+        },
-         "hf mf view": {
-             "command": "hf mf view",
-             "description": "print a mifare classic dump file (bin/eml/json)",
-@@ -7162,10 +7175,10 @@
-                 "--4205 target chip type em 4205",
-                 "--4305 target chip type em 4305 (default)",
-                 "--4369 target chip type em 4369",
--                "--4369 target chip type em 4469",
-+                "--4469 target chip type em 4469",
-                 "-p, --pwd <hex> optional - password, 4 bytes hex"
-             ],
--            "usage": "lf em 4x05 wipe [-h] [--4205] [--4305] [--4369] [--4369] [-p <hex>]"
-+            "usage": "lf em 4x05 wipe [-h] [--4205] [--4305] [--4369] [--4469] [-p <hex>]"
-         },
-         "lf em 4x05 write": {
-             "command": "lf em 4x05 write",
-@@ -10887,8 +10900,8 @@
-         }
-     },
-     "metadata": {
--        "commands_extracted": 687,
-+        "commands_extracted": 688,
-         "extracted_by": "PM3Help2JSON v1.00",
--        "extracted_on": "2022-02-17T00:41:11"
-+        "extracted_on": "2022-02-18T21:30:00"
+ ## [unreleased][unreleased]
+- - Added `hf mf value`  - decode a value block (@iceman1001)
+- - Changed `hf mf nested`: removed option `--single` redundant with usage of `--tblk` (@doegox)
+- - Fixed `hf mf chk` single block mode (@doegox)
+- - Fixed `hf mf fchk/chk` internal logic to load keys (@doegox)
+- - Changed `hf mf *` printKeyTable: now display sector trailer info too (@doegox)
+- - Changed `hf mf chk` option `--blk` into `--tblk` (as for nested) (@doegox)
++ - Changed `hf 14a info` - added a ATR historical compact TLV decoder (@iceman1001)
++ - Added `hf mf value` - decode a value block (@iceman1001)
++ - Changed `hf mf nested` - removed option `--single` redundant with usage of `--tblk` (@doegox)
++ - Fixed `hf mf chk` - single block mode (@doegox)
++ - Fixed `hf mf fchk/chk` - internal logic to load keys (@doegox)
++ - Changed `hf mf *` - printKeyTable: now display sector trailer info too (@doegox)
++ - Changed `hf mf chk` - option `--blk` into `--tblk` (as for nested) (@doegox)
+  - Added new tool `mfd_multi_brute` - MIFARE DESfire / UL-C key recovery (@iceman1001)
+- - Fixed `hf emrtd info` segfault on some platforms (@doegox)
+- - Fixed `hf emrtd info` when offline (@doegox)
+- - Fixed `commands.json` generation (@doegox)
++ - Fixed `hf emrtd info` - segfault on some platforms (@doegox)
++ - Fixed `hf emrtd info` - when offline (@doegox)
++ - Fixed `commands.json` - generation (@doegox)
+  - Added new standalone mode `hf_legicsim` (@uhei)
+  - Changed `hf legic *` - now uses NG instead (@iceman1001)
+  - Added `hf legic view` - view contents of LEGIC Prime dump files (@iceman1001)
+diff --git a/client/src/cmdhf14a.c b/client/src/cmdhf14a.c
+index ef2c3a03d..81de6b35e 100644
+--- a/client/src/cmdhf14a.c
++++ b/client/src/cmdhf14a.c
+@@ -1638,6 +1638,78 @@ static void getTagLabel(uint8_t uid0, uint8_t uid1) {
      }
  }
-\ No newline at end of file
-diff --git a/doc/commands.md b/doc/commands.md
-index cf1be550e..6437758bd 100644
---- a/doc/commands.md
-+++ b/doc/commands.md
-@@ -460,6 +460,7 @@ Check column "offline" for their availability.
- |`hf mf rdsc             `|N       |`Read MIFARE Classic sector`
- |`hf mf restore          `|N       |`Restore MIFARE Classic binary file to BLANK tag`
- |`hf mf setmod           `|N       |`Set MIFARE Classic EV1 load modulation strength`
-+|`hf mf value            `|Y       |`Decode a value block`
- |`hf mf view             `|Y       |`Display content from tag dump file`
- |`hf mf wipe             `|N       |`Wipe card to zeros and default keys/acc`
- |`hf mf wrbl             `|N       |`Write MIFARE Classic block`
+ 
++static void get_compact_tlv(uint8_t* d, uint8_t n) {
++    d++;
++    n--;
++
++    while (n > 0) {
++        uint8_t tag = NIBBLE_HIGH(d[0]);
++        uint8_t len = NIBBLE_LOW(d[0]);
++
++        switch(tag) {
++            case 1:
++                PrintAndLogEx(INFO, "    %1x%1x  " _YELLOW_("%s") "   Country code in (ISO 3166-1)", tag, len, sprint_hex_inrow(d + 1, len));
++                // iso3166 script in cmdlffdb.c is buggy,  Åland, Australia not showing.  getline issues
++                break;
++            case 2:
++                PrintAndLogEx(INFO, "    %1x%1x  " _YELLOW_("%s") "   Issuer identification number (ISO 7812-1)", tag, len, sprint_hex_inrow(d + 1, len));
++                break;
++            case 3:
++                PrintAndLogEx(INFO, "    %1x%1x  " _YELLOW_("%s") "   Card service data byte", tag, len, sprint_hex_inrow(d + 1, len));
++                PrintAndLogEx(INFO, "    %c.......    Application selection: by full DF name", (d[1] & 0x80) ? '1' : '0');
++                PrintAndLogEx(INFO, "    .%c......    Application selection: by partial DF name", (d[1] & 0x40) ? '1' : '0');
++                PrintAndLogEx(INFO, "    ..%c.....    BER-TLV data objects available in EF.DIR", (d[1] & 0x20) ? '1' : '0');
++                PrintAndLogEx(INFO, "    ...%c....    BER-TLV data objects available in EF.ATR", (d[1] & 0x10) ? '1' : '0');
++                PrintAndLogEx(INFO, "    ....%c...    EF.DIR and EF.ATR access services: by READ BINARY command", (d[1] & 0x08) ? '1' : '0');
++                PrintAndLogEx(INFO, "    .....%c..    EF.DIR and EF.ATR access services: by GET DATA command", (d[1] & 0x04) ? '1' : '0');
++                PrintAndLogEx(INFO, "    ......%c.    EF.DIR and EF.ATR access services: by GET RECORD(s) command", (d[1] & 0x02) ? '1' : '0');
++                PrintAndLogEx(INFO, "    .......%c    EF.DIR and EF.ATR access services: RFU", (d[1] & 0x01) ? '1' : '0');
++                break;
++            case 4:
++                PrintAndLogEx(INFO, "    %1x%1x  " _YELLOW_("%s") "   Initial access data", tag, len, sprint_hex_inrow(d + 1, len));
++                break;
++            case 5:
++                PrintAndLogEx(INFO, "    %1x%1x  " _YELLOW_("%s") "   Card issuer data", tag, len, sprint_hex_inrow(d + 1, len));
++                break;
++            case 6:
++                PrintAndLogEx(INFO, "    %1x%1x  " _YELLOW_("%s") "   Pre-issuing data", tag, len, sprint_hex_inrow(d + 1, len));
++                break;
++            case 7:
++                PrintAndLogEx(INFO, "    %1x%1x " _YELLOW_("%s") "   Card capabilities", tag, len, sprint_hex_inrow(d + 1, len));
++
++                PrintAndLogEx(INFO, "    " _YELLOW_("%02X") " - Selection methods", d[1]);
++                PrintAndLogEx(INFO, "    %c.......    DF selection by full DF name", (d[1] & 0x80) ? '1' : '0');
++                PrintAndLogEx(INFO, "    .%c......    DF selection by partial DF name", (d[1] & 0x40) ? '1' : '0');
++                PrintAndLogEx(INFO, "    ..%c.....    DF selection by path", (d[1] & 0x20) ? '1' : '0');
++                PrintAndLogEx(INFO, "    ...%c....    DF selection by file identifier", (d[1] & 0x10) ? '1' : '0');
++                PrintAndLogEx(INFO, "    ....%c...    Implicit DF selection", (d[1] & 0x08) ? '1' : '0');
++                PrintAndLogEx(INFO, "    .....%c..    Short EF identifier supported", (d[1] & 0x04) ? '1' : '0');
++                PrintAndLogEx(INFO, "    ......%c.    Record number supported", (d[1] & 0x02) ? '1' : '0');
++                PrintAndLogEx(INFO, "    .......%c    Record identifier supported", (d[1] & 0x01) ? '1' : '0');
++
++                if (len > 1) {
++                    PrintAndLogEx(INFO, "    " _YELLOW_("%02X") " - Data coding byte", d[2]);
++                }
++                if (len > 2) {
++                    PrintAndLogEx(INFO, "    " _YELLOW_("%02X") " - Command chaining, length fields and logical channels", d[3]);
++                }
++                break;
++            case 8:
++                PrintAndLogEx(INFO, "    %1x%1x ... " _YELLOW_("%s") "   Status indicator", tag, len, sprint_hex_inrow(d + 1, len));
++                break;
++            case 0xE:
++                PrintAndLogEx(INFO, "    %1x%1x ... " _YELLOW_("%s") "   Application identifier", tag, len, sprint_hex_inrow(d + 1, len));
++                break;
++        }
++
++        if (len > n)
++            break;
++
++        n -= (1 + len);
++        d += (1 + len);
++    }
++}
++
+ int infoHF14A(bool verbose, bool do_nack_test, bool do_aid_search) {
+     clearCommandBuffer();
+     SendCommandMIX(CMD_HF_ISO14443A_READER, ISO14A_CONNECT | ISO14A_NO_DISCONNECT, 0, 0, NULL, 0);
+@@ -2034,10 +2106,12 @@ int infoHF14A(bool verbose, bool do_nack_test, bool do_aid_search) {
+                 }
+             } else {
+ 
+-                if (card.ats[pos] == 0x80)
+-                    PrintAndLogEx(SUCCESS, "   %s  (compact TLV data object)", sprint_hex_inrow(card.ats + pos, calen));
+-                else
+-                    PrintAndLogEx(SUCCESS, "   %s", sprint_hex_inrow(card.ats + pos, calen));
++                if (card.ats[pos] == 0x80 || card.ats[pos] == 0x00) {
++                    PrintAndLogEx(SUCCESS, "  %s  (compact TLV data object)", sprint_hex_inrow(&card.ats[pos], calen));
++                    get_compact_tlv(card.ats + pos, calen);
++                } else {
++                    PrintAndLogEx(SUCCESS, "  %s", sprint_hex_inrow(card.ats + pos, calen));
++                }
+ 
+                 PrintAndLogEx(NORMAL, "");
+             }
+diff --git a/include/common.h b/include/common.h
+index 314b67b57..2e245da43 100644
+--- a/include/common.h
++++ b/include/common.h
+@@ -158,11 +158,11 @@ extern bool g_tearoff_enabled;
+ 
+ // Nibble logic
+ #ifndef NIBBLE_HIGH
+-# define NIBBLE_HIGH(b) ( (b & 0xF0) >> 4 )
++# define NIBBLE_HIGH(b) ( ((b) & 0xF0) >> 4 )
+ #endif
+ 
+ #ifndef NIBBLE_LOW
+-# define NIBBLE_LOW(b)  ( b & 0x0F )
++# define NIBBLE_LOW(b)  ((b) & 0x0F )
+ #endif
+ 
+ #ifndef CRUMB
