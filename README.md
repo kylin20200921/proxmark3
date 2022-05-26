@@ -1,163 +1,186 @@
-commit 0d5b7864aa3d458010aa02b9cc1528e96c861f60
+commit 2671795b8b9e836398219eecc287beb389820869
 Author: iceman1001 <iceman@iuse.se>
-Date:   Fri Feb 25 21:03:22 2022 +0100
+Date:   Sat Feb 26 17:15:32 2022 +0100
 
-    coverity fixes
+    textual
 
-diff --git a/client/src/cmdhfcipurse.c b/client/src/cmdhfcipurse.c
-index 95e6e7bad..a1c1c3eb9 100644
---- a/client/src/cmdhfcipurse.c
-+++ b/client/src/cmdhfcipurse.c
-@@ -377,8 +377,8 @@ static int SelectCommandEx(bool selectDefaultFile, bool useAID, uint8_t *aid, si
-         res = CIPURSESelectFileEx(true, true, fileId, buf, bufSize, len, sw);
-         if (res != 0 || *sw != 0x9000) {
-             if (verbose) {
--                PrintAndLogEx(ERR, "Cipurse select file 0x%04x  ( %s )",  _RED_("fail"));
--                PrintAndLogEx(ERR, "Card returns 0x%04x", fileId, *sw);
-+                PrintAndLogEx(ERR, "Cipurse select file 0x%04x  ( %s )", fileId, _RED_("fail"));
-+                PrintAndLogEx(ERR, "Card returns 0x%04x", *sw);
-             }
-             return PM3_ESOFT;
-         }
-@@ -1406,9 +1406,11 @@ static int CmdHFCipurseDeleteFile(const char *Cmd) {
-     if (useChildFID) {
-         res = CIPURSEDeleteFile(childFileId, buf, sizeof(buf), &len, &sw);
-         if (res != 0 || sw != 0x9000) {
--            PrintAndLogEx(ERR, "Delete child file " _CYAN_("%04x ") _RED_("ERROR"));
--            PrintAndLogEx(ERR, "0x%04x - %s", childFileId, sw,
--                          GetSpecificAPDUCodeDesc(DeleteAPDUCodeDescriptions, ARRAYLEN(DeleteAPDUCodeDescriptions), sw));
-+            PrintAndLogEx(ERR, "Delete child file " _CYAN_("%04x ") " %s", childFileId, _RED_("ERROR"));
-+            PrintAndLogEx(ERR, "0x%04x - %s", 
-+                    sw,
-+                    GetSpecificAPDUCodeDesc(DeleteAPDUCodeDescriptions, ARRAYLEN(DeleteAPDUCodeDescriptions), sw)
-+                );
-             DropField();
-             return PM3_ESOFT;
-         }
-@@ -1416,9 +1418,11 @@ static int CmdHFCipurseDeleteFile(const char *Cmd) {
-     } else if (useFID) {
-         res = CIPURSEDeleteFile(fileId, buf, sizeof(buf), &len, &sw);
-         if (res != 0 || sw != 0x9000) {
--            PrintAndLogEx(ERR, "Delete file " _CYAN_("%04x ") _RED_("ERROR"));
--            PrintAndLogEx(ERR, "0x%04x - %s", fileId, sw,
--                          GetSpecificAPDUCodeDesc(DeleteAPDUCodeDescriptions, ARRAYLEN(DeleteAPDUCodeDescriptions), sw));
-+            PrintAndLogEx(ERR, "Delete file " _CYAN_("%04x ") " %s", fileId, _RED_("ERROR"));
-+            PrintAndLogEx(ERR, "0x%04x - %s",
-+                    sw,
-+                    GetSpecificAPDUCodeDesc(DeleteAPDUCodeDescriptions, ARRAYLEN(DeleteAPDUCodeDescriptions), sw)
-+                );
-             DropField();
-             return PM3_ESOFT;
-         }
-@@ -1426,11 +1430,11 @@ static int CmdHFCipurseDeleteFile(const char *Cmd) {
-     } else {
-         res = CIPURSEDeleteFileAID(aid, aidLen, buf, sizeof(buf), &len, &sw);
-         if (res != 0 || sw != 0x9000) {
--            PrintAndLogEx(ERR, "Delete application " _CYAN_("%s ") _RED_("ERROR"));
-+            PrintAndLogEx(ERR, "Delete application " _CYAN_("%s ") " %s", sprint_hex_inrow(aid, aidLen), _RED_("ERROR"));
-             PrintAndLogEx(ERR, "0x%04x - %s",
--                          sprint_hex_inrow(aid, aidLen),
--                          sw,
--                          GetSpecificAPDUCodeDesc(DeleteAPDUCodeDescriptions, ARRAYLEN(DeleteAPDUCodeDescriptions), sw));
-+                    sw,
-+                    GetSpecificAPDUCodeDesc(DeleteAPDUCodeDescriptions, ARRAYLEN(DeleteAPDUCodeDescriptions), sw)
-+                );
-             DropField();
-             return PM3_ESOFT;
-         }
-diff --git a/client/src/cmdhfmfdes.c b/client/src/cmdhfmfdes.c
-index 5b9b851c2..21e779c8f 100644
---- a/client/src/cmdhfmfdes.c
-+++ b/client/src/cmdhfmfdes.c
-@@ -142,6 +142,7 @@ typedef enum {
-     DESFIRE_MF3ICD40,
-     DESFIRE_EV1,
-     DESFIRE_EV2,
-+    DESFIRE_EV2_XL,
-     DESFIRE_EV3,
-     DESFIRE_LIGHT,
-     PLUS_EV1,
-@@ -248,7 +249,7 @@ static char *getVersionStr(uint8_t major, uint8_t minor) {
-     else if (major == 0x12 && minor == 0x00)
-         snprintf(retStr, sizeof(buf), "%x.%x ( " _GREEN_("DESFire EV2") " )", major, minor);
-     else if (major == 0x22 && minor == 0x00)
--        snprintf(retStr, sizeof(buf), "%x.%x ( " _GREEN_("DESFire EV2") " )", major, minor);
-+        snprintf(retStr, sizeof(buf), "%x.%x ( " _GREEN_("DESFire EV2 XL") " )", major, minor);
-     else if (major == 0x42 && minor == 0x00)
-         snprintf(retStr, sizeof(buf), "%x.%x ( " _GREEN_("DESFire EV2") " )", major, minor);
-     else if (major == 0x33 && minor == 0x00)
-@@ -283,7 +284,7 @@ static nxp_cardtype_t getCardType(uint8_t major, uint8_t minor) {
-     if (major == 0x12 && minor == 0x00)
-         return DESFIRE_EV2;
-     if (major == 0x22 && minor == 0x00)
--        return DESFIRE_EV2;
-+        return DESFIRE_EV2_XL;
-     if (major == 0x42 && minor == 0x00)
-         return DESFIRE_EV2;
-     if (major == 0x33 && minor == 0x00)
-@@ -661,6 +662,8 @@ static int CmdHF14ADesInfo(const char *Cmd) {
-         PrintAndLogEx(INFO, "\t1.4 - DESFire Ev1 MF3ICD21/41/81, EAL4+");
-     if (major == 2 && minor == 0)
-         PrintAndLogEx(INFO, "\t2.0 - DESFire Ev2, Originality check, proximity check, EAL5");
-+    if (major == 2 && minor == 2)
-+        PrintAndLogEx(INFO, "\t2.2 - DESFire Ev2 XL, Originality check, proximity check, EAL5");
-     if (major == 3 && minor == 0)
-         PrintAndLogEx(INFO, "\t3.0 - DESFire Ev3, Originality check, proximity check, badass EAL6 ?");
+diff --git a/.github/ISSUE_TEMPLATE/bug_report.md b/.github/ISSUE_TEMPLATE/bug_report.md
+index de546a42e..6ca8e6f6b 100644
+--- a/.github/ISSUE_TEMPLATE/bug_report.md
++++ b/.github/ISSUE_TEMPLATE/bug_report.md
+@@ -14,7 +14,7 @@ read the [troubleshooting guide](/doc/md/Installation_Instructions/Troubleshooti
+ Try compiling with verbose.  `make VERBOSE=1` with main makefile or `make V=1` with cmake.
  
-@@ -2179,24 +2182,40 @@ static int CmdHF14ADesSetConfiguration(const char *Cmd) {
-     CLIParserFree(ctx);
+ ***flashing problems***
+-Have you followed the instructions properly?  ie,  flashed bootrom seperately first if you are going from Offical repo to RRG/Iceman repo.
++Have you followed the instructions properly?  ie,  flashed bootrom seperately first if you are going from Offical repo to Iceman repo.
  
+ 
+ -
+diff --git a/client/src/cmdflashmem.c b/client/src/cmdflashmem.c
+index b1cf1fdfd..97126ad9b 100644
+--- a/client/src/cmdflashmem.c
++++ b/client/src/cmdflashmem.c
+@@ -576,7 +576,7 @@ static int CmdFlashMemInfo(const char *Cmd) {
+     bool is_keyok = (mbedtls_rsa_check_pubkey(rsa) == 0);
+     PrintAndLogEx(
+         (is_keyok) ? SUCCESS : FAILED,
+-        "RRG/Iceman RSA public key check.... ( %s )",
++        "RDV4 RSA public key check.... ( %s )",
+         (is_keyok) ?  _GREEN_("ok") : _RED_("fail")
+     );
+ 
+@@ -584,7 +584,7 @@ static int CmdFlashMemInfo(const char *Cmd) {
      if (verbose) {
--        if (DesfireMFSelected(selectway, id))
--            PrintAndLogEx(INFO, _CYAN_("PICC") " param ID: 0x%02x param[%d]: %s", paramid, paramlen, sprint_hex(param, paramlen));
--        else
--            PrintAndLogEx(INFO, _CYAN_("%s %06x") " param ID: 0x%02x param[%d]: %s", DesfireSelectWayToStr(selectway), id, paramid, paramlen, sprint_hex(param, paramlen));
-+        if (DesfireMFSelected(selectway, id)) {
-+            PrintAndLogEx(INFO, _CYAN_("PICC") " param ID: 0x%02x param[%d]: %s",
-+                    paramid,
-+                    paramlen,
-+                    sprint_hex(param, paramlen)
-+                );
-+        } else {
-+            PrintAndLogEx(INFO, _CYAN_("%s %06x") " param ID: 0x%02x param[%d]: %s", 
-+                    DesfireSelectWayToStr(selectway),
-+                    id,
-+                    paramid,
-+                    paramlen,
-+                    sprint_hex(param, paramlen)
-+                );
-+        }
+         PrintAndLogEx(
+             (is_keyok) ? SUCCESS : FAILED,
+-            "RRG/Iceman RSA private key check... ( %s )",
++            "RDV4 RSA private key check... ( %s )",
+             (is_keyok) ?  _GREEN_("ok") : _YELLOW_("N/A")
+         );
      }
+diff --git a/doc/T5577_Guide.md b/doc/T5577_Guide.md
+index 6d25357df..e9792bb19 100644
+--- a/doc/T5577_Guide.md
++++ b/doc/T5577_Guide.md
+@@ -1,7 +1,7 @@
+ # T5577 Introduction Guide
+ <a id="Top"></a>
  
-     res = DesfireSelectAndAuthenticateAppW(&dctx, securechann, selectway, id, false, verbose);
-     if (res != PM3_SUCCESS) {
-         DropField();
--        PrintAndLogEx(FAILED, "Select or authentication ( %s )" _RED_("failed") " Result [%d] %s", DesfireWayIDStr(selectway, id), res, DesfireAuthErrorToStr(res));
-+        PrintAndLogEx(FAILED, "Select or authentication ( %s ) Result [%d] %s %s", 
-+                DesfireWayIDStr(selectway, id),
-+                res,
-+                DesfireAuthErrorToStr(res),
-+                _RED_("failed")
-+            );
-         return res;
-     }
+-### Based on RRG/Iceman Proxmark3 repo
++### Based on Iceman Proxmark3 repo
  
-     res = DesfireSetConfiguration(&dctx, paramid, param, paramlen);
-     if (res == PM3_SUCCESS) {
--        PrintAndLogEx(SUCCESS, "Set configuration 0x%02x ( %s )", _GREEN_("ok"), paramid);
-+        PrintAndLogEx(SUCCESS, "Set configuration 0x%02x ( %s )", paramid, _GREEN_("ok"));
-     } else {
--        PrintAndLogEx(FAILED, "Set configuration 0x%02x ( %s )", _RED_("failed"), paramid);
-+        PrintAndLogEx(FAILED, "Set configuration 0x%02x ( %s )", paramid, _RED_("failed"));
-     }
+ ### Ver.1 8 Sep 2019
+ ### Ver.2 7 March 2021
+diff --git a/doc/md/Installation_Instructions/Linux-Installation-Instructions.md b/doc/md/Installation_Instructions/Linux-Installation-Instructions.md
+index 4a53c52fe..e7fe580cd 100644
+--- a/doc/md/Installation_Instructions/Linux-Installation-Instructions.md
++++ b/doc/md/Installation_Instructions/Linux-Installation-Instructions.md
+@@ -137,7 +137,7 @@ And a new `/dev/ttyACM0` should have appeared.
  
-     DropField();
-@@ -2605,7 +2624,7 @@ static int CmdHF14ADesGetUID(const char *Cmd) {
-     CLIParserContext *ctx;
-     CLIParserInit(&ctx, "hf mfdes getuid",
-                   "Get UID from card. Get the real UID if the random UID bit is on and get the same UID as in anticollision if not. Any card's key needs to be provided. ",
--                  "hf mfdes getuid    -> execute with default factory setup\n"
-+                  "hf mfdes getuid                              -> execute with default factory setup\n"
-                   "hf mfdes getuid --isoid df01 -t aes -s lrp   -> for desfire lights default settings");
+ Add current user to the proper group to get permission to use `/dev/ttyACM0`.
  
-     void *argtable[] = {
+-This step can be done from the RRG/Iceman Proxmark3 repo with:
++This step can be done from the Iceman Proxmark3 repo with:
+ 
+ ```sh
+ make accessrights
+diff --git a/doc/md/Installation_Instructions/Mac-OS-X-Homebrew-Installation-Instructions.md b/doc/md/Installation_Instructions/Mac-OS-X-Homebrew-Installation-Instructions.md
+index 91a2fedc4..e356bc2ba 100644
+--- a/doc/md/Installation_Instructions/Mac-OS-X-Homebrew-Installation-Instructions.md
++++ b/doc/md/Installation_Instructions/Mac-OS-X-Homebrew-Installation-Instructions.md
+@@ -63,11 +63,11 @@ For more info, go to https://github.com/RfidResearchGroup/homebrew-proxmark3
+ ## Upgrade HomeBrew tap formula
+ ^[Top](#top)
+ 
+-*This method is useful for those looking to run bleeding-edge versions of RRG/iceman's client. Keep this in mind when attempting to update your HomeBrew tap formula as this procedure could easily cause a build to break if an update is unstable on macOS.* 
++*This method is useful for those looking to run bleeding-edge versions of iceman's fork. Keep this in mind when attempting to update your HomeBrew tap formula as this procedure could easily cause a build to break if an update is unstable on macOS.* 
+ 
+ Tested on macOS Mojave 10.14.4
+ 
+-*Note: This assumes you have already installed RRG/iceman's fork from HomeBrew as mentioned above*
++*Note: This assumes you have already installed iceman's fork from HomeBrew as mentioned above*
+ 
+ Force HomeBrew to pull the latest source from github
+ 
+diff --git a/doc/md/Installation_Instructions/Windows-Installation-Instructions.md b/doc/md/Installation_Instructions/Windows-Installation-Instructions.md
+index f46a41cb6..8bc9b9fc3 100644
+--- a/doc/md/Installation_Instructions/Windows-Installation-Instructions.md
++++ b/doc/md/Installation_Instructions/Windows-Installation-Instructions.md
+@@ -11,7 +11,7 @@
+   - [Driver Installation ( Windows 7 )](#driver-installation--windows-7-)
+   - [Download ProxSpace repo](#download-proxspace-repo)
+   - [Launch ProxSpace](#launch-proxspace)
+-  - [Clone the RRG/Iceman repository](#clone-the-rrgiceman-repository)
++  - [Clone the Iceman repository](#clone-the-iceman-repository)
+   - [Compile and use the project](#compile-and-use-the-project)
+   - [Done!](#done)
+ - [Installing pre-compiled binaries with ProxSpace](#installing-pre-compiled-binaries-with-proxspace)
+@@ -21,7 +21,7 @@
+   - [X Server Installation](#x-server-installation)
+   - [Windows Terminal Installation](#windows-terminal-installation)
+   - [Dependencies](#dependencies)
+-  - [Clone the RRG/Iceman repository](#clone-the-rrgiceman-repository-1)
++  - [Clone the Iceman repository](#clone-the-iceman-repository-1)
+   - [Compile and use the project](#compile-and-use-the-project-1)
+   - [Done!](#done-1)
+ 
+@@ -81,7 +81,7 @@ You'll get a Bash prompt and your home directory should become the ProxSpace `pm
+ 
+ Please note you will need to use `/` in paths as you are using Bash.
+ 
+-## Clone the RRG/Iceman repository
++## Clone the Iceman repository
+ ^[Top](#top)
+ 
+ ```sh
+@@ -174,7 +174,7 @@ _note_
+ If you don't need the graphical components of the Proxmark3 client, you can skip the installation of `qtbase5-dev`.  
+ If you don't need support for Python3 scripts in the Proxmark3 client, you can skip the installation of `libpython3-dev`.
+ 
+-## Clone the RRG/Iceman repository
++## Clone the Iceman repository
+ ^[Top](#top)
+ 
+ ```sh
+diff --git a/doc/md/Use_of_Proxmark/0_Compilation-Instructions.md b/doc/md/Use_of_Proxmark/0_Compilation-Instructions.md
+index f15d74f3d..5de6a78c3 100644
+--- a/doc/md/Use_of_Proxmark/0_Compilation-Instructions.md
++++ b/doc/md/Use_of_Proxmark/0_Compilation-Instructions.md
+@@ -24,7 +24,7 @@
+ The client and the Proxmark3 firmware should always be in sync.
+ Nevertheless, the firmware can be tuned depending on the Proxmark3 platform and options.
+ 
+-Indeed, the RRG/Iceman fork can be used on other Proxmark3 hardware platforms as well.
++Indeed, the Iceman fork can be used on other Proxmark3 hardware platforms as well.
+ 
+ Via some definitions, you can adjust the firmware for a given platform, but also to add features like the support of the Blue Shark add-on or to select which standalone mode to embed. To learn how to adjust the firmware, please read [Advanced compilation parameters](/doc/md/Use_of_Proxmark/4_Advanced-compilation-parameters.md).
+ 
+diff --git a/doc/md/Use_of_Proxmark/4_Advanced-compilation-parameters.md b/doc/md/Use_of_Proxmark/4_Advanced-compilation-parameters.md
+index 90faa6e41..494f5a8ab 100644
+--- a/doc/md/Use_of_Proxmark/4_Advanced-compilation-parameters.md
++++ b/doc/md/Use_of_Proxmark/4_Advanced-compilation-parameters.md
+@@ -18,7 +18,7 @@
+ The client and the Proxmark3 firmware should always be in sync.
+ Nevertheless, the firmware can be tuned depending on the Proxmark3 platform and options.
+ 
+-Indeed, the RRG/Iceman fork can be used on other Proxmark3 hardware platforms as well.
++Indeed, the Iceman fork can be used on other Proxmark3 hardware platforms as well.
+ 
+ Via some definitions, you can adjust the firmware for a given platform, but also to add features like the support of the Blue Shark add-on or to select which standalone mode to embed.
+ 
+@@ -94,7 +94,7 @@ If you have installed a Blue Shark add-on on your RDV4, define `PLATFORM_EXTRAS=
+ ## STANDALONE
+ ^[Top](#top)
+ 
+-The RRG/Iceman repository gives you to easily choose which standalone mode to embed in the firmware.
++The Iceman repository gives you to easily choose which standalone mode to embed in the firmware.
+ 
+ Here are the supported values you can assign to `STANDALONE` in `Makefile.platform`:
+ 
+diff --git a/tools/mkversion.sh b/tools/mkversion.sh
+index 31a1dd121..f950d9f19 100755
+--- a/tools/mkversion.sh
++++ b/tools/mkversion.sh
+@@ -15,7 +15,7 @@ if [ "$1" = "--short" ]; then
+ fi
+ 
+ # if you are making your own fork,  change this line to reflect your fork-name
+-fullgitinfo="RRG/Iceman"
++fullgitinfo="Iceman"
+ # GIT status  0 = dirty,  1 = clean ,  2 = undecided
+ clean=2
+ 
+diff --git a/tools/pm3_tests.sh b/tools/pm3_tests.sh
+index ee1794bde..75b988285 100755
+--- a/tools/pm3_tests.sh
++++ b/tools/pm3_tests.sh
+@@ -211,7 +211,7 @@ function CheckExecute() {
+   return $RESULT
+ }
+ 
+-echo -e "\n${C_BLUE}RRG/Iceman Proxmark3 test tool ${C_NC}\n"
++echo -e "\n${C_BLUE}Iceman Proxmark3 test tool ${C_NC}\n"
+ 
+ echo -n "work directory: "
+ pwd
