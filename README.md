@@ -1,29 +1,29 @@
-commit a98b9590c6b3008516947b7ce93d6b2c63e61a7f
+commit cce9edcd0fe46a5c6e047bbe5b67a64162ec9897
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun Mar 27 11:03:13 2022 +0200
+Date:   Sun Mar 27 11:05:49 2022 +0200
 
     Disabling aesni detection on OSX
 
 diff --git a/tools/mfd_aes_brute/mfd_multi_brute.c b/tools/mfd_aes_brute/mfd_multi_brute.c
-index c819415ad..9bca75642 100644
+index 9bca75642..aaad8baa3 100644
 --- a/tools/mfd_aes_brute/mfd_multi_brute.c
 +++ b/tools/mfd_aes_brute/mfd_multi_brute.c
-@@ -374,11 +374,15 @@ int main(int argc, char *argv[]) {
+@@ -37,10 +37,16 @@
+ #include <unistd.h>
+ //#include <mbedtls/aes.h>
+ #include "util_posix.h"
+-#include "aes-ni.h"
+-#include "detectaes.h"
+ #include "randoms.h"
  
-     uint64_t start_time = atoi(argv[3]);
- 
--    const bool support_aesni = platform_aes_hw_available();
--
-     printf("Crypto algo............ " _GREEN_("%s") "\n", algostr);
-     printf("LCR Random generator... " _GREEN_("%s") "\n", generators[g_idx].Name);
--    printf("AES-NI detected........ " _GREEN_("%s") "\n", (support_aesni) ? "yes" : "no");
++#include "aes-ni.h"
 +
-+    #if defined(__APPLE__) || defined(__MACH__)
-+    #else
-+        bool support_aesni = platform_aes_hw_available();
-+        printf("AES-NI detected........ " _GREEN_("%s") "\n", (support_aesni) ? "yes" : "no");
-+    #endif
++#if defined(__APPLE__) || defined(__MACH__)
++#else
++    #include "detectaes.h"
++#endif
 +
-     printf("Starting timestamp..... ");
-     print_time(start_time);
- 
++
+ #define AEND  "\x1b[0m"
+ #define _RED_(s) "\x1b[31m" s AEND
+ #define _GREEN_(s) "\x1b[32m" s AEND
