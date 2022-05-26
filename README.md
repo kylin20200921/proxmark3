@@ -1,9 +1,9 @@
-commit 78e99d3e369ecddbe9b5b58474865ed80523b924
-Merge: 3e0946c56 d7a652e39
+commit 1b0bac56636a2b717640ae74653bc9b973b063e6
+Merge: 78e99d3e3 3b2b03287
 Author: iceman1001 <iceman@iuse.se>
-Date:   Tue Mar 29 20:02:49 2022 +0200
+Date:   Wed Mar 30 18:00:15 2022 +0200
 
-    Merge pull request #1644 from Doridian/fix/linux-arm64
+    Merge pull request #1647 from equipter/master
     
-    Fix ARM64 compilation and NEON detection in Linux
+    Update hf_14a_i2crevive.lua
 
