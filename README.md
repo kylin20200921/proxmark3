@@ -1,44 +1,33 @@
-commit 2574f49801f6ed1a2248d14fa06b84143177484b
+commit b636544c1e23a0cc28bd8e92ef0388300eed6920
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun Feb 27 08:17:29 2022 +0100
+Date:   Sun Feb 27 12:27:12 2022 +0100
 
-    passage about --force when flashing
+    text
 
-diff --git a/doc/md/Installation_Instructions/Troubleshooting.md b/doc/md/Installation_Instructions/Troubleshooting.md
-index 141d62b41..7367bf08b 100644
---- a/doc/md/Installation_Instructions/Troubleshooting.md
-+++ b/doc/md/Installation_Instructions/Troubleshooting.md
-@@ -7,6 +7,7 @@ Always use the latest repository commits from *master* branch. There are always
- ## Table of Contents
+diff --git a/doc/md/Installation_Instructions/Mac-OS-X-Homebrew-Installation-Instructions.md b/doc/md/Installation_Instructions/Mac-OS-X-Homebrew-Installation-Instructions.md
+index e356bc2ba..8821e4768 100644
+--- a/doc/md/Installation_Instructions/Mac-OS-X-Homebrew-Installation-Instructions.md
++++ b/doc/md/Installation_Instructions/Mac-OS-X-Homebrew-Installation-Instructions.md
+@@ -48,9 +48,11 @@ For further questions about Mac & Homebrew, contact [\@Chrisfu on Twitter](https
  
-   * [pm3 or pm3-flash* doesn't see my Proxmark](#pm3-or-pm3-flash-doesnt-see-my-proxmark)
-+  * [pm3-flash* stops and warns about up-to-date firmware images](#pm3-flash-stops-and-warns-about-up-to-date-firmware-images)
-   * [My Proxmark3 seems bricked](#my-proxmark3-seems-bricked)
-      * [Maybe just a false alarm?](#maybe-just-a-false-alarm)
-      * [Find out why it would be bricked](#find-out-why-it-would-be-bricked)
-@@ -42,6 +43,25 @@ Note that with the Bluetooth adapter, you *have to* use directly the client, and
+ 2. Install xquartz: `brew install xquartz`
  
- * [Bluetooth](/doc/bt_manual_v10.md)
+-2. Tap this repo: `brew tap RfidResearchGroup/proxmark3`
++3. Install sha256sum: `brew install coreutils`
  
+-3. Install Proxmark3:
++4. Tap this repo: `brew tap RfidResearchGroup/proxmark3`
 +
-+## `pm3-flash*` stops and warns about up-to-date firmware images
-+^[Top](#top)
-+
-+The Proxmark3 software and firmware is connected tightly. The strong recommendation is to use the client with a Proxmark3 device flashed with firmware images from same compilation time.  
-+In the flash process you might get this message because the firmware images is downloaded or distributed and you have compiled your own client.  Ie,  not from same compilation time.
-+To minimize the risks the flasher warns about it and stops.  
-+
-+```
-+    Make sure to flash a correct and up-to-date version
-+    You can force flashing this firmware by using the option '--force'
-+```
-+
-+You need to add the `--force` param in order to continue flashing. 
-+
-+```sh
-+pm3-flash-all --force
-+```
-+
- ## My Proxmark3 seems bricked
- ^[Top](#top)
++5. Install Proxmark3:
+   - `brew install proxmark3` for stable release 
+   - `brew install --HEAD proxmark3` for latest non-stable from GitHub (use this if previous command fails)
+   - `brew install --with-blueshark proxmark3` for blueshark support, stable release
+@@ -130,7 +132,7 @@ These instructions will show how to setup the environment on OSX to the point wh
+ 2. Install dependencies:
  
+ ```
+-brew install readline qt5 pkgconfig
++brew install readline qt5 pkgconfig coreutils
+ brew install RfidResearchGroup/proxmark3/arm-none-eabi-gcc
+ ```
+ 3. (optional) Install makefile dependencies:
