@@ -1,47 +1,72 @@
-commit 3e543fcc658e314d02711979491a0fc6ad30177d
+commit b776c984222b07edffd4f109c6e94e26afebf5ba
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sat Feb 26 17:36:14 2022 +0100
+Date:   Sat Feb 26 17:40:24 2022 +0100
 
-    added new public key,  thanks to @anon!
+    fix copy pasta
 
-diff --git a/CHANGELOG.md b/CHANGELOG.md
-index 2fda95253..487370363 100644
---- a/CHANGELOG.md
-+++ b/CHANGELOG.md
-@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
- This project uses the changelog in accordance with [keepchangelog](http://keepachangelog.com/). Please use this to write notable changes, which is not the same as git commit log...
+diff --git a/client/src/flash.c b/client/src/flash.c
+index c43d6fd28..373f3b785 100644
+--- a/client/src/flash.c
++++ b/client/src/flash.c
+@@ -306,39 +306,45 @@ int flash_load(flash_file_t *ctx, bool force) {
+         res = PM3_EFILE;
+         goto fail;
+     }
++
+     if (le16(ehdr->e_type) != ET_EXEC) {
+         PrintAndLogEx(ERR, "ELF is not executable");
+         res = PM3_EFILE;
+         goto fail;
+     }
++
+     if (le16(ehdr->e_machine) != EM_ARM) {
+         PrintAndLogEx(ERR, "Wrong ELF architecture");
+         res = PM3_EFILE;
+         goto fail;
+     }
++
+     if (!ehdr->e_phnum || !ehdr->e_phoff) {
+         PrintAndLogEx(ERR, "ELF has no PHDRs");
+         res = PM3_EFILE;
+         goto fail;
+     }
++
+     if (le16(ehdr->e_phentsize) != sizeof(Elf32_Phdr_t)) {
+         // could be a structure padding issue...
+         PrintAndLogEx(ERR, "Either the ELF file or this code is made of fail");
+         res = PM3_EFILE;
+         goto fail;
+     }
++
+     ctx->num_phdrs = le16(ehdr->e_phnum);
+     ctx->phdrs = (Elf32_Phdr_t *)(ctx->elf + le32(ehdr->e_phoff));
+     shdrs = (Elf32_Shdr_t *)(ctx->elf + le32(ehdr->e_shoff));
+-    shdrs = (Elf32_Shdr_t *)(ctx->elf + le32(ehdr->e_shoff));
+     shstr = ctx->elf + le32(shdrs[ehdr->e_shstrndx].sh_offset);
  
- ## [unreleased][unreleased]
-+ - Added new public key (@anon)
-+ - Changed start screen to be less intimidating (@iceman1001)
-  - Added detection of a possible mismatch between client and Proxmark3 image (@doegox)
-  - Changed `hf 14a info` - added a ATR historical compact TLV decoder (@iceman1001)
-  - Added `hf mf value` - decode a value block (@iceman1001)
-diff --git a/client/src/cmdhfmfdes.c b/client/src/cmdhfmfdes.c
-index 21e779c8f..0a194c5c0 100644
---- a/client/src/cmdhfmfdes.c
-+++ b/client/src/cmdhfmfdes.c
-@@ -345,14 +345,15 @@ static int desfire_print_signature(uint8_t *uid, uint8_t uidlen, uint8_t *signat
-     // See tools/recover_pk.py to recover Pk from UIDs and signatures
- #define PUBLIC_DESFIRE_ECDA_KEYLEN 57
-     const ecdsa_publickey_t nxp_desfire_public_keys[] = {
--        {"NTAG424DNA, DESFire EV2", "048A9B380AF2EE1B98DC417FECC263F8449C7625CECE82D9B916C992DA209D68422B81EC20B65A66B5102A61596AF3379200599316A00A1410"},
--        {"NTAG413DNA, DESFire EV1", "04BB5D514F7050025C7D0F397310360EEC91EAF792E96FC7E0F496CB4E669D414F877B7B27901FE67C2E3B33CD39D1C797715189AC951C2ADD"},
--        {"DESFire EV2", "04B304DC4C615F5326FE9383DDEC9AA892DF3A57FA7FFB3276192BC0EAA252ED45A865E3B093A3D0DCE5BE29E92F1392CE7DE321E3E5C52B3A"},
--        {"DESFire EV3", "041DB46C145D0A36539C6544BD6D9B0AA62FF91EC48CBC6ABAE36E0089A46F0D08C8A715EA40A63313B92E90DDC1730230E0458A33276FB743"},
--        {"NTAG424DNA, NTAG424DNATT, DESFire Light EV2", "04B304DC4C615F5326FE9383DDEC9AA892DF3A57FA7FFB3276192BC0EAA252ED45A865E3B093A3D0DCE5BE29E92F1392CE7DE321E3E5C52B3B"},
--        {"DESFire Light", "040E98E117AAA36457F43173DC920A8757267F44CE4EC5ADD3C54075571AEBBF7B942A9774A1D94AD02572427E5AE0A2DD36591B1FB34FCF3D"},
--        {"MIFARE Plus EV1", "044409ADC42F91A8394066BA83D872FB1D16803734E911170412DDF8BAD1A4DADFD0416291AFE1C748253925DA39A5F39A1C557FFACD34C62E"},
--        {"MIFARE Pluc Evx", "04BB49AE4447E6B1B6D21C098C1538B594A11A4A1DBF3D5E673DEACDEB3CC512D1C08AFA1A2768CE20A200BACD2DC7804CD7523A0131ABF607"},
-+        {"NTAG424DNA, DESFire Ev2", "048A9B380AF2EE1B98DC417FECC263F8449C7625CECE82D9B916C992DA209D68422B81EC20B65A66B5102A61596AF3379200599316A00A1410"},
-+        {"NTAG413DNA, DESFire Ev1", "04BB5D514F7050025C7D0F397310360EEC91EAF792E96FC7E0F496CB4E669D414F877B7B27901FE67C2E3B33CD39D1C797715189AC951C2ADD"},
-+        {"DESFire Ev2",     "04B304DC4C615F5326FE9383DDEC9AA892DF3A57FA7FFB3276192BC0EAA252ED45A865E3B093A3D0DCE5BE29E92F1392CE7DE321E3E5C52B3A"},
-+        {"DESFire Ev3",     "041DB46C145D0A36539C6544BD6D9B0AA62FF91EC48CBC6ABAE36E0089A46F0D08C8A715EA40A63313B92E90DDC1730230E0458A33276FB743"},
-+        {"NTAG424DNA, NTAG424DNATT, DESFire Light Ev2", "04B304DC4C615F5326FE9383DDEC9AA892DF3A57FA7FFB3276192BC0EAA252ED45A865E3B093A3D0DCE5BE29E92F1392CE7DE321E3E5C52B3B"},
-+        {"DESFire Light",   "040E98E117AAA36457F43173DC920A8757267F44CE4EC5ADD3C54075571AEBBF7B942A9774A1D94AD02572427E5AE0A2DD36591B1FB34FCF3D"},
-+        {"MIFARE Plus Ev1", "044409ADC42F91A8394066BA83D872FB1D16803734E911170412DDF8BAD1A4DADFD0416291AFE1C748253925DA39A5F39A1C557FFACD34C62E"},
-+        {"MIFARE Plus EvX", "04BB49AE4447E6B1B6D21C098C1538B594A11A4A1DBF3D5E673DEACDEB3CC512D1C08AFA1A2768CE20A200BACD2DC7804CD7523A0131ABF607"},
-+        {"DESFire Ev2 XL",  "04CD5D45E50B1502F0BA4656FF37669597E7E183251150F9574CC8DA56BF01C7ABE019E29FEA48F9CE22C3EA4029A765E1BC95A89543BAD1BC"},
-     };
- 
- 
+     for (uint16_t i = 0; i < le16(ehdr->e_shnum); i++) {
++
+         if (strcmp(((char *)shstr) + shdrs[i].sh_name, ".version_information") == 0) {
+             vi = (struct version_information_t *)(ctx->elf + le32(shdrs[i].sh_offset));
+             res = print_and_validate_version(vi);
+             break;
+         }
++
+         if (strcmp(((char *)shstr) + shdrs[i].sh_name, ".bootphase1") == 0) {
+             uint32_t offset = *(uint32_t*)(ctx->elf + le32(shdrs[i].sh_offset) + le32(shdrs[i].sh_size) - 4);
+             if (offset >= le32(shdrs[i].sh_addr)) {
+@@ -353,11 +359,14 @@ int flash_load(flash_file_t *ctx, bool force) {
+     }
+     if (res == PM3_SUCCESS)
+         return res;
++
+     // We could not find proper version_information
+     if (res == PM3_EUNDEF)
+         PrintAndLogEx(WARNING, "Unable to check version_information");
++
+     if (force)
+         return PM3_SUCCESS;
++
+     PrintAndLogEx(INFO,  "Make sure to flash a correct and up-to-date version");
+     PrintAndLogEx(INFO,  "You can force flashing this firmware by using the option '--force'");
+ fail:
