@@ -1,138 +1,93 @@
-commit 3169bf2763d6bfdfafc6b077ffac1cf839ff0a77
+commit 61d948e464c518544cc0533887bd254038f9d555
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sat Feb 12 11:26:40 2022 +0100
+Date:   Sat Feb 12 12:06:27 2022 +0100
 
-    hf mfu view - view binary/json mfu dump files
+    text
 
-diff --git a/CHANGELOG.md b/CHANGELOG.md
-index 7dad22edd..2627c60bc 100644
---- a/CHANGELOG.md
-+++ b/CHANGELOG.md
-@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
- This project uses the changelog in accordance with [keepchangelog](http://keepachangelog.com/). Please use this to write notable changes, which is not the same as git commit log...
+diff --git a/doc/md/Use_of_Proxmark/1_Validation.md b/doc/md/Use_of_Proxmark/1_Validation.md
+index 01669c01b..506e7ec82 100644
+--- a/doc/md/Use_of_Proxmark/1_Validation.md
++++ b/doc/md/Use_of_Proxmark/1_Validation.md
+@@ -15,28 +15,36 @@
+ If all went well you should get some information about the firmware and memory usage as well as the prompt,  something like this.
  
- ## [unreleased][unreleased]
-+ - Added `hf mfu view` - view contents of MFU dump files (@iceman1001)
-  - Changed `hf_mf_uidbruteforce` - added support for S70, enhance UID length management (@cactuschibre)
-  - Fixed build issues that may happen from building `mfd_aes_brute` (@linuxgemini)
-  - Added silicon data parsing logic for NXP chips in `hf mfu info` (@linuxgemini)
-diff --git a/client/src/cmdhfmfu.c b/client/src/cmdhfmfu.c
-index 57d134fd2..e62628253 100644
---- a/client/src/cmdhfmfu.c
-+++ b/client/src/cmdhfmfu.c
-@@ -4130,6 +4130,85 @@ static int CmdHF14AMfuEView(const char *Cmd) {
-     return PM3_SUCCESS;
- }
+ ```
+-[=] Session log /home/iceman/.proxmark3/log_20210708.txt
++[=] Session log /home/iceman/.proxmark3/logs/log_20220212.txt
+ [+] loaded from JSON file /home/iceman/.proxmark3/preferences.json
+ [=] Using UART port /dev/ttyS3
+ [=] Communicating with PM3 over USB-CDC
  
-+static int CmdHF14AMfuView(const char *Cmd) {
-+
-+    CLIParserContext *ctx;
-+    CLIParserInit(&ctx, "hf mfu view",
-+                  "Print a MIFARE Ultralight/NTAG dump file (bin/json)",
-+                  "hf mfu view -f hf-mfu-01020304-dump.bin"
-+                 );
-+    void *argtable[] = {
-+        arg_param_begin,
-+        arg_str1("f", "file", "<fn>", "filename of dump"),
-+        arg_lit0("v", "verbose", "verbose output"),
-+        arg_param_end
-+    };
-+    CLIExecWithReturn(ctx, Cmd, argtable, false);
-+    int fnlen = 0;
-+    char filename[FILE_PATH_SIZE];
-+    CLIParamStrToBuf(arg_get_str(ctx, 1), (uint8_t *)filename, FILE_PATH_SIZE, &fnlen);
-+    bool verbose = arg_get_lit(ctx, 2);
-+    CLIParserFree(ctx);
-+
-+    // reserve memory
-+    uint8_t *dump = NULL;
-+    size_t bytes_read = 0;
-+    int res = 0;
-+    DumpFileType_t dftype = getfiletype(filename);
-+    switch (dftype) {
-+        case BIN: {
-+            res = loadFile_safe(filename, ".bin", (void **)&dump, &bytes_read);
-+            break;
-+        }
-+        case JSON: {
-+            dump = calloc(MFU_MAX_BYTES + MFU_DUMP_PREFIX_LENGTH, sizeof(uint8_t));
-+            if (dump == NULL) {
-+                PrintAndLogEx(WARNING, "Fail, cannot allocate memory");
-+                return PM3_EMALLOC;
-+            }
-+            res = loadFileJSON(filename, (void *)dump, MFU_MAX_BYTES + MFU_DUMP_PREFIX_LENGTH, &bytes_read, NULL);
-+            break;
-+        }
-+        case EML:
-+        case DICTIONARY: {
-+            PrintAndLogEx(ERR, "Error: Only BIN/JSON formats allowed");
-+            free(dump);
-+            return PM3_EINVARG;
-+        }
-+    }
-+
-+    if (res != PM3_SUCCESS) {
-+        PrintAndLogEx(FAILED, "File: " _YELLOW_("%s") ": not found or locked.", filename);
-+        free(dump);
-+        return PM3_EFILE;
-+    }
-+
-+    if (bytes_read < MFU_DUMP_PREFIX_LENGTH) {
-+        PrintAndLogEx(ERR, "Error, dump file is too small");
-+        free(dump);
-+        return PM3_ESOFT;
-+    }
-+
-+    res = convert_mfu_dump_format(&dump, &bytes_read, verbose);
-+    if (res != PM3_SUCCESS) {
-+        PrintAndLogEx(FAILED, "Failed convert on load to new Ultralight/NTAG format");
-+        free(dump);
-+        return res;
-+    }
-+
-+    uint16_t block_cnt =  ((bytes_read - MFU_DUMP_PREFIX_LENGTH) / MFU_BLOCK_SIZE);
-+
-+    if (verbose) {
-+        PrintAndLogEx(INFO, "File: " _YELLOW_("%s"), filename);
-+        PrintAndLogEx(INFO, "File size %zu bytes, file blocks %d (0x%x)", bytes_read, block_cnt, block_cnt);
-+    }
-+
-+    printMFUdumpEx( (mfu_dump_t *)dump, block_cnt, 0);
-+    free(dump);
-+    return PM3_SUCCESS;
-+}
-+
-+
- /*
- static int CmdHF14AMfUCDecryptAmiibo(const char *Cmd){
  
-@@ -4175,24 +4254,25 @@ static int CmdHF14AMfUCDecryptAmiibo(const char *Cmd){
- //------------------------------------
- static command_t CommandTable[] = {
-     {"help",     CmdHelp,                   AlwaysAvailable, "This help"},
--    {"-----------", CmdHelp,               IfPm3Iso14443a,  "----------------------- " _CYAN_("recovery") " -------------------------"},
-+    {"-----------", CmdHelp,                IfPm3Iso14443a,  "----------------------- " _CYAN_("recovery") " -------------------------"},
-     {"keygen",   CmdHF14AMfUGenDiverseKeys, AlwaysAvailable, "Generate 3DES MIFARE diversified keys"},
-     {"pwdgen",   CmdHF14AMfUPwdGen,         AlwaysAvailable, "Generate pwd from known algos"},
-     {"otptear",  CmdHF14AMfuOtpTearoff,     IfPm3Iso14443a,  "Tear-off test on OTP bits"},
- //    {"tear_cnt", CmdHF14AMfuEv1CounterTearoff,     IfPm3Iso14443a,  "Tear-off test on Ev1/NTAG Counter bits"},
--    {"-----------", CmdHelp,               IfPm3Iso14443a,  "----------------------- " _CYAN_("operations") " -----------------------"},
-+    {"-----------", CmdHelp,                IfPm3Iso14443a,  "----------------------- " _CYAN_("operations") " -----------------------"},
-     {"cauth",    CmdHF14AMfUCAuth,          IfPm3Iso14443a,  "Authentication - Ultralight-C"},
-     {"dump",     CmdHF14AMfUDump,           IfPm3Iso14443a,  "Dump MIFARE Ultralight family tag to binary file"},
-     {"info",     CmdHF14AMfUInfo,           IfPm3Iso14443a,  "Tag information"},
-     {"ndefread", CmdHF14MfuNDEFRead,        IfPm3Iso14443a,  "Prints NDEF records from card"},
-     {"rdbl",     CmdHF14AMfURdBl,           IfPm3Iso14443a,  "Read block"},
-     {"restore",  CmdHF14AMfURestore,        IfPm3Iso14443a,  "Restore a dump onto a MFU MAGIC tag"},
-+    {"view",     CmdHF14AMfuView,           AlwaysAvailable, "Display content from tag dump file"},
-     {"wrbl",     CmdHF14AMfUWrBl,           IfPm3Iso14443a,  "Write block"},
--    {"---------", CmdHelp,                 IfPm3Iso14443a,  "----------------------- " _CYAN_("simulation") " -----------------------"},
-+    {"---------", CmdHelp,                  IfPm3Iso14443a,  "----------------------- " _CYAN_("simulation") " -----------------------"},
-     {"eload",    CmdHF14AMfUeLoad,          IfPm3Iso14443a,  "load Ultralight .eml dump file into emulator memory"},
-     {"eview",    CmdHF14AMfuEView,          IfPm3Iso14443a,  "View emulator memory"},
-     {"sim",      CmdHF14AMfUSim,            IfPm3Iso14443a,  "Simulate MIFARE Ultralight from emulator memory"},
--    {"---------", CmdHelp,                 IfPm3Iso14443a,  "----------------------- " _CYAN_("magic") " ----------------------------"},
-+    {"---------", CmdHelp,                  IfPm3Iso14443a,  "----------------------- " _CYAN_("magic") " ----------------------------"},
-     {"setpwd",   CmdHF14AMfUCSetPwd,        IfPm3Iso14443a,  "Set 3DES key - Ultralight-C"},
-     {"setuid",   CmdHF14AMfUCSetUid,        IfPm3Iso14443a,  "Set UID - MAGIC tags only"},
- //    {"---------", CmdHelp,                 IfPm3Iso14443a,  "----------------------- " _CYAN_("amiibo") " ----------------------------"},
+-██████╗ ███╗   ███╗ ████╗  
+-██╔══██╗████╗ ████║   ══█║ 
+-██████╔╝██╔████╔██║ ████╔╝ 
+-██╔═══╝ ██║╚██╔╝██║   ══█║ 
+-██║     ██║ ╚═╝ ██║ ████╔╝     Iceman ☕
+-╚═╝     ╚═╝     ╚═╝ ╚═══╝  ❄️ bleeding edge
+- 
+- https://github.com/rfidresearchgroup/proxmark3/
++  ██████╗ ███╗   ███╗█████╗
++  ██╔══██╗████╗ ████║╚═══██╗
++  ██████╔╝██╔████╔██║ ████╔╝
++  ██╔═══╝ ██║╚██╔╝██║ ╚══██╗
++  ██║     ██║ ╚═╝ ██║█████╔╝
++  ╚═╝     ╚═╝     ╚═╝╚════╝     [ Iceman ❄️ ]
++
++
+ 
+- [ Proxmark3 RFID instrument ] 
++
++ [ Proxmark3 RFID instrument ]
+ 
+  [ CLIENT ]
+-  client: RRG/Iceman/master/v4.13441-129-g60d132fcc 2021-07-08 22:00:00
+-  compiled with GCC 10.3.0 OS:Linux ARCH:x86_64
+- 
+- [ PROXMARK RDV4 ]
++  RRG/Iceman/master/v4.14831-252 2022-02-08 05:03:08
++  compiled with............. GCC 10.3.0
++  platform.................. Linux / x86_64
++  Readline support.......... present
++  QT GUI support............ present
++  native BT support......... absent
++  Python script support..... present
++  Lua SWIG support.......... present
++  Python SWIG support....... present
++
++ [ PROXMARK3 ]
+   device.................... RDV4
+   firmware.................. RDV4
+   external flash............ present
+@@ -44,23 +52,23 @@ If all went well you should get some information about the firmware and memory u
+   FPC USART for BT add-on... absent
+ 
+  [ ARM ]
+- bootrom: RRG/Iceman/master/v4.13441 2020-05-21 22:00:10
+-      os: RRG/Iceman/master/v4.13441 2019-05-21 22:00:26
+- compiled with GCC 9.2.1 20191025 (release) [ARM/arm-9-branch revision 277599]
++  bootrom: RRG/Iceman/master/v4.14831-176 2022-02-03 18:35:55
++       os: RRG/Iceman/master/v4.14831-205 2022-02-04 21:26:49
++  compiled with GCC 9.2.1 20191025 (release) [ARM/arm-9-branch revision 277599]
+ 
+  [ FPGA ]
+-  LF image built for 2s30vq100 on 2020-07-08 at 23: 8: 7
+-  HF image built for 2s30vq100 on 2020-07-08 at 23: 8:19
+-  HF FeliCa image built for 2s30vq100 on 2020-07-08 at 23: 8:30
++  LF image built for 2s30vq100 on 2020-07-08 at 23:08:07
++  HF image built for 2s30vq100 on 2020-07-08 at 23:08:19
++  HF FeliCa image built for 2s30vq100 on 2020-07-08 at 23:08:30
+ 
+- [ Hardware ] 
++ [ Hardware ]
+   --= uC: AT91SAM7S512 Rev A
+   --= Embedded Processor: ARM7TDMI
+   --= Internal SRAM size: 64K bytes
+   --= Architecture identifier: AT91SAM7Sxx Series
+   --= Embedded flash memory 512K bytes ( 59% used )
+ 
+-[usb] pm3 --> 
++[usb] pm3 -->
+ ```
+ 
+ This `[usb] pm3 --> ` is the Proxmark3 interactive prompt.
