@@ -1,256 +1,473 @@
-commit 2879b23a1ca353a0c319fbd0be16cbe1cf4a5ce2
+commit 07855611e4f60dc26bb89cce3d2bef2c2d64a8fd
 Author: iceman1001 <iceman@iuse.se>
-Date:   Thu Feb 24 17:38:01 2022 +0100
+Date:   Thu Feb 24 18:03:19 2022 +0100
 
     unify text
 
+diff --git a/armsrc/Standalone/hf_iceclass.c b/armsrc/Standalone/hf_iceclass.c
+index cdaa4f220..7aa53dba5 100644
+--- a/armsrc/Standalone/hf_iceclass.c
++++ b/armsrc/Standalone/hf_iceclass.c
+@@ -252,7 +252,7 @@ static int reader_attack_mode(void) {
+ 
+         bool success = (mac_response_len == MAC_RESPONSES_SIZE);
+         uint8_t num_mac = (mac_response_len >> 4);
+-        Dbprintf("%u out of %d MAC obtained [%s]", num_mac, NUM_CSNS, (success) ? _GREEN_("ok") : _RED_("fail"));
++        Dbprintf("%u out of %d MAC obtained ( %s )", num_mac, NUM_CSNS, (success) ? _GREEN_("ok") : _RED_("fail"));
+ 
+         size_t dumplen = NUM_CSNS * 24;
+ 
+diff --git a/armsrc/iso15693.c b/armsrc/iso15693.c
+index aa3929d73..c08d6130f 100644
+--- a/armsrc/iso15693.c
++++ b/armsrc/iso15693.c
+@@ -1589,9 +1589,9 @@ static void DbdecodeIso15693Answer(int len, uint8_t *d) {
+         }
+ 
+         if (CheckCrc15(d, len))
+-            strncat(status, "[+] crc (" _GREEN_("OK") ")", DBD15STATLEN - strlen(status));
++            strncat(status, "[+] crc ( " _GREEN_("ok") " )", DBD15STATLEN - strlen(status));
+         else
+-            strncat(status, "[!] crc (" _RED_("fail") ")", DBD15STATLEN - strlen(status));
++            strncat(status, "[!] crc ( " _RED_("fail") " )", DBD15STATLEN - strlen(status));
+ 
+         if (g_dbglevel >= DBG_ERROR) Dbprintf("%s", status);
+     }
+diff --git a/client/src/cmdhf14b.c b/client/src/cmdhf14b.c
+index 28f4ec9ee..baea0126a 100644
+--- a/client/src/cmdhf14b.c
++++ b/client/src/cmdhf14b.c
+@@ -191,7 +191,7 @@ static bool wait_cmd_14b(bool verbose, bool is_select, uint32_t timeout) {
+             bool crc = check_crc(CRC_14443_B, data, len);
+ 
+             PrintAndLogEx(SUCCESS, "received " _YELLOW_("%u") " bytes", len);
+-            PrintAndLogEx(SUCCESS, "%s[%02X %02X] %s",
++            PrintAndLogEx(SUCCESS, "%s[%02X %02X] ( %s )",
+                           sprint_hex(data, len - 2),
+                           data[len - 2],
+                           data[len - 1],
 diff --git a/client/src/cmdhfcipurse.c b/client/src/cmdhfcipurse.c
-index eb3453eec..4e91d5d69 100644
+index 4e91d5d69..3c2791cb9 100644
 --- a/client/src/cmdhfcipurse.c
 +++ b/client/src/cmdhfcipurse.c
-@@ -377,12 +377,13 @@ static int SelectCommandEx(bool selectDefaultFile, bool useAID, uint8_t *aid, si
-         res = CIPURSESelectFileEx(true, true, fileId, buf, bufSize, len, sw);
-         if (res != 0 || *sw != 0x9000) {
-             if (verbose) {
--                PrintAndLogEx(ERR, "Cipurse select file 0x%04x " _RED_("error") ". Card returns 0x%04x", fileId, *sw);
-+                PrintAndLogEx(ERR, "Cipurse select file 0x%04x " _RED_("error"));
-+                 PrintAndLogEx(ERR, "Card returns 0x%04x", fileId, *sw);
-             }
+@@ -369,7 +369,7 @@ static int SelectCommandEx(bool selectDefaultFile, bool useAID, uint8_t *aid, si
              return PM3_ESOFT;
          }
          if (verbose) {
--            PrintAndLogEx(INFO, "Cipurse select file " _CYAN_("0x%04x ") _GREEN_("OK"), fileId);
-+            PrintAndLogEx(INFO, "Cipurse select file " _YELLOW_("0x%04X ") " ( " _GREEN_("ok") " )", fileId);
+-            PrintAndLogEx(INFO, "Cipurse select application " _CYAN_("%s ") _GREEN_("OK"), sprint_hex_inrow(aid, aidLen));
++            PrintAndLogEx(INFO, "Cipurse select application " _YELLOW_("%s ") " ( %s )", sprint_hex_inrow(aid, aidLen), _GREEN_("ok"));
          }
  
-     } else if (selectDefaultFile) {
-diff --git a/client/src/cmdlfem4x50.c b/client/src/cmdlfem4x50.c
-index 15c6bf783..3c0bee80b 100644
---- a/client/src/cmdlfem4x50.c
-+++ b/client/src/cmdlfem4x50.c
-@@ -359,9 +359,9 @@ int CmdEM4x50Login(const char *Cmd) {
- 
-     // print response
-     if (resp.status == PM3_SUCCESS)
--        PrintAndLogEx(SUCCESS, "Login " _GREEN_("ok"));
-+        PrintAndLogEx(SUCCESS, "Login ( " _GREEN_("ok") " )");
-     else
--        PrintAndLogEx(FAILED, "Login " _RED_("failed"));
-+        PrintAndLogEx(FAILED, "Login ( " _RED_("failed") " )");
- 
-     return resp.status;
- }
-@@ -966,7 +966,7 @@ int CmdEM4x50WritePwd(const char *Cmd) {
-         return PM3_EFAILED;
-     }
- 
--    PrintAndLogEx(SUCCESS, "Writing new password %s (%s)"
-+    PrintAndLogEx(SUCCESS, "Writing new password %s ( %s )"
-                   , sprint_hex_inrow(npwd, sizeof(npwd))
-                   , _GREEN_("ok")
-                  );
-@@ -1015,9 +1015,9 @@ int CmdEM4x50Wipe(const char *Cmd) {
-     }
- 
-     if (resp.status == PM3_SUCCESS) {
--        PrintAndLogEx(SUCCESS, "Resetting password to 00000000 (" _GREEN_("ok") ")");
-+        PrintAndLogEx(SUCCESS, "Resetting password to 00000000 ( " _GREEN_("ok") " )");
-     } else {
--        PrintAndLogEx(FAILED, "Resetting password " _RED_("failed"));
-+        PrintAndLogEx(FAILED, "Resetting password ( " _RED_("failed") " )");
-         return PM3_ESOFT;
-     }
- 
-diff --git a/client/src/cmdlffdxb.c b/client/src/cmdlffdxb.c
-index 495c867a3..1d406ea20 100644
---- a/client/src/cmdlffdxb.c
-+++ b/client/src/cmdlffdxb.c
-@@ -581,7 +581,7 @@ int demodFDXB(bool verbose) {
- 
-     uint8_t c[] = {0, 0};
-     compute_crc(CRC_11784, raw, sizeof(raw), &c[0], &c[1]);
--    PrintAndLogEx(SUCCESS, "CRC-16             0x%04X (%s)", crc, (crc == (c[1] << 8 | c[0])) ? _GREEN_("ok") : _RED_("fail"));
-+    PrintAndLogEx(SUCCESS, "CRC-16             0x%04X ( %s )", crc, (crc == (c[1] << 8 | c[0])) ? _GREEN_("ok") : _RED_("fail"));
-     // iceman: crc doesn't protect the extended data?
-     PrintAndLogEx(SUCCESS, "Raw                " _GREEN_("%s"), sprint_hex(raw, 8));
- 
-diff --git a/client/src/cmdlfio.c b/client/src/cmdlfio.c
-index 924608dcb..429b1ef8e 100644
---- a/client/src/cmdlfio.c
-+++ b/client/src/cmdlfio.c
-@@ -140,9 +140,9 @@ int demodIOProx(bool verbose) {
-     char crc_str[36] = {0};
- 
-     if (crc == calccrc) {
--        snprintf(crc_str, sizeof(crc_str), "(" _GREEN_("ok") ")");
-+        snprintf(crc_str, sizeof(crc_str), "( " _GREEN_("ok") " )");
-     } else {
--        snprintf(crc_str, sizeof(crc_str), "(" _RED_("fail") ") 0x%02X != 0x%02X", crc, calccrc);
-+        snprintf(crc_str, sizeof(crc_str), "( " _RED_("fail") " ) 0x%02X != 0x%02X", crc, calccrc);
-         retval = PM3_ESOFT;
-     }
- 
-diff --git a/client/src/cmdlfjablotron.c b/client/src/cmdlfjablotron.c
-index 0e886cf53..cac3a1329 100644
---- a/client/src/cmdlfjablotron.c
-+++ b/client/src/cmdlfjablotron.c
-@@ -100,7 +100,7 @@ int demodJablotron(bool verbose) {
-     uint8_t chksum = raw2 & 0xFF;
-     bool isok = (chksum == jablontron_chksum(g_DemodBuffer));
- 
--    PrintAndLogEx(DEBUG, "Checksum: %02X (%s)", chksum, isok ? _GREEN_("ok") : _RED_("Fail"));
-+    PrintAndLogEx(DEBUG, "Checksum: %02X ( %s )", chksum, isok ? _GREEN_("ok") : _RED_("Fail"));
- 
-     id = DEC2BCD(id);
-     // Printed format: 1410-nn-nnnn-nnnn
-diff --git a/client/src/cmdlfnedap.c b/client/src/cmdlfnedap.c
-index fb990be72..acb68c406 100644
---- a/client/src/cmdlfnedap.c
-+++ b/client/src/cmdlfnedap.c
-@@ -151,7 +151,7 @@ int demodNedap(bool verbose) {
-                       , customerCode
-                       , sprint_hex_inrow(data, size / 8)
-                      );
--        PrintAndLogEx(DEBUG, "Checksum (%s) 0x%04X",  _GREEN_("ok"), checksum);
-+        PrintAndLogEx(DEBUG, "Checksum ( %s ) 0x%04X",  _GREEN_("ok"), checksum);
+     } else if (useFID) {
+@@ -377,7 +377,7 @@ static int SelectCommandEx(bool selectDefaultFile, bool useAID, uint8_t *aid, si
+         res = CIPURSESelectFileEx(true, true, fileId, buf, bufSize, len, sw);
+         if (res != 0 || *sw != 0x9000) {
+             if (verbose) {
+-                PrintAndLogEx(ERR, "Cipurse select file 0x%04x " _RED_("error"));
++                PrintAndLogEx(ERR, "Cipurse select file 0x%04x  ( %s )",  _RED_("fail"));
+                  PrintAndLogEx(ERR, "Card returns 0x%04x", fileId, *sw);
+             }
+             return PM3_ESOFT;
+@@ -396,7 +396,7 @@ static int SelectCommandEx(bool selectDefaultFile, bool useAID, uint8_t *aid, si
+             return PM3_ESOFT;
+         }
+         if (verbose) {
+-            PrintAndLogEx(INFO, "Cipurse select default file " _GREEN_("OK"));
++            PrintAndLogEx(INFO, "Cipurse select default file  ( " _GREEN_("ok") " )");
+         }
  
      } else {
-         PrintAndLogEx(ERR, "Invalid idx (1:%02x - 2:%02x - 3:%02x - 4:%02x - 5:%02x)", idxC1, idxC2, idxC3, idxC4, idxC5);
-diff --git a/client/src/cmdlfnexwatch.c b/client/src/cmdlfnexwatch.c
-index ccf98961b..9f24a87b4 100644
---- a/client/src/cmdlfnexwatch.c
-+++ b/client/src/cmdlfnexwatch.c
-@@ -237,12 +237,12 @@ int demodNexWatch(bool verbose) {
- 
- 
-     if (parity == calc_parity) {
--        PrintAndLogEx(DEBUG, "          parity : %s (0x%X)", _GREEN_("ok"), parity);
-+        PrintAndLogEx(DEBUG, "          parity : ( %s ) 0x%X", _GREEN_("ok"), parity);
-     } else {
--        PrintAndLogEx(DEBUG, "          parity : %s (0x%X != 0x%X)", _RED_("fail"), parity, calc_parity);
-+        PrintAndLogEx(DEBUG, "          parity : ( %s ) 0x%X != 0x%X", _RED_("fail"), parity, calc_parity);
+@@ -409,7 +409,7 @@ static int SelectCommandEx(bool selectDefaultFile, bool useAID, uint8_t *aid, si
+             return PM3_ESOFT;
+         }
+         if (verbose) {
+-            PrintAndLogEx(INFO, "Cipurse select default application " _GREEN_("OK"));
++            PrintAndLogEx(INFO, "Cipurse select default application ( " _GREEN_("ok") " )");
+         }
      }
  
--    PrintAndLogEx(DEBUG, "        checksum : %s (0x%02X)", (m_idx < ARRAYLEN(items)) ? _GREEN_("ok") : _RED_("fail"), chk);
-+    PrintAndLogEx(DEBUG, "        checksum : ( %s ) 0x%02X", (m_idx < ARRAYLEN(items)) ? _GREEN_("ok") : _RED_("fail"), chk);
- 
-     PrintAndLogEx(INFO, " Raw : " _YELLOW_("%08"PRIX32"%08"PRIX32"%08"PRIX32), raw1, raw2, raw3);
-     return PM3_SUCCESS;
-diff --git a/client/src/cmdlfpyramid.c b/client/src/cmdlfpyramid.c
-index bad1afaf0..8f9e5fccb 100644
---- a/client/src/cmdlfpyramid.c
-+++ b/client/src/cmdlfpyramid.c
-@@ -170,7 +170,7 @@ int demodPyramid(bool verbose) {
-         PrintAndLogEx(SUCCESS, "Pyramid - len: " _GREEN_("%d") " -unknown- Card: " _GREEN_("%d") ", Raw: %08x%08x%08x%08x", fmtLen, cardnum, rawHi3, rawHi2, rawHi, rawLo);
+@@ -426,7 +426,7 @@ static int SelectCommandEx(bool selectDefaultFile, bool useAID, uint8_t *aid, si
+             return PM3_ESOFT;
+         }
+         if (verbose) {
+-            PrintAndLogEx(INFO, "Select child file " _CYAN_("0x%04x ") _GREEN_("OK"), childFileId);
++            PrintAndLogEx(INFO, "Select child file " _CYAN_("0x%04x ") " ( " _GREEN_("ok") " )", childFileId);
+         }
      }
  
--    PrintAndLogEx(DEBUG, "DEBUG: Pyramid: checksum : 0x%02X - 0x%02X - %s"
-+    PrintAndLogEx(DEBUG, "DEBUG: Pyramid: checksum : 0x%02X - 0x%02X ( %s )"
-                   , checksum
-                   , checkCS
-                   , (checksum == checkCS) ? _GREEN_("ok") : _RED_("fail")
-diff --git a/client/src/cmdlfsecurakey.c b/client/src/cmdlfsecurakey.c
-index aae0a7f73..5a109e2d9 100644
---- a/client/src/cmdlfsecurakey.c
-+++ b/client/src/cmdlfsecurakey.c
-@@ -112,7 +112,7 @@ int demodSecurakey(bool verbose) {
- 
-     PrintAndLogEx(SUCCESS, "Securakey - len: " _GREEN_("%u") " FC: " _GREEN_("0x%X")" Card: " _GREEN_("%u") ", Raw: %08X%08X%08X", bitLen, fc, cardid, raw1, raw2, raw3);
-     if (bitLen <= 32)
--        PrintAndLogEx(SUCCESS, "Wiegand: " _GREEN_("%08X") " parity (%s)", (lWiegand << (bitLen / 2)) | rWiegand, parity ? _GREEN_("ok") : _RED_("fail"));
-+        PrintAndLogEx(SUCCESS, "Wiegand: " _GREEN_("%08X") " parity ( %s )", (lWiegand << (bitLen / 2)) | rWiegand, parity ? _GREEN_("ok") : _RED_("fail"));
+@@ -645,7 +645,7 @@ static int CmdHFCipurseReadFile(const char *Cmd) {
+     }
  
      if (verbose) {
-         PrintAndLogEx(INFO, "\nHow the FC translates to printed FC is unknown");
-diff --git a/client/src/cmdlfti.c b/client/src/cmdlfti.c
-index cd339b087..beb0d4ae4 100644
---- a/client/src/cmdlfti.c
-+++ b/client/src/cmdlfti.c
-@@ -264,7 +264,7 @@ int demodTI(bool verbose) {
-         init_table(CRC_KERMIT);
-         uint16_t calccrc = crc16_kermit(raw, sizeof(raw));
-         const char *crc_str = (calccrc == (shift2 & 0xFFFF)) ? _GREEN_("ok") : _RED_("fail");
--        PrintAndLogEx(INFO, "Tag data = %08X%08X  [%04X] (%s)", shift1, shift0, calccrc, crc_str);
-+        PrintAndLogEx(INFO, "Tag data = %08X%08X  [%04X] ( %s )", shift1, shift0, calccrc, crc_str);
- 
-         if (calccrc != (shift2 & 0xFFFF))
-             PrintAndLogEx(WARNING, "Warning: CRC mismatch, calculated %04X, got %04X", calccrc, shift2 & 0xFFFF);
-diff --git a/client/src/emv/emvcore.c b/client/src/emv/emvcore.c
-index 324ffe097..63e0c14dc 100644
---- a/client/src/emv/emvcore.c
-+++ b/client/src/emv/emvcore.c
-@@ -652,7 +652,7 @@ int trSDA(struct tlvdb *tlv) {
-     struct tlvdb *dac_db = emv_pki_recover_dac(issuer_pk, tlv, sda_tlv);
-     if (dac_db) {
-         const struct tlv *dac_tlv = tlvdb_get(dac_db, 0x9f45, NULL);
--        PrintAndLogEx(INFO, "SDA verified (%s) (Data Authentication Code: %02hhx:%02hhx)", _GREEN_("ok"), dac_tlv->value[0], dac_tlv->value[1]);
-+        PrintAndLogEx(INFO, "SDA verified ( %s ) (Data Authentication Code: %02hhx:%02hhx)", _GREEN_("ok"), dac_tlv->value[0], dac_tlv->value[1]);
-         tlvdb_add(tlv, dac_db);
-     } else {
-         emv_pk_free(issuer_pk);
-@@ -771,7 +771,7 @@ int trDDA(Iso7816CommandChannel channel, bool decodeTLV, struct tlvdb *tlv) {
-         struct tlvdb *dac_db = emv_pki_recover_dac(issuer_pk, tlv, sda_tlv);
-         if (dac_db) {
-             const struct tlv *dac_tlv = tlvdb_get(dac_db, 0x9f45, NULL);
--            PrintAndLogEx(INFO, "SDAD verified (%s) (Data Authentication Code: %02hhx:%02hhx)\n", _GREEN_("ok"), dac_tlv->value[0], dac_tlv->value[1]);
-+            PrintAndLogEx(INFO, "SDAD verified ( %s ) (Data Authentication Code: %02hhx:%02hhx)\n", _GREEN_("ok"), dac_tlv->value[0], dac_tlv->value[1]);
-             tlvdb_add(tlv, dac_db);
-         } else {
-             PrintAndLogEx(ERR, "Error: SSAD verify error");
-@@ -930,7 +930,7 @@ int trCDA(struct tlvdb *tlv, struct tlvdb *ac_tlv, struct tlv *pdol_data_tlv, st
-         struct tlvdb *dac_db = emv_pki_recover_dac(issuer_pk, tlv, sda_tlv);
-         if (dac_db) {
-             const struct tlv *dac_tlv = tlvdb_get(dac_db, 0x9f45, NULL);
--            PrintAndLogEx(SUCCESS, "Signed Static Application Data (SSAD) verified (%s) (%02hhx:%02hhx)", _GREEN_("ok"), dac_tlv->value[0], dac_tlv->value[1]);
-+            PrintAndLogEx(SUCCESS, "Signed Static Application Data (SSAD) verified ( %s ) (%02hhx:%02hhx)", _GREEN_("ok"), dac_tlv->value[0], dac_tlv->value[1]);
-             tlvdb_add(tlv, dac_db);
-         } else {
-             PrintAndLogEx(ERR, "Error: Signed Static Application Data (SSAD) verify error");
-@@ -950,7 +950,7 @@ int trCDA(struct tlvdb *tlv, struct tlvdb *ac_tlv, struct tlv *pdol_data_tlv, st
-     if (idn_db) {
-         const struct tlv *idn_tlv = tlvdb_get(idn_db, 0x9f4c, NULL);
-         PrintAndLogEx(INFO, "IDN (ICC Dynamic Number) [%zu] %s", idn_tlv->len, sprint_hex_inrow(idn_tlv->value, idn_tlv->len));
--        PrintAndLogEx(SUCCESS, "CDA verified (%s)", _GREEN_("ok"));
-+        PrintAndLogEx(SUCCESS, "CDA verified ( %s )", _GREEN_("ok"));
-         tlvdb_add(tlv, idn_db);
-     } else {
-         PrintAndLogEx(ERR, "ERROR: CDA verify error");
-diff --git a/client/src/emv/emvjson.c b/client/src/emv/emvjson.c
-index 072473a31..0b4b74297 100644
---- a/client/src/emv/emvjson.c
-+++ b/client/src/emv/emvjson.c
-@@ -331,7 +331,7 @@ bool ParamLoadFromJson(struct tlvdb *tlv) {
-         return false;
+-        PrintAndLogEx(INFO, "Cipurse select application " _CYAN_("%s") " ( " _GREEN_("ok") " )", sprint_hex_inrow(aid, aidLen));
++        PrintAndLogEx(INFO, "Cipurse select application " _CYAN_("%s") " ( %s )", sprint_hex_inrow(aid, aidLen), _GREEN_("ok"));
+         PrintAndLogEx(INFO, "File id " _YELLOW_("%x") " offset " _YELLOW_("%zu") " key id " _YELLOW_("%d") " key " _YELLOW_("%s"), fileId, offset, keyId, sprint_hex(key, CIPURSE_AES_KEY_LENGTH));
      }
  
--    PrintAndLogEx(SUCCESS, "Load params: json(%zu) (%s)", json_array_size(root), _GREEN_("OK"));
-+    PrintAndLogEx(SUCCESS, "Load params: json(%zu) ( %s )", json_array_size(root), _GREEN_("ok"));
+@@ -671,7 +671,7 @@ static int CmdHFCipurseReadFile(const char *Cmd) {
+     }
  
-     for (int i = 0; i < json_array_size(root); i++) {
-         json_t *data, *jtag, *jlength, *jvalue;
-diff --git a/client/src/flash.c b/client/src/flash.c
-index 5bc6fbcab..df115b7d0 100644
---- a/client/src/flash.c
-+++ b/client/src/flash.c
-@@ -608,7 +608,7 @@ int flash_write(flash_file_t *ctx) {
-             }
-             fflush(stdout);
+     if (verbose)
+-        PrintAndLogEx(INFO, "Select file 0x%x ( " _GREEN_("ok") " )", fileId);
++        PrintAndLogEx(INFO, "Select file 0x%x ( %s )", fileId, _GREEN_("ok"));
+ 
+     res = CIPURSEReadBinary(offset, buf, sizeof(buf), &len, &sw);
+     if (res != 0 || sw != 0x9000) {
+@@ -768,7 +768,7 @@ static int CmdHFCipurseWriteFile(const char *Cmd) {
+     }
+ 
+     if (verbose) {
+-        PrintAndLogEx(INFO, "Cipurse select application " _CYAN_("%s") " ( " _GREEN_("ok") " )", sprint_hex_inrow(aid, aidLen));
++        PrintAndLogEx(INFO, "Cipurse select application " _CYAN_("%s") " ( %s )", sprint_hex_inrow(aid, aidLen), _GREEN_("ok"));
+         PrintAndLogEx(INFO, "File id " _YELLOW_("%x") " offset " _YELLOW_("%zu") " key id " _YELLOW_("%d") " key " _YELLOW_("%s")
+                       , fileId
+                       , offset
+@@ -800,7 +800,7 @@ static int CmdHFCipurseWriteFile(const char *Cmd) {
+     }
+ 
+     if (verbose)
+-        PrintAndLogEx(INFO, "Select file 0x%x ( " _GREEN_("ok") " )", fileId);
++        PrintAndLogEx(INFO, "Select file 0x%x ( %s )", fileId, _GREEN_("ok"));
+ 
+     res = CIPURSEUpdateBinary(offset, hdata, hdatalen, buf, sizeof(buf), &len, &sw);
+     if (res != 0 || sw != 0x9000) {
+@@ -816,7 +816,7 @@ static int CmdHFCipurseWriteFile(const char *Cmd) {
+         sw = 0;
+         res = CIPURSECommitTransaction(&sw);
+         if (res != 0 || sw != 0x9000)
+-            PrintAndLogEx(WARNING, "Commit " _YELLOW_("ERROR") ". Card returns 0x%04x", sw);
++            PrintAndLogEx(WARNING, "Commit ( " _YELLOW_("fail") " ) Card returns 0x%04x", sw);
+ 
+         if (verbose)
+             PrintAndLogEx(INFO, "Commit ( " _GREEN_("ok") " )");
+@@ -1074,7 +1074,7 @@ static int CmdHFCipurseWriteFileAttr(const char *Cmd) {
+         sw = 0;
+         res = CIPURSECommitTransaction(&sw);
+         if (res != 0 || sw != 0x9000)
+-            PrintAndLogEx(WARNING, "Commit " _YELLOW_("ERROR") ". Card returns 0x%04x", sw);
++            PrintAndLogEx(WARNING, "Commit ( " _YELLOW_("fail") " ) Card returns 0x%04x", sw);
+ 
+         if (verbose)
+             PrintAndLogEx(INFO, "Commit ( " _GREEN_("ok") " )");
+@@ -1293,10 +1293,10 @@ static int CmdHFCipurseCreateDGI(const char *Cmd) {
+         sw = 0;
+         res = CIPURSECommitTransaction(&sw);
+         if (res != 0 || sw != 0x9000)
+-            PrintAndLogEx(WARNING, "Commit " _YELLOW_("ERROR") ". Card returns 0x%04x", sw);
++            PrintAndLogEx(WARNING, "Commit ( " _YELLOW_("fail") " ) Card returns 0x%04x", sw);
+ 
+         if (verbose)
+-            PrintAndLogEx(INFO, "Commit " _GREEN_("OK"));
++            PrintAndLogEx(INFO, "Commit ( " _GREEN_("ok") " )");
+     }
+ 
+     DropField();
+@@ -1437,17 +1437,17 @@ static int CmdHFCipurseDeleteFile(const char *Cmd) {
+             DropField();
+             return PM3_ESOFT;
          }
--        PrintAndLogEx(NORMAL, " " _GREEN_("OK"));
-+        PrintAndLogEx(NORMAL, " " _GREEN_("ok"));
-         fflush(stdout);
+-        PrintAndLogEx(INFO, "Delete application " _CYAN_("%s ") _GREEN_("OK"), sprint_hex_inrow(aid, aidLen));
++        PrintAndLogEx(INFO, "Delete application " _CYAN_("%s") " ( %s )",sprint_hex_inrow(aid, aidLen),  _GREEN_("ok"));
      }
-     return PM3_SUCCESS;
-diff --git a/tools/pm3_tests.sh b/tools/pm3_tests.sh
-index d0c77a465..ee1794bde 100755
---- a/tools/pm3_tests.sh
-+++ b/tools/pm3_tests.sh
-@@ -445,7 +445,7 @@ while true; do
-                                                                      "Indala (len 224)  Raw: 80000001b23523a6c2e31eba3cbee4afb3c6ad1fcf649393928c14e5"; then break; fi
-       if ! CheckExecute slow "lf T55 io test"                    "$CLIENTBIN -c 'data load -f traces/lf_ATA5577_io.pm3; lf search -1'" "IO Prox ID found"; then break; fi
-       if ! CheckExecute slow "lf T55 io test2"                   "$CLIENTBIN -c 'data load -f traces/lf_ATA5577_io.pm3; lf io demod'" \
--                                                                     "IO Prox - XSF(01)01:01337, Raw: 007840603059cf3f (ok)"; then break; fi
-+                                                                     "IO Prox - XSF(01)01:01337, Raw: 007840603059cf3f ( ok )"; then break; fi
-       if ! CheckExecute slow "lf T55 jablotron test"             "$CLIENTBIN -c 'data load -f traces/lf_ATA5577_jablotron.pm3; lf search -1'" "Jablotron ID found"; then break; fi
-       if ! CheckExecute slow "lf T55 jablotron test2"            "$CLIENTBIN -c 'data load -f traces/lf_ATA5577_jablotron.pm3; lf jablotron demod'" \
-                                                                      "Printed: 1410-00-0011-2233"; then break; fi
+ 
+     if (needCommit) {
+         sw = 0;
+         res = CIPURSECommitTransaction(&sw);
+         if (res != 0 || sw != 0x9000)
+-            PrintAndLogEx(WARNING, "Commit " _YELLOW_("ERROR") ". Card returns 0x%04x", sw);
++            PrintAndLogEx(WARNING, "Commit ( " _YELLOW_("fail") " ) Card returns 0x%04x", sw);
+ 
+         if (verbose)
+-            PrintAndLogEx(INFO, "Commit " _GREEN_("OK"));
++            PrintAndLogEx(INFO, "Commit ( " _GREEN_("ok") " )");
+     }
+ 
+     DropField();
+@@ -1638,10 +1638,10 @@ static int CmdHFCipurseUpdateKey(const char *Cmd) {
+         sw = 0;
+         res = CIPURSECommitTransaction(&sw);
+         if (res != 0 || sw != 0x9000)
+-            PrintAndLogEx(WARNING, "Commit " _YELLOW_("ERROR") ". Card returns 0x%04x", sw);
++            PrintAndLogEx(WARNING, "Commit ( " _YELLOW_("fail") " ) Card returns 0x%04x", sw);
+ 
+         if (verbose)
+-            PrintAndLogEx(INFO, "Commit " _GREEN_("OK"));
++            PrintAndLogEx(INFO, "Commit ( " _GREEN_("ok") " )");
+     }
+ 
+     DropField();
+@@ -1786,10 +1786,10 @@ static int CmdHFCipurseUpdateKeyAttr(const char *Cmd) {
+         sw = 0;
+         res = CIPURSECommitTransaction(&sw);
+         if (res != 0 || sw != 0x9000)
+-            PrintAndLogEx(WARNING, "Commit " _YELLOW_("ERROR") ". Card returns 0x%04x", sw);
++            PrintAndLogEx(WARNING, "Commit ( " _YELLOW_("fail") " ) Card returns 0x%04x", sw);
+ 
+         if (verbose)
+-            PrintAndLogEx(INFO, "Commit " _GREEN_("OK"));
++            PrintAndLogEx(INFO, "Commit ( " _GREEN_("ok") " )");
+     }
+ 
+     DropField();
+diff --git a/client/src/cmdhflegic.c b/client/src/cmdhflegic.c
+index 9763292b2..da3f34a06 100644
+--- a/client/src/cmdhflegic.c
++++ b/client/src/cmdhflegic.c
+@@ -110,11 +110,11 @@ static int CmdLegicInfo(const char *Cmd) {
+ 
+     PrintAndLogEx(SUCCESS, " " _CYAN_("CDF: System Area"));
+     PrintAndLogEx(NORMAL, "------------------------------------------------------");
+-    PrintAndLogEx(SUCCESS, "MCD: " _GREEN_("%02X") " MSN: " _GREEN_("%s") " MCC: " _GREEN_("%02X") " (%s)",
++    PrintAndLogEx(SUCCESS, "MCD: " _GREEN_("%02X") " MSN: " _GREEN_("%s") " MCC: " _GREEN_("%02X") " ( %s )",
+                   data[0],
+                   sprint_hex(data + 1, 3),
+                   data[4],
+-                  (calc_crc == crc) ? _GREEN_("OK") : _RED_("Fail")
++                  (calc_crc == crc) ? _GREEN_("ok") : _RED_("fail")
+                  );
+ 
+     // MCD = Manufacturer ID (should be list meaning something?)
+@@ -265,12 +265,12 @@ static int CmdLegicInfo(const char *Cmd) {
+                           (segment_flag & 0x4) >> 2,
+                           (segment_flag & 0x8) >> 3
+                          );
+-            PrintAndLogEx(SUCCESS, "            | WRP: %02u, WRC: %02u, RD: %01u, CRC: 0x%02X (%s)",
++            PrintAndLogEx(SUCCESS, "            | WRP: %02u, WRC: %02u, RD: %01u, CRC: 0x%02X ( %s )",
+                           wrp,
+                           wrc,
+                           ((data[i + 3] ^ crc) & 0x80) >> 7,
+                           segCRC,
+-                          (segCRC == segCalcCRC) ? _GREEN_("OK") : _RED_("Fail")
++                          (segCRC == segCalcCRC) ? _GREEN_("ok") : _RED_("fail")
+                          );
+ 
+             i += 5;
+diff --git a/client/src/cmdhfmf.c b/client/src/cmdhfmf.c
+index b8275f4b2..aebdd7ef5 100644
+--- a/client/src/cmdhfmf.c
++++ b/client/src/cmdhfmf.c
+@@ -5281,7 +5281,7 @@ static int CmdHF14AMfMAD(const char *Cmd) {
+         PrintAndLogEx(WARNING, "error, read sector 0. card doesn't have MAD or doesn't have MAD on default keys");
+         got_first = false;
+     } else {
+-        PrintAndLogEx(INFO, "Authentication ( " _GREEN_("OK") " )");
++        PrintAndLogEx(INFO, "Authentication ( " _GREEN_("ok") " )");
+     }
+ 
+     // User supplied key
+@@ -5290,7 +5290,7 @@ static int CmdHF14AMfMAD(const char *Cmd) {
+         if (mfReadSector(MF_MAD1_SECTOR, MF_KEY_A, userkey, sector0) != PM3_SUCCESS) {
+             PrintAndLogEx(ERR, "error, read sector 0. card doesn't have MAD or the custom key is wrong");
+         } else {
+-            PrintAndLogEx(INFO, "Authentication ( " _GREEN_("OK") " )");
++            PrintAndLogEx(INFO, "Authentication ( " _GREEN_("ok") " )");
+             got_first = true;
+         }
+     }
+@@ -5765,7 +5765,7 @@ static int CmdHf14AMfSuperCard(const char *Cmd) {
+             DropField();
+             return res;
+         }
+-        PrintAndLogEx(SUCCESS, "Super card reset [ " _GREEN_("ok") " ]");
++        PrintAndLogEx(SUCCESS, "Super card reset ( " _GREEN_("ok") " )");
+         return PM3_SUCCESS;
+     }
+ 
+diff --git a/client/src/cmdhfmfdes.c b/client/src/cmdhfmfdes.c
+index b589fa26c..d7f6b62e2 100644
+--- a/client/src/cmdhfmfdes.c
++++ b/client/src/cmdhfmfdes.c
+@@ -2188,15 +2188,15 @@ static int CmdHF14ADesSetConfiguration(const char *Cmd) {
+     res = DesfireSelectAndAuthenticateAppW(&dctx, securechann, selectway, id, false, verbose);
+     if (res != PM3_SUCCESS) {
+         DropField();
+-        PrintAndLogEx(FAILED, "Select or authentication %s " _RED_("failed") ". Result [%d] %s", DesfireWayIDStr(selectway, id), res, DesfireAuthErrorToStr(res));
++        PrintAndLogEx(FAILED, "Select or authentication ( %s )" _RED_("failed") " Result [%d] %s", DesfireWayIDStr(selectway, id), res, DesfireAuthErrorToStr(res));
+         return res;
+     }
+ 
+     res = DesfireSetConfiguration(&dctx, paramid, param, paramlen);
+     if (res == PM3_SUCCESS) {
+-        PrintAndLogEx(SUCCESS, "Set configuration 0x%02x " _GREEN_("ok") " ", paramid);
++        PrintAndLogEx(SUCCESS, "Set configuration 0x%02x ( %s )", _GREEN_("ok"), paramid);
+     } else {
+-        PrintAndLogEx(FAILED, "Set configuration 0x%02x " _RED_("failed") " ", paramid);
++        PrintAndLogEx(FAILED, "Set configuration 0x%02x ( %s )", _RED_("failed"), paramid);
+     }
+ 
+     DropField();
+@@ -2332,9 +2332,9 @@ static int CmdHF14ADesChangeKey(const char *Cmd) {
+     DesfireSetCommMode(&dctx, DCMEncryptedPlain);
+     res = DesfireChangeKey(&dctx, (DesfireMFSelected(selectway, id)) && (newkeynum == 0) && (dctx.keyNum == 0), newkeynum, newkeytype, newkeyver, newkey, oldkeytype, oldkey, true);
+     if (res == PM3_SUCCESS) {
+-        PrintAndLogEx(SUCCESS, "Change key " _GREEN_("ok") " ");
++        PrintAndLogEx(SUCCESS, "Change key ( " _GREEN_("ok") " )");
+     } else {
+-        PrintAndLogEx(FAILED, "Change key " _RED_("failed") " ");
++        PrintAndLogEx(FAILED, "Change key ( " _RED_("failed") " )");
+     }
+     DesfireSetCommMode(&dctx, DCMEncrypted);
+ 
+@@ -4304,7 +4304,7 @@ static int CmdHF14ADesValueOperations(const char *Cmd) {
+     res = DesfireSelectAndAuthenticateAppW(&dctx, securechann, selectway, id, noauth, verbose);
+     if (res != PM3_SUCCESS) {
+         DropField();
+-        PrintAndLogEx(FAILED, "Select or authentication %s " _RED_("failed") ". Result [%d] %s", DesfireWayIDStr(selectway, id), res, DesfireAuthErrorToStr(res));
++        PrintAndLogEx(FAILED, "Select or authentication ( %s )" _RED_("failed") " Result [%d] %s", DesfireWayIDStr(selectway, id), res, DesfireAuthErrorToStr(res));
+         return res;
+     }
+ 
+@@ -4314,12 +4314,12 @@ static int CmdHF14ADesValueOperations(const char *Cmd) {
+     if (op != 0xff) {
+         res = DesfireValueFileOperations(&dctx, fileid, op, &value);
+         if (res != PM3_SUCCESS) {
+-            PrintAndLogEx(ERR, "Desfire ValueFileOperations (0x%02x) command " _RED_("error") ". Result: %d", op, res);
++            PrintAndLogEx(ERR, "Desfire ValueFileOperations (0x%02x) command ( " _RED_("error") " ) Result: %d", op, res);
+             DropField();
+             return PM3_ESOFT;
+         }
+         if (verbose)
+-            PrintAndLogEx(INFO, "Operation %s " _GREEN_("OK"), CLIGetOptionListStr(DesfireValueFileOperOpts, op));
++            PrintAndLogEx(INFO, "Operation ( %s )" _GREEN_("ok"), CLIGetOptionListStr(DesfireValueFileOperOpts, op));
+ 
+         if (op == MFDES_GET_VALUE) {
+             PrintAndLogEx(SUCCESS, "Value: " _GREEN_("%d (0x%08x)"), value, value);
+@@ -4327,19 +4327,19 @@ static int CmdHF14ADesValueOperations(const char *Cmd) {
+             DesfireSetCommMode(&dctx, DCMMACed);
+             res = DesfireCommitTransaction(&dctx, false, 0);
+             if (res != PM3_SUCCESS) {
+-                PrintAndLogEx(ERR, "Desfire CommitTransaction command " _RED_("error") ". Result: %d", res);
++                PrintAndLogEx(ERR, "Desfire CommitTransaction command ( " _RED_("error") ") Result: %d", res);
+                 DropField();
+                 return PM3_ESOFT;
+             }
+             if (verbose)
+-                PrintAndLogEx(INFO, "Commit " _GREEN_("OK"));
++                PrintAndLogEx(INFO, "Commit ( " _GREEN_("ok") " )");
+ 
+             PrintAndLogEx(SUCCESS, "Value changed " _GREEN_("successfully"));
+         }
+     } else {
+         res = DesfireValueFileOperations(&dctx, fileid, MFDES_GET_VALUE, &value);
+         if (res != PM3_SUCCESS) {
+-            PrintAndLogEx(ERR, "Desfire GetValue command " _RED_("error") ". Result: %d", res);
++            PrintAndLogEx(ERR, "Desfire GetValue command ( " _RED_("error") ") Result: %d", res);
+             DropField();
+             return PM3_ESOFT;
+         }
+@@ -4351,7 +4351,7 @@ static int CmdHF14ADesValueOperations(const char *Cmd) {
+ 
+         res = DesfireGetFileSettings(&dctx, fileid, buf, &buflen);
+         if (res != PM3_SUCCESS) {
+-            PrintAndLogEx(ERR, "Desfire GetFileSettings command " _RED_("error") ". Result: %d", res);
++            PrintAndLogEx(ERR, "Desfire GetFileSettings command ( " _RED_("error") " ) Result: %d", res);
+             DropField();
+             return PM3_ESOFT;
+         }
+@@ -4375,7 +4375,7 @@ static int CmdHF14ADesValueOperations(const char *Cmd) {
+         if (delta > 0) {
+             res = DesfireValueFileOperations(&dctx, fileid, MFDES_DEBIT, &delta);
+             if (res != PM3_SUCCESS) {
+-                PrintAndLogEx(ERR, "Desfire Debit operation " _RED_("error") ". Result: %d", res);
++                PrintAndLogEx(ERR, "Desfire Debit operation ( " _RED_("error") " ) Result: %d", res);
+                 DropField();
+                 return PM3_ESOFT;
+             }
+@@ -4386,7 +4386,7 @@ static int CmdHF14ADesValueOperations(const char *Cmd) {
+             DesfireSetCommMode(&dctx, DCMMACed);
+             res = DesfireCommitTransaction(&dctx, false, 0);
+             if (res != PM3_SUCCESS) {
+-                PrintAndLogEx(ERR, "Desfire CommitTransaction command " _RED_("error") ". Result: %d", res);
++                PrintAndLogEx(ERR, "Desfire CommitTransaction command ( " _RED_("error") " ) Result: %d", res);
+                 DropField();
+                 return PM3_ESOFT;
+             }
+@@ -5200,7 +5200,7 @@ static int CmdHF14ADesWriteData(const char *Cmd) {
+ 
+             readeridpushed = true;
+             if (verbose)
+-                PrintAndLogEx(INFO, "CommitReaderID " _GREEN_("OK"));
++                PrintAndLogEx(INFO, "CommitReaderID ( " _GREEN_("ok") " )");
+         } else
+             PrintAndLogEx(WARNING, "Desfire CommitReaderID command " _RED_("error") ". Result: %d", res);
+     }
+@@ -5287,7 +5287,7 @@ static int CmdHF14ADesWriteData(const char *Cmd) {
+         if (verbose) {
+             if (readeridpushed)
+                 PrintAndLogEx(INFO, "TMC and TMV[%zu]: %s", resplen, sprint_hex(resp, resplen));
+-            PrintAndLogEx(INFO, "Commit " _GREEN_("OK"));
++            PrintAndLogEx(INFO, "Commit ( " _GREEN_("ok") " )");
+         }
+ 
+         if (resplen == 4 + 8) {
+diff --git a/client/src/cmdhfmfu.c b/client/src/cmdhfmfu.c
+index d67840ac9..2821ba42d 100644
+--- a/client/src/cmdhfmfu.c
++++ b/client/src/cmdhfmfu.c
+@@ -3815,7 +3815,7 @@ static int CmdHF14AMfuEv1CounterTearoff(const char *Cmd) {
+                     , poststr
+                     , pre_tear
+                     , post_tear
+-                    , post_tear_check ? _GREEN_("OK") : _RED_("DETECTED")
++                    , post_tear_check ? _GREEN_("ok") : _RED_("DETECTED")
+                 );
+                 break;
+             }
+@@ -3826,7 +3826,7 @@ static int CmdHF14AMfuEv1CounterTearoff(const char *Cmd) {
+                     , poststr
+                     , pre_tear
+                     , post_tear
+-                    , post_tear_check ? _GREEN_("OK") : _RED_("DETECTED")
++                    , post_tear_check ? _GREEN_("ok") : _RED_("DETECTED")
+                 );
+ 
+ 
+@@ -3860,7 +3860,7 @@ static int CmdHF14AMfuEv1CounterTearoff(const char *Cmd) {
+                     , poststr
+                     , pre_tear
+                     , post_tear
+-                    , post_tear_check ? _GREEN_("OK") : _RED_("DETECTED")
++                    , post_tear_check ? _GREEN_("ok") : _RED_("DETECTED")
+                 );
+ 
+                 if ( post_tear_check  && b == initial_value) {
+@@ -3908,7 +3908,7 @@ static int CmdHF14AMfuEv1CounterTearoff(const char *Cmd) {
+                 , poststr
+                 , pre_tear
+                 , post_tear
+-                , post_tear_check ? _GREEN_("OK") : _RED_("DETECTED")
++                , post_tear_check ? _GREEN_("ok") : _RED_("DETECTED")
+             );
+ 
+             if ( post_tear_check ) {
+diff --git a/client/src/cmdhfthinfilm.c b/client/src/cmdhfthinfilm.c
+index 89520d8e3..92c82f3f3 100644
+--- a/client/src/cmdhfthinfilm.c
++++ b/client/src/cmdhfthinfilm.c
+@@ -47,11 +47,11 @@ static int print_barcode(uint8_t *barcode, const size_t barcode_len, bool verbos
+             compute_crc(CRC_14443_A, barcode, barcode_len - 2, &b1, &b2);
+             bool isok = (barcode[barcode_len - 1] == b1 && barcode[barcode_len - 2] == b2);
+ 
+-            PrintAndLogEx(SUCCESS, "        Checksum : "_YELLOW_("%02X %02X")" - %s", b2, b1, (isok) ? _GREEN_("OK") : _RED_("fail"));
++            PrintAndLogEx(SUCCESS, "        Checksum : "_YELLOW_("%02X %02X")" ( %s )", b2, b1, (isok) ? _GREEN_("ok") : _RED_("fail"));
+         } else {
+             PrintAndLogEx(SUCCESS, "        Checksum : "_YELLOW_("too few data for checksum")" - " _RED_("fail"));
+         }
+-        PrintAndLogEx(SUCCESS, " Data len (bits) : "_YELLOW_("%zu")" - %s", barcode_len * 8, (barcode_len == 16 || barcode_len == 32) ? _GREEN_("OK") : _YELLOW_("warning"));
++        PrintAndLogEx(SUCCESS, " Data len (bits) : "_YELLOW_("%zu")" ( %s )", barcode_len * 8, (barcode_len == 16 || barcode_len == 32) ? _GREEN_("ok") : _YELLOW_("warning"));
+         PrintAndLogEx(SUCCESS, "        Raw data : "_YELLOW_("%s"), sprint_hex(barcode, barcode_len));
+         if (barcode_len < 4) // too few to go to next decoding stages
+             return PM3_ESOFT;
+diff --git a/client/src/cmdhw.c b/client/src/cmdhw.c
+index b228a5c91..c6b763c08 100644
+--- a/client/src/cmdhw.c
++++ b/client/src/cmdhw.c
+@@ -804,7 +804,7 @@ static int CmdPing(const char *Cmd) {
+     if (WaitForResponseTimeout(CMD_PING, &resp, 1000)) {
+         if (len) {
+             bool error = (memcmp(data, resp.data.asBytes, len) != 0);
+-            PrintAndLogEx((error) ? ERR : SUCCESS, "Ping response " _GREEN_("received") " and content is %s", error ? _RED_("NOT ok") : _GREEN_("OK"));
++            PrintAndLogEx((error) ? ERR : SUCCESS, "Ping response " _GREEN_("received") " and content () %s )", error ? _RED_("fail") : _GREEN_("ok"));
+         } else {
+             PrintAndLogEx(SUCCESS, "Ping response " _GREEN_("received"));
+         }
