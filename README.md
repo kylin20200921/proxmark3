@@ -1,19 +1,16 @@
-commit b10d99ba01423e2b22137084d456607273ed48e4
+commit d7e69fefee1fadabc2aa0e5b5df05907b3170311
 Author: iceman1001 <iceman@iuse.se>
-Date:   Tue May 10 07:37:33 2022 +0200
+Date:   Wed May 11 19:54:34 2022 +0200
 
-    text
+    Update README.md
 
-diff --git a/CHANGELOG.md b/CHANGELOG.md
-index 9844f1974..eafd701c9 100644
---- a/CHANGELOG.md
-+++ b/CHANGELOG.md
-@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
- This project uses the changelog in accordance with [keepchangelog](http://keepachangelog.com/). Please use this to write notable changes, which is not the same as git commit log...
+diff --git a/README.md b/README.md
+index 2b74399d2..0738cd144 100644
+--- a/README.md
++++ b/README.md
+@@ -1,4 +1,4 @@
+-# Iceman - Proxmark3 a RFID / NFC project.
++# Iceman Fork - Proxmark3 a RFID / NFC project.
  
- ## [unreleased][unreleased]
-+ - Fixed Standalone mode  hf_iceclass - wrong fpga image set (@iceman1001)
-+ - Fixed `hf iclass sim` - wrong fpga image set (@iceman1001)  Thanks to NVX!
-  - Fixed `lf viking reader` - search in inverted bitsteam as well (#doegox)
-  - Added more default keys (@CONIGUERO)
-  - Change `hf 14a info` - it now detects FUDAN (@iceman1001)  Thanks to @secit-pl
+ The Proxmark3 is the swiss-army tool of RFID, allowing for interactions with the vast majority of RFID tags on a global scale. Originally built by Jonathan Westhues, the device is now the goto tool for RFID Analysis for the enthusiast. Iceman repository is considered to be the pinnacle of features and functionality, enabling a huge range of extremely useful and convenient commands and LUA scripts to automate chip identification, penetration testing, and programming
+ 
