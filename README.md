@@ -1,76 +1,47 @@
-commit 9f22131dd12dae23d827a92b8ed80bf5769721f6
+commit df88335cf1f7302f3be72cd31589a9fc70427f37
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sat Feb 26 20:34:18 2022 +0100
+Date:   Sun Feb 27 08:07:10 2022 +0100
 
-    alignment
+    passage about --force when flashing
 
-diff --git a/client/src/cmdhw.c b/client/src/cmdhw.c
-index ae59ad590..28976638e 100644
---- a/client/src/cmdhw.c
-+++ b/client/src/cmdhw.c
-@@ -95,7 +95,7 @@ static void lookup_chipid_short(uint32_t iChipID, uint32_t mem_used) {
-             sprintf(asBuff, "AT91SAM7S16 Rev A");
-             break;
-     }
--    PrintAndLogEx(NORMAL, "  MCU....... " _YELLOW_("%s"), asBuff);
-+    PrintAndLogEx(NORMAL, "    MCU....... " _YELLOW_("%s"), asBuff);
+diff --git a/doc/md/Use_of_Proxmark/0_Compilation-Instructions.md b/doc/md/Use_of_Proxmark/0_Compilation-Instructions.md
+index 5de6a78c3..8b03d016f 100644
+--- a/doc/md/Use_of_Proxmark/0_Compilation-Instructions.md
++++ b/doc/md/Use_of_Proxmark/0_Compilation-Instructions.md
+@@ -13,6 +13,7 @@
+     - [if you got an error](#if-you-got-an-error)
+   - [Install](#install)
+   - [Flash the BOOTROM & FULLIMAGE](#flash-the-bootrom--fullimage)
++  - [flasher stops and warns you about firmware image](#flasher-stops-and-warns-you-about-firmware-image)
+   - [Run the client](#run-the-client)
+   - [Next steps](#next-steps)
  
-     uint32_t mem_avail = 0;
-     switch ((iChipID & 0xF00) >> 8) {
-@@ -131,7 +131,7 @@ static void lookup_chipid_short(uint32_t iChipID, uint32_t mem_used) {
-             break;
-     }
+@@ -105,6 +106,28 @@ or
+ proxmark3 /dev/ttyACM0 --flash --unlock-bootloader --image /tmp/my-bootrom.elf --image /tmp/my-fullimage.elf
+ ```
  
--    PrintAndLogEx(NORMAL, "  Memory.... " _YELLOW_("%uK") " bytes ( " _YELLOW_("%2.0f%%") " used )"
-+    PrintAndLogEx(NORMAL, "    Memory.... " _YELLOW_("%u") " Kb ( " _YELLOW_("%2.0f%%") " used )"
-                   , mem_avail
-                   , mem_avail == 0 ? 0.0f : (float)mem_used / (mem_avail * 1024) * 100
-                  );
-@@ -1078,7 +1078,7 @@ int CmdHW(const char *Cmd) {
- #endif
++
++## flasher stops and warns you about firmware image
++^[Top](#top)
++
++
++The Proxmark3 software and firmware is connected tightly. The strong recommendation is to use the client with a Proxmark3 device flashed with firmware images from same compilation time.  
++In the flash process you might get this message because the firmware images is downloaded or distributed and you have compiled your own client.  Ie,  not from same compilation time.
++To minimize the risks the flasher warns about it and stops.  
++
++```
++    Make sure to flash a correct and up-to-date version
++    You can force flashing this firmware by using the option '--force'
++```
++
++You will need to add the `--force`  in order to continue flashing. 
++
++```sh
++pm3-flash-all --force
++```
++
++
++
+ ## Run the client
+ ^[Top](#top)
  
- void pm3_version_short(void) {
--    PrintAndLogEx(NORMAL, " [ " _CYAN_("Proxmark3 RFID instrument") " ]");
-+    PrintAndLogEx(NORMAL, "  [ " _CYAN_("Proxmark3 RFID instrument") " ]");
-     PrintAndLogEx(NORMAL, "");
- 
-     if (g_session.pm3_present) {
-@@ -1103,7 +1103,7 @@ void pm3_version_short(void) {
-             // client
-             char temp[PM3_CMD_DATA_SIZE - 12]; // same limit as for ARM image
-             format_version_information_short(temp, sizeof(temp), &g_version_information);
--            PrintAndLogEx(NORMAL, "  Client.... %s", temp);
-+            PrintAndLogEx(NORMAL, "    Client.... %s", temp);
- 
-             bool armsrc_mismatch = false;
-             char *ptr = strstr(payload->versionstr, " os: ");
-@@ -1122,7 +1122,7 @@ void pm3_version_short(void) {
-                 char *ptr_end = strstr(ptr, "\n");
-                 if (ptr_end != NULL) {
-                     uint8_t len = ptr_end - 19 - ptr;
--                    PrintAndLogEx(NORMAL, "  Bootrom... %.*s", len, ptr + 10);
-+                    PrintAndLogEx(NORMAL, "    Bootrom... %.*s", len, ptr + 10);
-                 }
-             }
- 
-@@ -1132,7 +1132,7 @@ void pm3_version_short(void) {
-                 char *ptr_end = strstr(ptr, "\n");
-                 if (ptr_end != NULL) {
-                     uint8_t len = ptr_end - 14 - ptr;
--                    PrintAndLogEx(NORMAL, "  OS........ %.*s", len, ptr + 5);
-+                    PrintAndLogEx(NORMAL, "    OS........ %.*s", len, ptr + 5);
-                 }
-             }
- 
-@@ -1148,9 +1148,9 @@ void pm3_version_short(void) {
-                     }
-                 }
- 
--                PrintAndLogEx(NORMAL, "  Target.... %s", (is_genuine_rdv4) ? _YELLOW_("RDV4") : _RED_("device / fw mismatch"));
-+                PrintAndLogEx(NORMAL, "    Target.... %s", (is_genuine_rdv4) ? _YELLOW_("RDV4") : _RED_("device / fw mismatch"));
-             } else {
--                PrintAndLogEx(NORMAL, "  Target.... %s", _YELLOW_("PM3 GENERIC"));
-+                PrintAndLogEx(NORMAL, "    Target.... %s", _YELLOW_("PM3 GENERIC"));
-             }
- 
-             PrintAndLogEx(NORMAL, "");
