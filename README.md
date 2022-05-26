@@ -1,9 +1,9 @@
-commit 0f98e177ba9a2673ecf3f93f16fa4954f88a697a
-Merge: d5bbb54c8 82227e669
+commit 42498fd75534184923cb5a3b9c4420253302fb27
+Merge: 0f98e177b 5c9693529
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun Mar 20 21:44:00 2022 +0100
+Date:   Tue Mar 22 17:59:33 2022 +0100
 
-    Merge pull request #1632 from equipter/master
+    Merge pull request #1618 from nemanjan00/iso15693_read_multi
     
-    Update changelog & rename hf_i2c_recovery.lua
+    Add first and last block for ISO15693_READ_MULTI_BLOCK to command list
 
