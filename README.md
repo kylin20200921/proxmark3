@@ -1,29 +1,20 @@
-commit 4bd6e8f61c3f6fb6de16fd3159b153bd58ca3fde
+commit bb1a51988cf08d3bef272aad1df61c2b09db82d4
 Author: iceman1001 <iceman@iuse.se>
-Date:   Thu Feb 24 17:20:27 2022 +0100
+Date:   Thu Feb 24 17:24:42 2022 +0100
 
     fixes to "hf cipurse info"
 
 diff --git a/client/src/cipurse/cipursecore.c b/client/src/cipurse/cipursecore.c
-index fc20c4854..cce2d0484 100644
+index cce2d0484..76b9d9b8d 100644
 --- a/client/src/cipurse/cipursecore.c
 +++ b/client/src/cipurse/cipursecore.c
-@@ -307,12 +307,15 @@ static void CIPURSEPrintPersoMode(uint8_t data) {
+@@ -332,8 +332,7 @@ void CIPURSEPrintInfoFile(uint8_t *data, size_t len) {
+     }
  
- // 2021 iceman: what is the description text of profile L,S,T ?
- static void CIPURSEPrintProfileInfo(uint8_t data) {
-+
-+    PrintAndLogEx(INFO, "Profile........" NOLF);
-     if ((data & 0x01) == 0x01)
--        PrintAndLogEx(INFO, "Profile........ L");
-+        PrintAndLogEx(NORMAL, " L" NOLF);
-     if ((data & 0x02) == 0x02)
--        PrintAndLogEx(INFO, "Profile........ S");
-+        PrintAndLogEx(NORMAL, ", S" NOLF);
-     if ((data & 0x04) == 0x04)
--        PrintAndLogEx(INFO, "Profile........ T");
-+        PrintAndLogEx(NORMAL, ", T" NOLF);
-+    PrintAndLogEx(NORMAL, "");
- }
+     PrintAndLogEx(INFO, "--- " _CYAN_("CIPURSE Information") "---------------------");
+-    PrintAndLogEx(INFO, "version........ " _YELLOW_("%d"), data[0]);
+-    PrintAndLogEx(INFO, "revision....... " _YELLOW_("%d"), data[1]);
++    PrintAndLogEx(INFO, "Version........ " _YELLOW_("v%d.%d"), data[0], data[1]);
  
- static void CIPURSEPrintManufacturerInfo(uint8_t data) {
+     if (len >= 3)
+         CIPURSEPrintPersoMode(data[2]);
