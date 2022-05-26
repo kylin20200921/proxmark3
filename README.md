@@ -1,9 +1,9 @@
-commit 405c9d5d942830820342673e6035fbd40ca6d478
-Merge: f6ddc5611 391cc3d33
+commit bab5fbf9c02853851a83afa7bfc723cd748d10e8
+Merge: 468d2ac2b 199b462d0
 Author: iceman1001 <iceman@iuse.se>
-Date:   Mon Jan 31 17:50:25 2022 +0100
+Date:   Thu Feb 3 17:46:50 2022 +0100
 
-    Merge pull request #1575 from linuxgemini/fix-macos-build
+    Merge pull request #1580 from bettse/ARC_support
     
-    fix macos builds by not defining _POSIX_C_SOURCE in mfd_aes_brute.c if macos
+    ARC support for AppNap toggle
 
