@@ -1,18 +1,28 @@
-commit 7d7b608485b4e55838f1a64335a2ca34b2f5f9be
+commit f59f8dd5288ef40adc0747c7b53193a06a0ece71
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sat Mar 19 20:24:16 2022 +0100
+Date:   Sun Mar 20 07:47:27 2022 +0100
 
-    text
+    hf mf restore accepts 4,7,10 hex bytes UID
 
-diff --git a/CHANGELOG.md b/CHANGELOG.md
-index 9c6e36883..64060f8d9 100644
---- a/CHANGELOG.md
-+++ b/CHANGELOG.md
-@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
- This project uses the changelog in accordance with [keepchangelog](http://keepachangelog.com/). Please use this to write notable changes, which is not the same as git commit log...
+diff --git a/client/src/cmdhfmf.c b/client/src/cmdhfmf.c
+index 001031e19..cfbe2f549 100644
+--- a/client/src/cmdhfmf.c
++++ b/client/src/cmdhfmf.c
+@@ -962,7 +962,7 @@ static int CmdHF14AMfRestore(const char *Cmd) {
+         arg_lit0(NULL, "1k", "MIFARE Classic 1k / S50 (def)"),
+         arg_lit0(NULL, "2k", "MIFARE Classic/Plus 2k"),
+         arg_lit0(NULL, "4k", "MIFARE Classic 4k / S70"),
+-        arg_str0("u", "uid",  "<hex>", "uid, 6 hex bytes"),
++        arg_str0("u", "uid",  "<hex>", "uid, (4|7|10 hex bytes)"),
+         arg_str0("f", "file", "<fn>", "specify dump filename (bin/eml/json)"),
+         arg_str0("k", "kfn",  "<fn>", "key filename"),
+         arg_lit0(NULL, "ka",  "use specified keyfile to authenticate"),
+@@ -976,7 +976,7 @@ static int CmdHF14AMfRestore(const char *Cmd) {
+     bool m4 = arg_get_lit(ctx, 4);
  
- ## [unreleased][unreleased]
-+ - Changed `hf mf view` - now prints all keys and all value blocks under the ´verbose´ param (@iceman1001)
-  - Added a new OSX install guide (@maxieds)
-  - Added new public key (@anon)
-  - Changed start screen to be less intimidating (@iceman1001)
+     int uidlen = 0;
+-    char uid[14] = {0};
++    char uid[20] = {0};
+     CLIParamStrToBuf(arg_get_str(ctx, 5), (uint8_t *)uid, sizeof(uid), &uidlen);
+ 
+     int datafnlen = 0;
