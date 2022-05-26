@@ -1,186 +1,302 @@
-commit 2671795b8b9e836398219eecc287beb389820869
+commit 652affbfb1460aac07c05b25cf9515e8ebb35235
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sat Feb 26 17:15:32 2022 +0100
+Date:   Sat Feb 26 17:17:14 2022 +0100
 
-    textual
+    rework start screen to be shorter
 
-diff --git a/.github/ISSUE_TEMPLATE/bug_report.md b/.github/ISSUE_TEMPLATE/bug_report.md
-index de546a42e..6ca8e6f6b 100644
---- a/.github/ISSUE_TEMPLATE/bug_report.md
-+++ b/.github/ISSUE_TEMPLATE/bug_report.md
-@@ -14,7 +14,7 @@ read the [troubleshooting guide](/doc/md/Installation_Instructions/Troubleshooti
- Try compiling with verbose.  `make VERBOSE=1` with main makefile or `make V=1` with cmake.
+diff --git a/client/src/cmdhw.c b/client/src/cmdhw.c
+index 6e96b130f..ae59ad590 100644
+--- a/client/src/cmdhw.c
++++ b/client/src/cmdhw.c
+@@ -36,6 +36,109 @@
  
- ***flashing problems***
--Have you followed the instructions properly?  ie,  flashed bootrom seperately first if you are going from Offical repo to RRG/Iceman repo.
-+Have you followed the instructions properly?  ie,  flashed bootrom seperately first if you are going from Offical repo to Iceman repo.
+ static int CmdHelp(const char *Cmd);
  
- 
- -
-diff --git a/client/src/cmdflashmem.c b/client/src/cmdflashmem.c
-index b1cf1fdfd..97126ad9b 100644
---- a/client/src/cmdflashmem.c
-+++ b/client/src/cmdflashmem.c
-@@ -576,7 +576,7 @@ static int CmdFlashMemInfo(const char *Cmd) {
-     bool is_keyok = (mbedtls_rsa_check_pubkey(rsa) == 0);
-     PrintAndLogEx(
-         (is_keyok) ? SUCCESS : FAILED,
--        "RRG/Iceman RSA public key check.... ( %s )",
-+        "RDV4 RSA public key check.... ( %s )",
-         (is_keyok) ?  _GREEN_("ok") : _RED_("fail")
-     );
- 
-@@ -584,7 +584,7 @@ static int CmdFlashMemInfo(const char *Cmd) {
-     if (verbose) {
-         PrintAndLogEx(
-             (is_keyok) ? SUCCESS : FAILED,
--            "RRG/Iceman RSA private key check... ( %s )",
-+            "RDV4 RSA private key check... ( %s )",
-             (is_keyok) ?  _GREEN_("ok") : _YELLOW_("N/A")
-         );
-     }
-diff --git a/doc/T5577_Guide.md b/doc/T5577_Guide.md
-index 6d25357df..e9792bb19 100644
---- a/doc/T5577_Guide.md
-+++ b/doc/T5577_Guide.md
-@@ -1,7 +1,7 @@
- # T5577 Introduction Guide
- <a id="Top"></a>
- 
--### Based on RRG/Iceman Proxmark3 repo
-+### Based on Iceman Proxmark3 repo
- 
- ### Ver.1 8 Sep 2019
- ### Ver.2 7 March 2021
-diff --git a/doc/md/Installation_Instructions/Linux-Installation-Instructions.md b/doc/md/Installation_Instructions/Linux-Installation-Instructions.md
-index 4a53c52fe..e7fe580cd 100644
---- a/doc/md/Installation_Instructions/Linux-Installation-Instructions.md
-+++ b/doc/md/Installation_Instructions/Linux-Installation-Instructions.md
-@@ -137,7 +137,7 @@ And a new `/dev/ttyACM0` should have appeared.
- 
- Add current user to the proper group to get permission to use `/dev/ttyACM0`.
- 
--This step can be done from the RRG/Iceman Proxmark3 repo with:
-+This step can be done from the Iceman Proxmark3 repo with:
- 
- ```sh
- make accessrights
-diff --git a/doc/md/Installation_Instructions/Mac-OS-X-Homebrew-Installation-Instructions.md b/doc/md/Installation_Instructions/Mac-OS-X-Homebrew-Installation-Instructions.md
-index 91a2fedc4..e356bc2ba 100644
---- a/doc/md/Installation_Instructions/Mac-OS-X-Homebrew-Installation-Instructions.md
-+++ b/doc/md/Installation_Instructions/Mac-OS-X-Homebrew-Installation-Instructions.md
-@@ -63,11 +63,11 @@ For more info, go to https://github.com/RfidResearchGroup/homebrew-proxmark3
- ## Upgrade HomeBrew tap formula
- ^[Top](#top)
- 
--*This method is useful for those looking to run bleeding-edge versions of RRG/iceman's client. Keep this in mind when attempting to update your HomeBrew tap formula as this procedure could easily cause a build to break if an update is unstable on macOS.* 
-+*This method is useful for those looking to run bleeding-edge versions of iceman's fork. Keep this in mind when attempting to update your HomeBrew tap formula as this procedure could easily cause a build to break if an update is unstable on macOS.* 
- 
- Tested on macOS Mojave 10.14.4
- 
--*Note: This assumes you have already installed RRG/iceman's fork from HomeBrew as mentioned above*
-+*Note: This assumes you have already installed iceman's fork from HomeBrew as mentioned above*
- 
- Force HomeBrew to pull the latest source from github
- 
-diff --git a/doc/md/Installation_Instructions/Windows-Installation-Instructions.md b/doc/md/Installation_Instructions/Windows-Installation-Instructions.md
-index f46a41cb6..8bc9b9fc3 100644
---- a/doc/md/Installation_Instructions/Windows-Installation-Instructions.md
-+++ b/doc/md/Installation_Instructions/Windows-Installation-Instructions.md
-@@ -11,7 +11,7 @@
-   - [Driver Installation ( Windows 7 )](#driver-installation--windows-7-)
-   - [Download ProxSpace repo](#download-proxspace-repo)
-   - [Launch ProxSpace](#launch-proxspace)
--  - [Clone the RRG/Iceman repository](#clone-the-rrgiceman-repository)
-+  - [Clone the Iceman repository](#clone-the-iceman-repository)
-   - [Compile and use the project](#compile-and-use-the-project)
-   - [Done!](#done)
- - [Installing pre-compiled binaries with ProxSpace](#installing-pre-compiled-binaries-with-proxspace)
-@@ -21,7 +21,7 @@
-   - [X Server Installation](#x-server-installation)
-   - [Windows Terminal Installation](#windows-terminal-installation)
-   - [Dependencies](#dependencies)
--  - [Clone the RRG/Iceman repository](#clone-the-rrgiceman-repository-1)
-+  - [Clone the Iceman repository](#clone-the-iceman-repository-1)
-   - [Compile and use the project](#compile-and-use-the-project-1)
-   - [Done!](#done-1)
- 
-@@ -81,7 +81,7 @@ You'll get a Bash prompt and your home directory should become the ProxSpace `pm
- 
- Please note you will need to use `/` in paths as you are using Bash.
- 
--## Clone the RRG/Iceman repository
-+## Clone the Iceman repository
- ^[Top](#top)
- 
- ```sh
-@@ -174,7 +174,7 @@ _note_
- If you don't need the graphical components of the Proxmark3 client, you can skip the installation of `qtbase5-dev`.  
- If you don't need support for Python3 scripts in the Proxmark3 client, you can skip the installation of `libpython3-dev`.
- 
--## Clone the RRG/Iceman repository
-+## Clone the Iceman repository
- ^[Top](#top)
- 
- ```sh
-diff --git a/doc/md/Use_of_Proxmark/0_Compilation-Instructions.md b/doc/md/Use_of_Proxmark/0_Compilation-Instructions.md
-index f15d74f3d..5de6a78c3 100644
---- a/doc/md/Use_of_Proxmark/0_Compilation-Instructions.md
-+++ b/doc/md/Use_of_Proxmark/0_Compilation-Instructions.md
-@@ -24,7 +24,7 @@
- The client and the Proxmark3 firmware should always be in sync.
- Nevertheless, the firmware can be tuned depending on the Proxmark3 platform and options.
- 
--Indeed, the RRG/Iceman fork can be used on other Proxmark3 hardware platforms as well.
-+Indeed, the Iceman fork can be used on other Proxmark3 hardware platforms as well.
- 
- Via some definitions, you can adjust the firmware for a given platform, but also to add features like the support of the Blue Shark add-on or to select which standalone mode to embed. To learn how to adjust the firmware, please read [Advanced compilation parameters](/doc/md/Use_of_Proxmark/4_Advanced-compilation-parameters.md).
- 
-diff --git a/doc/md/Use_of_Proxmark/4_Advanced-compilation-parameters.md b/doc/md/Use_of_Proxmark/4_Advanced-compilation-parameters.md
-index 90faa6e41..494f5a8ab 100644
---- a/doc/md/Use_of_Proxmark/4_Advanced-compilation-parameters.md
-+++ b/doc/md/Use_of_Proxmark/4_Advanced-compilation-parameters.md
-@@ -18,7 +18,7 @@
- The client and the Proxmark3 firmware should always be in sync.
- Nevertheless, the firmware can be tuned depending on the Proxmark3 platform and options.
- 
--Indeed, the RRG/Iceman fork can be used on other Proxmark3 hardware platforms as well.
-+Indeed, the Iceman fork can be used on other Proxmark3 hardware platforms as well.
- 
- Via some definitions, you can adjust the firmware for a given platform, but also to add features like the support of the Blue Shark add-on or to select which standalone mode to embed.
- 
-@@ -94,7 +94,7 @@ If you have installed a Blue Shark add-on on your RDV4, define `PLATFORM_EXTRAS=
- ## STANDALONE
- ^[Top](#top)
- 
--The RRG/Iceman repository gives you to easily choose which standalone mode to embed in the firmware.
-+The Iceman repository gives you to easily choose which standalone mode to embed in the firmware.
- 
- Here are the supported values you can assign to `STANDALONE` in `Makefile.platform`:
- 
-diff --git a/tools/mkversion.sh b/tools/mkversion.sh
-index 31a1dd121..f950d9f19 100755
---- a/tools/mkversion.sh
-+++ b/tools/mkversion.sh
-@@ -15,7 +15,7 @@ if [ "$1" = "--short" ]; then
- fi
- 
- # if you are making your own fork,  change this line to reflect your fork-name
--fullgitinfo="RRG/Iceman"
-+fullgitinfo="Iceman"
- # GIT status  0 = dirty,  1 = clean ,  2 = undecided
- clean=2
- 
-diff --git a/tools/pm3_tests.sh b/tools/pm3_tests.sh
-index ee1794bde..75b988285 100755
---- a/tools/pm3_tests.sh
-+++ b/tools/pm3_tests.sh
-@@ -211,7 +211,7 @@ function CheckExecute() {
-   return $RESULT
++static void lookup_chipid_short(uint32_t iChipID, uint32_t mem_used) {
++    char asBuff[120];
++    memset(asBuff, 0, sizeof(asBuff));
++    switch (iChipID) {
++        case 0x270B0A40:
++            sprintf(asBuff, "AT91SAM7S512 Rev A");
++            break;
++        case 0x270B0A4F:
++            sprintf(asBuff, "AT91SAM7S512 Rev B");
++            break;
++        case 0x270D0940:
++            sprintf(asBuff, "AT91SAM7S256 Rev A");
++            break;
++        case 0x270B0941:
++            sprintf(asBuff, "AT91SAM7S256 Rev B");
++            break;
++        case 0x270B0942:
++            sprintf(asBuff, "AT91SAM7S256 Rev C");
++            break;
++        case 0x270B0943:
++            sprintf(asBuff, "AT91SAM7S256 Rev D");
++            break;
++        case 0x270C0740:
++            sprintf(asBuff, "AT91SAM7S128 Rev A");
++            break;
++        case 0x270A0741:
++            sprintf(asBuff, "AT91SAM7S128 Rev B");
++            break;
++        case 0x270A0742:
++            sprintf(asBuff, "AT91SAM7S128 Rev C");
++            break;
++        case 0x270A0743:
++            sprintf(asBuff, "AT91SAM7S128 Rev D");
++            break;
++        case 0x27090540:
++            sprintf(asBuff, "AT91SAM7S64 Rev A");
++            break;
++        case 0x27090543:
++            sprintf(asBuff, "AT91SAM7S64 Rev B");
++            break;
++        case 0x27090544:
++            sprintf(asBuff, "AT91SAM7S64 Rev C");
++            break;
++        case 0x27080342:
++            sprintf(asBuff, "AT91SAM7S321 Rev A");
++            break;
++        case 0x27080340:
++            sprintf(asBuff, "AT91SAM7S32 Rev A");
++            break;
++        case 0x27080341:
++            sprintf(asBuff, "AT91SAM7S32 Rev B");
++            break;
++        case 0x27050241:
++            sprintf(asBuff, "AT9SAM7S161 Rev A");
++            break;
++        case 0x27050240:
++            sprintf(asBuff, "AT91SAM7S16 Rev A");
++            break;
++    }
++    PrintAndLogEx(NORMAL, "  MCU....... " _YELLOW_("%s"), asBuff);
++
++    uint32_t mem_avail = 0;
++    switch ((iChipID & 0xF00) >> 8) {
++        case 0:
++            mem_avail = 0;
++            break;
++        case 1:
++            mem_avail = 8;
++            break;
++        case 2:
++            mem_avail = 16;
++            break;
++        case 3:
++            mem_avail = 32;
++            break;
++        case 5:
++            mem_avail = 64;
++            break;
++        case 7:
++            mem_avail = 128;
++            break;
++        case 9:
++            mem_avail = 256;
++            break;
++        case 10:
++            mem_avail = 512;
++            break;
++        case 12:
++            mem_avail = 1024;
++            break;
++        case 14:
++            mem_avail = 2048;
++            break;
++    }
++
++    PrintAndLogEx(NORMAL, "  Memory.... " _YELLOW_("%uK") " bytes ( " _YELLOW_("%2.0f%%") " used )"
++                  , mem_avail
++                  , mem_avail == 0 ? 0.0f : (float)mem_used / (mem_avail * 1024) * 100
++                 );
++
++    PrintAndLogEx(NORMAL, "");
++}
++
+ static void lookupChipID(uint32_t iChipID, uint32_t mem_used) {
+     char asBuff[120];
+     memset(asBuff, 0, sizeof(asBuff));
+@@ -921,7 +1024,6 @@ int CmdHW(const char *Cmd) {
+     return CmdsParse(CommandTable, Cmd);
  }
  
--echo -e "\n${C_BLUE}RRG/Iceman Proxmark3 test tool ${C_NC}\n"
-+echo -e "\n${C_BLUE}Iceman Proxmark3 test tool ${C_NC}\n"
+-void pm3_version(bool verbose, bool oneliner) {
  
- echo -n "work directory: "
- pwd
+ #if defined(__MINGW64__)
+ # define PM3CLIENTCOMPILER "MinGW-w64 "
+@@ -975,6 +1077,96 @@ void pm3_version(bool verbose, bool oneliner) {
+ # define PM3HOSTARCH "unknown"
+ #endif
+ 
++void pm3_version_short(void) {
++    PrintAndLogEx(NORMAL, " [ " _CYAN_("Proxmark3 RFID instrument") " ]");
++    PrintAndLogEx(NORMAL, "");
++
++    if (g_session.pm3_present) {
++
++        PacketResponseNG resp;
++        clearCommandBuffer();
++        SendCommandNG(CMD_VERSION, NULL, 0);
++
++        if (WaitForResponseTimeout(CMD_VERSION, &resp, 1000)) {
++
++            struct p {
++                uint32_t id;
++                uint32_t section_size;
++                uint32_t versionstr_len;
++                char versionstr[PM3_CMD_DATA_SIZE - 12];
++            } PACKED;
++
++            struct p *payload = (struct p *)&resp.data.asBytes;
++
++            lookup_chipid_short(payload->id, payload->section_size);
++
++            // client
++            char temp[PM3_CMD_DATA_SIZE - 12]; // same limit as for ARM image
++            format_version_information_short(temp, sizeof(temp), &g_version_information);
++            PrintAndLogEx(NORMAL, "  Client.... %s", temp);
++
++            bool armsrc_mismatch = false;
++            char *ptr = strstr(payload->versionstr, " os: ");
++            if (ptr != NULL) {
++                ptr = strstr(ptr, "\n");
++                if ((ptr != NULL) && (strlen(g_version_information.armsrc) == 9)) {
++                    if (strncmp(ptr - 9, g_version_information.armsrc, 9) != 0) {
++                        armsrc_mismatch = true;
++                    }
++                }
++            }
++
++            // bootrom
++            ptr = strstr(payload->versionstr, " bootrom: ");
++            if (ptr != NULL) {
++                char *ptr_end = strstr(ptr, "\n");
++                if (ptr_end != NULL) {
++                    uint8_t len = ptr_end - 19 - ptr;
++                    PrintAndLogEx(NORMAL, "  Bootrom... %.*s", len, ptr + 10);
++                }
++            }
++
++            // os:
++            ptr = strstr(payload->versionstr, " os: ");
++            if (ptr != NULL) {
++                char *ptr_end = strstr(ptr, "\n");
++                if (ptr_end != NULL) {
++                    uint8_t len = ptr_end - 14 - ptr;
++                    PrintAndLogEx(NORMAL, "  OS........ %.*s", len, ptr + 5);
++                }
++            }
++
++
++            if (IfPm3Rdv4Fw()) {
++
++                bool is_genuine_rdv4 = false;
++                // validate signature data
++                rdv40_validation_t mem;
++                if (rdv4_get_signature(&mem) == PM3_SUCCESS) {
++                    if (rdv4_validate(&mem) == PM3_SUCCESS) {
++                        is_genuine_rdv4 = true;
++                    }
++                }
++
++                PrintAndLogEx(NORMAL, "  Target.... %s", (is_genuine_rdv4) ? _YELLOW_("RDV4") : _RED_("device / fw mismatch"));
++            } else {
++                PrintAndLogEx(NORMAL, "  Target.... %s", _YELLOW_("PM3 GENERIC"));
++            }
++
++            PrintAndLogEx(NORMAL, "");
++
++            if (armsrc_mismatch) {
++                PrintAndLogEx(NORMAL, "");
++                PrintAndLogEx(WARNING, "  --> " _RED_("ARM firmware does not match the source at the time the client was compiled"));
++                PrintAndLogEx(WARNING,  " --> Make sure to flash a correct and up-to-date version");
++            }
++        }
++    }
++    PrintAndLogEx(NORMAL, "");
++}
++
++void pm3_version(bool verbose, bool oneliner) {
++
+     char temp[PM3_CMD_DATA_SIZE - 12]; // same limit as for ARM image
+ 
+     if (oneliner) {
+diff --git a/client/src/cmdhw.h b/client/src/cmdhw.h
+index bda323dfc..4756a7cb0 100644
+--- a/client/src/cmdhw.h
++++ b/client/src/cmdhw.h
+@@ -26,5 +26,6 @@ int CmdHW(const char *Cmd);
+ 
+ int handle_tearoff(tearoff_params_t *params, bool verbose);
+ void pm3_version(bool verbose, bool oneliner);
++void pm3_version_short(void);
+ 
+ #endif
+diff --git a/client/src/proxmark3.c b/client/src/proxmark3.c
+index 26062f9d7..e15c9ff9f 100644
+--- a/client/src/proxmark3.c
++++ b/client/src/proxmark3.c
+@@ -41,7 +41,7 @@ static int mainret = PM3_ESOFT;
+ 
+ #ifndef LIBPM3
+ #define BANNERMSG1 ""
+-#define BANNERMSG2 "   [ Iceman :snowflake: ]"
++#define BANNERMSG2 "   [ :snowflake: ]"
+ #define BANNERMSG3 ""
+ 
+ typedef enum LogoMode { UTF8, ANSI, ASCII } LogoMode;
+@@ -231,7 +231,7 @@ main_loop(char *script_cmds_file, char *script_cmd, bool stayInCommandLoop) {
+     if (execCommand || script_cmds_file || stdinOnPipe)
+         pm3_version(false, false);
+     else
+-        pm3_version(true, false);
++        pm3_version_short();
+ 
+     if (script_cmds_file) {
+ 
+diff --git a/common/commonutil.c b/common/commonutil.c
+index 310578233..2101414ab 100644
+--- a/common/commonutil.c
++++ b/common/commonutil.c
+@@ -53,6 +53,27 @@ void FormatVersionInformation(char *dst, int len, const char *prefix, void *vers
+     strncat(dst, v->armsrc, len - strlen(dst) - 1);
+ }
+ 
++void format_version_information_short(char *dst, int len, void *version_info) {
++    struct version_information_t *v = (struct version_information_t *)version_info;
++    dst[0] = 0;
++    if (v->magic != VERSION_INFORMATION_MAGIC) {
++        strncat(dst, "Missing/Invalid version information", len - strlen(dst) - 1);
++        return;
++    }
++    if (v->versionversion != 1) {
++        strncat(dst, "Version information not understood", len - strlen(dst) - 1);
++        return;
++    }
++    if (!v->present) {
++        strncat(dst, "Version information not available", len - strlen(dst) - 1);
++        return;
++    }
++
++    strncat(dst, v->gitversion, len - strlen(dst) - 1);
++    strncat(dst, " ", len - strlen(dst) - 1);
++    strncat(dst, v->buildtime, len - strlen(dst) - 1);
++}
++
+ /*
+  ref  http://www.csm.ornl.gov/~dunigan/crc.html
+  Returns the value v with the bottom b [0,32] bits reflected.
+diff --git a/common/commonutil.h b/common/commonutil.h
+index 01abdd0cb..0d8932a51 100644
+--- a/common/commonutil.h
++++ b/common/commonutil.h
+@@ -51,6 +51,7 @@
+ 
+ extern struct version_information_t g_version_information;
+ void FormatVersionInformation(char *dst, int len, const char *prefix, void *version_info);
++void format_version_information_short(char *dst, int len, void *version_info);
+ 
+ uint32_t reflect(uint32_t v, int b); // used in crc.c ...
+ uint8_t reflect8(uint8_t b);         // dedicated 8bit reversal
