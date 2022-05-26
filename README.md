@@ -1,21 +1,19 @@
-commit ba408be60b5d3df6fec410d82a93d4953214cd72
+commit f1d45b491cdef3c645eac7bc5e18a286c703fb39
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sat Feb 12 17:41:00 2022 +0100
+Date:   Sat Feb 12 17:42:18 2022 +0100
 
-    hf mfu dump - now saves EML too
+    text
 
 diff --git a/client/src/cmdhfmfu.c b/client/src/cmdhfmfu.c
-index 25d9269c6..03be2214e 100644
+index 03be2214e..f85f67ac9 100644
 --- a/client/src/cmdhfmfu.c
 +++ b/client/src/cmdhfmfu.c
-@@ -2451,8 +2451,9 @@ static int CmdHF14AMfUDump(const char *Cmd) {
-         strcat(filename, "hf-mfu-");
-         FillFileNameByUID(filename, uid, "-dump", sizeof(uid));
-     }
--    uint16_t datalen = pages * 4 + MFU_DUMP_PREFIX_LENGTH;
-+    uint16_t datalen = pages * MFU_BLOCK_SIZE + MFU_DUMP_PREFIX_LENGTH;
-     saveFile(filename, ".bin", (uint8_t *)&dump_file_data, datalen);
-+    saveFileEML(filename, (uint8_t *)&dump_file_data, datalen, MFU_BLOCK_SIZE);
-     saveFileJSON(filename, jsfMfuMemory, (uint8_t *)&dump_file_data, datalen, NULL);
+@@ -2212,7 +2212,7 @@ static int CmdHF14AMfUDump(const char *Cmd) {
  
-     if (is_partial)
+     CLIParserContext *ctx;
+     CLIParserInit(&ctx, "hf mfu dump",
+-                  "Dump MIFARE Ultralight/NTAG tag to binary/json files.\n"
++                  "Dump MIFARE Ultralight/NTAG tag to binary/eml/json files.\n"
+                   "It autodetects card type."
+                   "Supports:\n"
+                   "Ultralight, Ultralight-C, Ultralight EV1\n"
