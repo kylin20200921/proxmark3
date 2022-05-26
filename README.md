@@ -1,9 +1,9 @@
-commit 190508339be8efa8a723cd5cf328e78570a5be37
-Merge: 5003e7921 7130d7442
+commit c52e6bbc53908b2275814ecd16a4d7995c4a486f
+Merge: 190508339 3d6c21e44
 Author: iceman1001 <iceman@iuse.se>
-Date:   Mon Apr 4 06:42:26 2022 +0200
+Date:   Thu Apr 7 18:45:07 2022 +0200
 
-    Merge pull request #1651 from R0BB13M/master
+    Merge pull request #1655 from wh201906/standalone_14b
     
-    Update cmdhfmfu.c
+    Add flashmem support for HF_14BSNIFF standalone mode
 
