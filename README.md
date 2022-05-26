@@ -1,23 +1,42 @@
-commit 2dd250ab805f54424a223b18c9dd69e10b46de5a
+commit 77520ce489f5c75701b648f55c573463dbede698
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun Apr 10 13:15:24 2022 +0200
+Date:   Sun Apr 10 13:17:21 2022 +0200
 
-    fix initialization of bitstream buffer
+    fix lf sniff input values to be atleast a bit limited
 
-diff --git a/armsrc/lfsampling.c b/armsrc/lfsampling.c
-index ee9f8d772..a1ff37356 100644
---- a/armsrc/lfsampling.c
-+++ b/armsrc/lfsampling.c
-@@ -173,7 +173,11 @@ void initSampleBufferEx(uint32_t *sample_size, bool use_malloc) {
-         data.buffer = BigBuf_get_addr();
-     }
+diff --git a/client/src/cmdlf.c b/client/src/cmdlf.c
+index a2d7e2450..9e8927668 100644
+--- a/client/src/cmdlf.c
++++ b/client/src/cmdlf.c
+@@ -746,11 +746,10 @@ int lf_sniff(bool verbose, uint32_t samples) {
+     struct p {
+         uint32_t samples : 31;
+         bool     verbose : 1;
+-    } PACKED;
++    } PACKED payload;
  
--    //
-+    // reset data stream
-+    data.numbits = 0;
-+    data.position = 0;
-+
-+    // reset samples
-     samples.dec_counter = 0;
-     samples.sum = 0;
-     samples.counter = *sample_size;
+-    struct p payload;
++    payload.samples = (samples & 0xFFFF);
+     payload.verbose = verbose;
+-    payload.samples = samples;
+ 
+     clearCommandBuffer();
+     SendCommandNG(CMD_LF_SNIFF_RAW_ADC, (uint8_t *)&payload, sizeof(payload));
+@@ -758,7 +757,7 @@ int lf_sniff(bool verbose, uint32_t samples) {
+     if (gs_lf_threshold_set) {
+         WaitForResponse(CMD_LF_SNIFF_RAW_ADC, &resp);
+     } else {
+-        if (!WaitForResponseTimeout(CMD_LF_SNIFF_RAW_ADC, &resp, 2500)) {
++        if (WaitForResponseTimeout(CMD_LF_SNIFF_RAW_ADC, &resp, 2500) == false) {
+             PrintAndLogEx(WARNING, "(lf_read) command execution time out");
+             return PM3_ETIMEOUT;
+         }
+@@ -791,7 +790,7 @@ int CmdLFSniff(const char *Cmd) {
+         arg_param_end
+     };
+     CLIExecWithReturn(ctx, Cmd, argtable, true);
+-    uint32_t samples = arg_get_u32_def(ctx, 1, 0);
++    uint32_t samples = (arg_get_u32_def(ctx, 1, 0) & 0xFFFF);
+     bool verbose = arg_get_lit(ctx, 2);
+     bool cm = arg_get_lit(ctx, 3);
+     CLIParserFree(ctx);
