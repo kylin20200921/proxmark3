@@ -1,42 +1,21 @@
-commit c5658f2a0b4f0da5028833c214a070368289914f
+commit 8248168f3ab6e2c813a9927b8ed6b50f19192647
 Author: iceman1001 <iceman@iuse.se>
-Date:   Wed Feb 16 00:22:48 2022 +0100
+Date:   Wed Feb 16 16:38:33 2022 +0100
 
-    cppcheck
+    from mct tools pr
 
-diff --git a/client/src/cipurse/cipursecore.c b/client/src/cipurse/cipursecore.c
-index 41bce0eb5..738839b00 100644
---- a/client/src/cipurse/cipursecore.c
-+++ b/client/src/cipurse/cipursecore.c
-@@ -465,14 +465,14 @@ const char *CIPURSEGetSMR(uint8_t smr) {
-     }
- }
- 
--void CIPURSEPrintSMR(uint8_t *smrrec) {
-+void CIPURSEPrintSMR(const uint8_t *smrrec) {
-     PrintAndLogEx(INFO, "1. %s/%s", CIPURSEGetSMR((smrrec[0] >> 6) & 0x03), CIPURSEGetSMR((smrrec[0] >> 4) & 0x03));
-     PrintAndLogEx(INFO, "2. %s/%s", CIPURSEGetSMR((smrrec[0] >> 2) & 0x03), CIPURSEGetSMR((smrrec[0] >> 0) & 0x03));
-     PrintAndLogEx(INFO, "3. %s/%s", CIPURSEGetSMR((smrrec[1] >> 6) & 0x03), CIPURSEGetSMR((smrrec[1] >> 4) & 0x03));
-     PrintAndLogEx(INFO, "4. %s/%s", CIPURSEGetSMR((smrrec[1] >> 2) & 0x03), CIPURSEGetSMR((smrrec[1] >> 0) & 0x03));
- }
- 
--void CIPURSEPrintART(uint8_t *artrec, size_t artlen) {
-+void CIPURSEPrintART(const uint8_t *artrec, size_t artlen) {
-     if (artlen < 1 || artlen > 9)
-         return;
-     for (int i = 0; i < artlen; i++) {
-diff --git a/client/src/cipurse/cipursecore.h b/client/src/cipurse/cipursecore.h
-index 584fc8ea6..603bab765 100644
---- a/client/src/cipurse/cipursecore.h
-+++ b/client/src/cipurse/cipursecore.h
-@@ -65,8 +65,8 @@ bool CIPURSEChannelAuthenticate(uint8_t keyindex, uint8_t *key, bool verbose);
- void CIPURSECSetActChannelSecurityLevels(CipurseChannelSecurityLevel req, CipurseChannelSecurityLevel resp);
- 
- const char *CIPURSEGetSMR(uint8_t smr);
--void CIPURSEPrintSMR(uint8_t *smrrec);
--void CIPURSEPrintART(uint8_t *artrec, size_t artlen);
-+void CIPURSEPrintSMR(const uint8_t *smrrec);
-+void CIPURSEPrintART(const uint8_t *artrec, size_t artlen);
- void CIPURSEPrintEFFileAttr(uint8_t *attr, size_t len);
- void CIPURSEPrintFileAttrEx(uint8_t *attr, size_t len, bool isDGI);
- void CIPURSEPrintFileAttr(uint8_t *attr, size_t len);
+diff --git a/client/dictionaries/mfc_default_keys.dic b/client/dictionaries/mfc_default_keys.dic
+index 1adffdba4..590c10145 100644
+--- a/client/dictionaries/mfc_default_keys.dic
++++ b/client/dictionaries/mfc_default_keys.dic
+@@ -654,6 +654,10 @@ AD4FB33388BF
+ #
+ b7bf0c13066e # Gallagher
+ #
++# PIK Comfort Moscow keys (ISBC Mifare Plus SE 1K)
++009FB42D98ED
++002E626E2820
++#
+ # Boston, MA, USA Transit - MBTA Charlie Card
+ 3060206f5b0a # charlie
+ 5ec39b022f2b # charlie
