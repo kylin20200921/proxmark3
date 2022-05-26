@@ -1,19 +1,32 @@
-commit 76da953bcb183dbdc7a62d04110277620c8f2f7e
+commit 65b9a9fb769541f5d3e255ccf2c17d1cb77ac126
 Author: iceman1001 <iceman@iuse.se>
-Date:   Mon May 16 19:46:31 2022 +0200
+Date:   Sat May 21 09:28:38 2022 +0200
 
-    text
+    widen mfp detection to include 0004
 
-diff --git a/client/src/cmdhfmfp.c b/client/src/cmdhfmfp.c
-index fa8bfbd9e..dcd73fb35 100644
---- a/client/src/cmdhfmfp.c
-+++ b/client/src/cmdhfmfp.c
-@@ -171,7 +171,7 @@ static int plus_print_signature(uint8_t *uid, uint8_t uidlen, uint8_t *signature
- #define PUBLIC_PLUS_ECDA_KEYLEN 57
-     const ecdsa_publickey_t nxp_plus_public_keys[] = {
-         {"MIFARE Plus EV1",  "044409ADC42F91A8394066BA83D872FB1D16803734E911170412DDF8BAD1A4DADFD0416291AFE1C748253925DA39A5F39A1C557FFACD34C62E"},
--        {"MIFARE Pluc Ev_x", "04BB49AE4447E6B1B6D21C098C1538B594A11A4A1DBF3D5E673DEACDEB3CC512D1C08AFA1A2768CE20A200BACD2DC7804CD7523A0131ABF607"}
-+        {"MIFARE Plus Ev_x", "04BB49AE4447E6B1B6D21C098C1538B594A11A4A1DBF3D5E673DEACDEB3CC512D1C08AFA1A2768CE20A200BACD2DC7804CD7523A0131ABF607"}
-     };
+diff --git a/client/src/cmdhf14a.c b/client/src/cmdhf14a.c
+index 26e0d5d22..0a9f3d22c 100644
+--- a/client/src/cmdhf14a.c
++++ b/client/src/cmdhf14a.c
+@@ -1579,9 +1579,6 @@ static int detect_nxp_card(uint8_t sak, uint16_t atqa, uint64_t select_status) {
+                     if ((atqa & 0x0001) == 0x0001) {
+                         printTag("HID SEOS (smartmx / javacard)");
+                         type |= HID_SEOS;
+-                    } else if ((atqa & 0x0004) == 0x0004) {
+-                        printTag("EMV");
+-                        type |= MTEMV;
+                     } else {
+                         printTag("MIFARE Plus EV1 2K/4K in SL3");
+                         printTag("MIFARE Plus S 2K/4K in SL3");
+@@ -1589,6 +1586,11 @@ static int detect_nxp_card(uint8_t sak, uint16_t atqa, uint64_t select_status) {
+                         printTag("MIFARE Plus SE 1K");
+                         type |= MTPLUS;
+                     }
++
++                    if ((atqa & 0x0004) == 0x0004) {
++                        printTag("EMV");
++                        type |= MTEMV;
++                    }
+                 }
  
-     uint8_t i;
+                 printTag("NTAG 4xx");
