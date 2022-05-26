@@ -1,523 +1,476 @@
-commit ecf58de32bbccde74e6b99f664fb27871f25e853
+commit a4bc2c552134705370bf7ce1b09040e6babc6ed3
 Author: iceman1001 <iceman@iuse.se>
-Date:   Mon Feb 14 21:41:33 2022 +0100
+Date:   Mon Feb 14 21:44:15 2022 +0100
 
-    hf legic restore/eload - now acceps bin/eml/json dump files."
+    make style
 
+diff --git a/armsrc/appmain.c b/armsrc/appmain.c
+index c6e188ec0..afe10694c 100644
+--- a/armsrc/appmain.c
++++ b/armsrc/appmain.c
+@@ -1285,12 +1285,12 @@ static void PacketReceived(PacketCommandNG *packet) {
+             break;
+         }
+         case CMD_HF_LEGIC_WRITER: {
+-            legic_packet_t *payload = (legic_packet_t*) packet->data.asBytes;
++            legic_packet_t *payload = (legic_packet_t *) packet->data.asBytes;
+             LegicRfWriter(payload->offset, payload->len, payload->iv, payload->data);
+             break;
+         }
+         case CMD_HF_LEGIC_READER: {
+-            legic_packet_t *payload = (legic_packet_t*) packet->data.asBytes;
++            legic_packet_t *payload = (legic_packet_t *) packet->data.asBytes;
+             LegicRfReader(payload->offset, payload->len, payload->iv);
+             break;
+         }
+@@ -1305,7 +1305,7 @@ static void PacketReceived(PacketCommandNG *packet) {
+             // destroy the Emulator Memory.
+             //-----------------------------------------------------------------------------
+             FpgaDownloadAndGo(FPGA_BITSTREAM_HF);
+-            legic_packet_t *payload = (legic_packet_t*) packet->data.asBytes;
++            legic_packet_t *payload = (legic_packet_t *) packet->data.asBytes;
+             emlSet(payload->data, payload->offset, payload->len);
+             break;
+         }
+diff --git a/armsrc/legicrf.c b/armsrc/legicrf.c
+index 31f9691fc..637d22fee 100644
+--- a/armsrc/legicrf.c
++++ b/armsrc/legicrf.c
+@@ -520,7 +520,7 @@ void LegicRfReader(uint16_t offset, uint16_t len, uint8_t iv) {
+     }
+ 
+     // OK
+-    reply_ng(CMD_HF_LEGIC_READER, PM3_SUCCESS, (uint8_t*)&len, sizeof(len));
++    reply_ng(CMD_HF_LEGIC_READER, PM3_SUCCESS, (uint8_t *)&len, sizeof(len));
+ 
+ OUT:
+     switch_off();
+@@ -559,7 +559,7 @@ void LegicRfWriter(uint16_t offset, uint16_t len, uint8_t iv, uint8_t *data) {
+     }
+ 
+     // OK
+-    reply_ng(CMD_HF_LEGIC_WRITER, PM3_SUCCESS, (uint8_t*)&len, sizeof(len));
++    reply_ng(CMD_HF_LEGIC_WRITER, PM3_SUCCESS, (uint8_t *)&len, sizeof(len));
+ 
+ OUT:
+     switch_off();
 diff --git a/client/src/cmdhflegic.c b/client/src/cmdhflegic.c
-index e791c4ecc..d0c6f80f6 100644
+index d0c6f80f6..38abf668b 100644
 --- a/client/src/cmdhflegic.c
 +++ b/client/src/cmdhflegic.c
-@@ -30,7 +30,9 @@
- 
- static int CmdHelp(const char *Cmd);
- 
--#define LEGIC_PRIME_MAX_LENGTH 1024
-+#define LEGIC_PRIME_MIM22   22
-+#define LEGIC_PRIME_MIM256  256
-+#define LEGIC_PRIME_MIM1024 1024
- 
- static bool legic_xor(uint8_t *data, uint16_t cardsize) {
- 
-@@ -42,14 +44,14 @@ static bool legic_xor(uint8_t *data, uint16_t cardsize) {
-     uint8_t crc = data[4];
-     uint32_t calc_crc = CRC8Legic(data, 4);
-     if (crc != calc_crc) {
--        PrintAndLogEx(INFO, "Crc mismatch, obsfuscation not possible");
-+        PrintAndLogEx(INFO, "CRC mismatch, obsfuscation not possible");
-         return false;
-     }
- 
-     for (uint16_t i = 22; i < cardsize; i++) {
-         data[i] ^= crc;
-     }
--    PrintAndLogEx(SUCCESS, "applying xoring of data done!");
-+    PrintAndLogEx(SUCCESS, "Applying xoring of data done!");
-     return true;
- }
- 
-@@ -415,8 +417,8 @@ static int CmdLegicRdbl(const char *Cmd) {
-     CLIParserFree(ctx);
- 
-     // sanity checks
--    if (len + offset >= LEGIC_PRIME_MAX_LENGTH) {
--        PrintAndLogEx(WARNING, "Out-of-bounds, Cardsize = %d, [offset+len = %d ]", LEGIC_PRIME_MAX_LENGTH, len + offset);
-+    if (len + offset >= LEGIC_PRIME_MIM1024) {
-+        PrintAndLogEx(WARNING, "Out-of-bounds, Cardsize = %d, [offset+len = %d ]", LEGIC_PRIME_MIM1024, len + offset);
-         return PM3_EOUTOFBOUND;
-     }
- 
-@@ -443,17 +445,31 @@ static int CmdLegicRdbl(const char *Cmd) {
- static int CmdLegicSim(const char *Cmd) {
-     CLIParserContext *ctx;
-     CLIParserInit(&ctx, "hf legic sim",
--                  "Simulates a LEGIC Prime tag. MIM22, MIM256, MIM1024 types can be emulated",
--                  "hf legic sim -t 0   -> Simulate Type MIM22\n"
--                  "hf legic sim -t 1   -> Simulate Type MIM256 (default)\n"
--                  "hf legic sim -t 2   -> Simulate Type MIM1024");
-+                  "Simulates a LEGIC Prime tag.\n"
-+                  "Following types supported (MIM22, MIM256, MIM1024)",
-+                  "hf legic sim --22\n"
-+                  );
+@@ -448,7 +448,7 @@ static int CmdLegicSim(const char *Cmd) {
+                   "Simulates a LEGIC Prime tag.\n"
+                   "Following types supported (MIM22, MIM256, MIM1024)",
+                   "hf legic sim --22\n"
+-                  );
++                 );
  
      void *argtable[] = {
          arg_param_begin,
--        arg_int0("t", "type", "<dec>", "Tag type to simulate."),
-+        arg_lit0(NULL, "22", "LEGIC Prime MIM22"),
-+        arg_lit0(NULL, "256", "LEGIC Prime MIM256 (def)"),
-+        arg_lit0(NULL, "1024", "LEGIC Prime MIM1024"),
-         arg_param_end
-     };
-     CLIExecWithReturn(ctx, Cmd, argtable, true);
-+    bool m1 = arg_get_lit(ctx, 1);
-+    bool m2 = arg_get_lit(ctx, 2);
-+    bool m3 = arg_get_lit(ctx, 3);
-+    CLIParserFree(ctx);
+@@ -580,7 +580,7 @@ static int CmdLegicWrbl(const char *Cmd) {
+ 
+     PacketResponseNG resp;
+     clearCommandBuffer();
+-    SendCommandNG(CMD_HF_LEGIC_WRITER, (uint8_t*)payload, sizeof(legic_packet_t) + dlen);
++    SendCommandNG(CMD_HF_LEGIC_WRITER, (uint8_t *)payload, sizeof(legic_packet_t) + dlen);
+     free(payload);
+ 
+     uint8_t timeout = 0;
+@@ -593,7 +593,7 @@ static int CmdLegicWrbl(const char *Cmd) {
+         }
+     }
+     PrintAndLogEx(NORMAL, "");
+-    
 +
-+    // validations
-+    if (m1 + m2 + m3 > 1) {
-+        PrintAndLogEx(WARNING, "Only specify one LEGIC Prime Type");
-+        return PM3_EINVARG;
-+    } else if (m1 + m2 + m3 == 0) {
-+        m2 = true;
-+    }
- 
-     struct {
-         uint8_t tagtype;
-@@ -461,14 +477,12 @@ static int CmdLegicSim(const char *Cmd) {
-     } PACKED payload;
- 
-     payload.send_reply = true;
--    payload.tagtype = arg_get_int_def(ctx, 1, 1);
--
--    CLIParserFree(ctx);
--
--    if (payload.tagtype > 2) {
--        PrintAndLogEx(ERR, "Invalid tag type selected.");
--        return PM3_EINVARG;
--    }
-+    if (m1)
-+        payload.tagtype = 0;
-+    else if (m2)
-+        payload.tagtype = 1;
-+    else if (m3)
-+        payload.tagtype = 2;
+     if (resp.status != PM3_SUCCESS) {
+         PrintAndLogEx(WARNING, "Failed writing tag");
+         return PM3_ERFTRANS;
+@@ -655,7 +655,7 @@ int legic_read_mem(uint32_t offset, uint32_t len, uint32_t iv, uint8_t *out, uin
+     payload->len = len;
  
      clearCommandBuffer();
-     SendCommandNG(CMD_HF_LEGIC_SIMULATE, (uint8_t *)&payload, sizeof(payload));
-@@ -510,7 +524,7 @@ static int CmdLegicWrbl(const char *Cmd) {
-     int offset = arg_get_int_def(ctx, 1, 0);
- 
-     int dlen = 0;
--    uint8_t data[LEGIC_PRIME_MAX_LENGTH] = {0};
-+    uint8_t data[LEGIC_PRIME_MIM1024] = {0};
-     CLIGetHexWithReturn(ctx, 2, data, &dlen);
- 
-     bool autoconfirm = arg_get_lit(ctx, 3);
-@@ -573,7 +587,7 @@ static int CmdLegicWrbl(const char *Cmd) {
-     while (WaitForResponseTimeout(CMD_HF_LEGIC_WRITER, &resp, 2000) == false) {
-         ++timeout;
-         PrintAndLogEx(NORMAL, "." NOLF);
--        if (timeout > 7) {
-+        if (timeout > 10) {
-             PrintAndLogEx(WARNING, "\ncommand execution time out");
-             return PM3_ETIMEOUT;
-         }
-@@ -678,11 +692,11 @@ int legic_print_type(uint32_t tagtype, uint8_t spaces) {
-     spc[10] = 0x00;
-     char *spacer = spc + (10 - spaces);
- 
--    if (tagtype == 22)
-+    if (tagtype == LEGIC_PRIME_MIM22)
-         PrintAndLogEx(SUCCESS, "%sTYPE: " _YELLOW_("MIM%d card (outdated)"), spacer, tagtype);
--    else if (tagtype == 256)
-+    else if (tagtype == LEGIC_PRIME_MIM256)
-         PrintAndLogEx(SUCCESS, "%sTYPE: " _YELLOW_("MIM%d card (234 bytes)"), spacer, tagtype);
--    else if (tagtype == 1024)
-+    else if (tagtype == LEGIC_PRIME_MIM1024)
-         PrintAndLogEx(SUCCESS, "%sTYPE: " _YELLOW_("MIM%d card (1002 bytes)"), spacer, tagtype);
-     else
-         PrintAndLogEx(INFO, "%sTYPE: " _YELLOW_("Unknown %06x"), spacer, tagtype);
-@@ -766,10 +780,10 @@ static int CmdLegicReader(const char *Cmd) {
- static int CmdLegicDump(const char *Cmd) {
-     CLIParserContext *ctx;
-     CLIParserInit(&ctx, "hf legic dump",
--                  "Read all memory from LEGIC Prime MIM22, MIM256, MIM1024 and saves bin/eml/json dump file\n"
--                  "It autodetects card type.",
-+                  "Read all memory from LEGIC Prime tags and saves to (bin/eml/json) dump file\n"
-+                  "It autodetects card type (MIM22, MIM256, MIM1024)",
-                   "hf legic dump             --> use UID as filename\n"
--                  "hf legic dump -f myfile   --> use user specified filename\n"
-+                  "hf legic dump -f myfile \n"
-                   "hf legic dump --de        --> use UID as filename and deobfuscate data");
- 
-     void *argtable[] = {
-@@ -811,7 +825,7 @@ static int CmdLegicDump(const char *Cmd) {
-     while (WaitForResponseTimeout(CMD_HF_LEGIC_READER, &resp, 2000) == false) {
-         ++timeout;
-         PrintAndLogEx(NORMAL, "." NOLF);
--        if (timeout > 7) {
-+        if (timeout > 10) {
-             PrintAndLogEx(WARNING, "\ncommand execution time out");
-             return PM3_ETIMEOUT;
-         }
-@@ -868,7 +882,7 @@ static int CmdLegicDump(const char *Cmd) {
- static int CmdLegicRestore(const char *Cmd) {
-     CLIParserContext *ctx;
-     CLIParserInit(&ctx, "hf legic restore",
--                  "Reads binary file and it autodetects card type and verifies that the file has the same size\n"
-+                  "Reads (bin/eml/json) file and it autodetects card type and verifies that the file has the same size\n"
-                   "Then write the data back to card. All bytes except the first 7bytes [UID(4) MCC(1) DCF(2)]",
-                   "hf legic restore -f myfile        --> use user specified filename\n"
-                   "hf legic restore -f myfile --ob   --> use UID as filename and obfuscate data");
-@@ -898,21 +912,43 @@ static int CmdLegicRestore(const char *Cmd) {
-     legic_print_type(card.cardsize, 0);
- 
-     // set up buffer
--    uint8_t *data = calloc(card.cardsize, sizeof(uint8_t));
--    if (!data) {
--        PrintAndLogEx(WARNING, "Fail, cannot allocate memory");
--        return PM3_EMALLOC;
-+    uint8_t *data = NULL;
-+    size_t bytes_read = 0;
-+    int res = 0;
-+    DumpFileType_t dftype = getfiletype(filename);
-+    switch (dftype) {
-+        case BIN: {
-+            res = loadFile_safe(filename, ".bin", (void **)&data, &bytes_read);
-+            break;
-+        }
-+        case EML: {
-+            res = loadFileEML_safe(filename, (void **)&data, &bytes_read);
-+            break;
-+        }
-+        case JSON: {
-+            data = calloc(LEGIC_PRIME_MIM1024, sizeof(uint8_t));
-+            if (data == NULL) {
-+                PrintAndLogEx(WARNING, "Fail, cannot allocate memory");
-+                return PM3_EMALLOC;
-+            }
-+            res = loadFileJSON(filename, (void *)data, LEGIC_PRIME_MIM1024, &bytes_read, NULL);
-+            break;
-+        }
-+        case DICTIONARY: {
-+            PrintAndLogEx(ERR, "Error: Only BIN/JSON/EML formats allowed");
-+            free(data);
-+            return PM3_EINVARG;
-+        }
-     }
- 
--    size_t numofbytes;
--    if (loadFile_safe(filename, ".bin", (void **)&data, &numofbytes) != PM3_SUCCESS) {
-+    if (res != PM3_SUCCESS) {
-         free(data);
--        PrintAndLogEx(WARNING, "Error, reading file");
-         return PM3_EFILE;
-     }
- 
--    if (card.cardsize != numofbytes) {
--        PrintAndLogEx(WARNING, "Fail, filesize and cardsize is not equal. [%u != %zu]", card.cardsize, numofbytes);
-+    // validation
-+    if (card.cardsize != bytes_read) {
-+        PrintAndLogEx(WARNING, "Fail, filesize and cardsize is not equal. [%u != %zu]", card.cardsize, bytes_read);
-         free(data);
-         return PM3_EFILE;
-     }
-@@ -933,10 +969,11 @@ static int CmdLegicRestore(const char *Cmd) {
- 
-     // transfer to device
+-    SendCommandNG(CMD_HF_LEGIC_READER, (uint8_t*)payload, sizeof(legic_packet_t));
++    SendCommandNG(CMD_HF_LEGIC_READER, (uint8_t *)payload, sizeof(legic_packet_t));
      PacketResponseNG resp;
--    for (size_t i = 7; i < numofbytes; i += PM3_CMD_DATA_SIZE) {
-+    // 7 = skip UID bytes and MCC
-+    for (size_t i = 7; i < bytes_read; i += PM3_CMD_DATA_SIZE) {
  
--        size_t len = MIN((numofbytes - i), PM3_CMD_DATA_SIZE);
--        if (len == numofbytes - i) {
-+        size_t len = MIN((bytes_read - i), PM3_CMD_DATA_SIZE);
-+        if (len == bytes_read - i) {
-             // Disable fast mode on last packet
-             g_conn.block_after_ACK = false;
-         }
-@@ -955,7 +992,7 @@ static int CmdLegicRestore(const char *Cmd) {
-         while (WaitForResponseTimeout(CMD_HF_LEGIC_WRITER, &resp, 2000) == false) {
-             ++timeout;
-             PrintAndLogEx(NORMAL, "." NOLF);
--            if (timeout > 7) {
-+            if (timeout > 10) {
-                 PrintAndLogEx(WARNING, "\ncommand execution time out");
-                 free(data);
-                 return PM3_ETIMEOUT;
-@@ -964,7 +1001,7 @@ static int CmdLegicRestore(const char *Cmd) {
-         PrintAndLogEx(NORMAL, "");
+     uint8_t timeout = 0;
+@@ -750,7 +750,7 @@ void legic_seteml(uint8_t *src, uint32_t offset, uint32_t numofbytes) {
+         memcpy(payload->data, src + i, len);
  
-         if (resp.status != PM3_SUCCESS) {
--            PrintAndLogEx(WARNING, "Failed writing tag [msg = %u]", (uint8_t)(resp.oldarg[1] & 0xFF));
-+            PrintAndLogEx(WARNING, "Failed writing tag");
-             free(data);
-             return PM3_ERFTRANS;
-         }
-@@ -979,15 +1016,14 @@ static int CmdLegicRestore(const char *Cmd) {
- static int CmdLegicELoad(const char *Cmd) {
-     CLIParserContext *ctx;
-     CLIParserInit(&ctx, "hf legic eload",
--                  "Loads a LEGIC binary dump into emulator memory",
--                  "hf legic eload -f myfile -t 0  -> Simulate Type MIM22\n"
--                  "hf legic eload -f myfile -t 1  -> Simulate Type MIM256 (def)\n"
--                  "hf legic eload -f myfile -t 2  -> Simulate Type MIM1024");
-+                  "Loads a LEGIC Prime dump file into emulator memory",
-+                  "hf legic eload -f myfile\n"
-+                  "hf legic eload -f myfile --obfuscate\n"
-+                );
+         clearCommandBuffer();
+-        SendCommandNG(CMD_HF_LEGIC_ESET, (uint8_t*)payload, sizeof(legic_packet_t) + len);
++        SendCommandNG(CMD_HF_LEGIC_ESET, (uint8_t *)payload, sizeof(legic_packet_t) + len);
+         free(payload);
+     }
+ }
+@@ -818,7 +818,7 @@ static int CmdLegicDump(const char *Cmd) {
+     payload->len = dumplen;
+ 
+     clearCommandBuffer();
+-    SendCommandNG(CMD_HF_LEGIC_READER, (uint8_t*)payload, sizeof(legic_packet_t));
++    SendCommandNG(CMD_HF_LEGIC_READER, (uint8_t *)payload, sizeof(legic_packet_t));
+     PacketResponseNG resp;
+ 
+     uint8_t timeout = 0;
+@@ -985,7 +985,7 @@ static int CmdLegicRestore(const char *Cmd) {
+         memcpy(payload->data, data + i, len);
+ 
+         clearCommandBuffer();
+-        SendCommandNG(CMD_HF_LEGIC_WRITER, (uint8_t*)payload, sizeof(legic_packet_t) + len);
++        SendCommandNG(CMD_HF_LEGIC_WRITER, (uint8_t *)payload, sizeof(legic_packet_t) + len);
+         free(payload);
+ 
+         uint8_t timeout = 0;
+@@ -1019,7 +1019,7 @@ static int CmdLegicELoad(const char *Cmd) {
+                   "Loads a LEGIC Prime dump file into emulator memory",
+                   "hf legic eload -f myfile\n"
+                   "hf legic eload -f myfile --obfuscate\n"
+-                );
++                 );
  
      void *argtable[] = {
          arg_param_begin,
--        arg_str1("f", "file", "<fn>", "Filename to restore"),
--        arg_int0("t", "type", "<dec>", "Tag type to simulate."),
-+        arg_str1("f", "file", "<fn>", "Filename to load"),
-         arg_lit0(NULL, "obfuscate", "Obfuscate dump data (xor with MCC)"),
-         arg_param_end
-     };
-@@ -997,67 +1033,81 @@ static int CmdLegicELoad(const char *Cmd) {
-     char filename[FILE_PATH_SIZE] = {0};
-     CLIParamStrToBuf(arg_get_str(ctx, 1), (uint8_t *)filename, FILE_PATH_SIZE, &fnlen);
+@@ -1073,8 +1073,8 @@ static int CmdLegicELoad(const char *Cmd) {
  
--    size_t numofbytes = 0;
-+    bool shall_obsfuscate = arg_get_lit(ctx, 2);
-+    CLIParserFree(ctx);
- 
--    switch (arg_get_int_def(ctx, 2, 1)) {
--        case 0:
--            numofbytes = 22;
-+    // set up buffer
-+    uint8_t *data = NULL;
-+    size_t bytes_read = 0;
-+    int res = 0;
-+    DumpFileType_t dftype = getfiletype(filename);
-+    switch (dftype) {
-+        case BIN: {
-+            res = loadFile_safe(filename, ".bin", (void **)&data, &bytes_read);
-             break;
--        case 1:
--            numofbytes = 256;
-+        }
-+        case EML: {
-+            res = loadFileEML_safe(filename, (void **)&data, &bytes_read);
-             break;
--        case 2:
--            numofbytes = 1024;
-+        }
-+        case JSON: {
-+            data = calloc(LEGIC_PRIME_MIM1024, sizeof(uint8_t));
-+            if (data == NULL) {
-+                PrintAndLogEx(WARNING, "Fail, cannot allocate memory");
-+                return PM3_EMALLOC;
-+            }
-+            res = loadFileJSON(filename, (void *)data, LEGIC_PRIME_MIM1024, &bytes_read, NULL);
-             break;
--        default:
--            PrintAndLogEx(ERR, "Unknown tag type");
--            CLIParserFree(ctx);
-+        }
-+        case DICTIONARY: {
-+            PrintAndLogEx(ERR, "Error: Only BIN/JSON/EML formats allowed");
-+            free(data);
-             return PM3_EINVARG;
-+        }
-     }
- 
--    bool shall_obsfuscate = arg_get_lit(ctx, 3);
--
--    CLIParserFree(ctx);
--
--    // set up buffer
--    uint8_t *data = calloc(numofbytes, sizeof(uint8_t));
--    if (!data) {
--        PrintAndLogEx(WARNING, "Fail, cannot allocate memory");
--        return PM3_EMALLOC;
-+    if (res != PM3_SUCCESS) {
-+        free(data);
-+        return PM3_EFILE;
-     }
- 
--    if (loadFile_safe(filename, ".bin", (void **)&data, &numofbytes) != PM3_SUCCESS) {
-+    // validation
-+    if (bytes_read != LEGIC_PRIME_MIM22 &&
-+        bytes_read != LEGIC_PRIME_MIM256 &&
-+        bytes_read != LEGIC_PRIME_MIM1024) {
-+        PrintAndLogEx(ERR, "File content error. Read %zu bytes", bytes_read);
+     // validation
+     if (bytes_read != LEGIC_PRIME_MIM22 &&
+-        bytes_read != LEGIC_PRIME_MIM256 &&
+-        bytes_read != LEGIC_PRIME_MIM1024) {
++            bytes_read != LEGIC_PRIME_MIM256 &&
++            bytes_read != LEGIC_PRIME_MIM1024) {
+         PrintAndLogEx(ERR, "File content error. Read %zu bytes", bytes_read);
          free(data);
--        PrintAndLogEx(WARNING, "Error, reading file");
          return PM3_EFILE;
-     }
+@@ -1099,7 +1099,7 @@ static int CmdLegicESave(const char *Cmd) {
+                   "hf legic esave                    --> uses UID as filename\n"
+                   "hf legic esave -f myfile --22\n"
+                   "hf legic esave -f myfile --22 --de\n"
+-                );
++                 );
  
-     if (shall_obsfuscate) {
--        legic_xor(data, numofbytes);
-+        legic_xor(data, bytes_read);
-     }
+     void *argtable[] = {
+         arg_param_begin,
+@@ -1282,7 +1282,7 @@ static int CmdLegicWipe(const char *Cmd) {
+         memcpy(payload->data, data + i, len);
  
-     PrintAndLogEx(SUCCESS, "Uploading to emulator memory");
--    legic_seteml(data, 0, numofbytes);
-+    legic_seteml(data, 0, bytes_read);
+         clearCommandBuffer();
+-        SendCommandNG(CMD_HF_LEGIC_WRITER, (uint8_t*)payload, sizeof(legic_packet_t) + len);
++        SendCommandNG(CMD_HF_LEGIC_WRITER, (uint8_t *)payload, sizeof(legic_packet_t) + len);
+         free(payload);
  
-     free(data);
--    PrintAndLogEx(SUCCESS, "Done");
-+    PrintAndLogEx(SUCCESS, "Done!");
-     return PM3_SUCCESS;
+         uint8_t timeout = 0;
+@@ -1369,11 +1369,11 @@ static int CmdLegicView(const char *Cmd) {
+     PrintAndLogEx(INFO, "---+-------------------------------------------------+-----------------");
+     print_hex_break(dump, bytes_read, 16);
+     free(dump);
+-    return PM3_SUCCESS;    
++    return PM3_SUCCESS;
  }
  
- static int CmdLegicESave(const char *Cmd) {
-     CLIParserContext *ctx;
-     CLIParserInit(&ctx, "hf legic esave",
--                  "Saves bin/eml/json dump file of emulator memory",
--                  "hf legic esave                  --> uses UID as filename\n"
--                  "hf legic esave -f myfile -t 0   --> Type MIM22\n"
--                  "hf legic esave -f myfile -t 1   --> Type MIM256 (def)\n"
--                  "hf legic esave -f myfile -t 2   --> Type MIM1024");
-+                  "Saves a (bin/eml/json) dump file of emulator memory",
-+                  "hf legic esave                    --> uses UID as filename\n"
-+                  "hf legic esave -f myfile --22\n"
-+                  "hf legic esave -f myfile --22 --de\n"
-+                );
- 
-     void *argtable[] = {
-         arg_param_begin,
-         arg_str0("f", "file", "<fn>", "Filename to save"),
--        arg_int0("t", "type", "<dec>", "Tag type"),
--        arg_lit0(NULL, "deobfuscate", "De-obfuscate dump data (xor with MCC)"),
-+        arg_lit0(NULL, "22", "LEGIC Prime MIM22"),
-+        arg_lit0(NULL, "256", "LEGIC Prime MIM256 (def)"),
-+        arg_lit0(NULL, "1024", "LEGIC Prime MIM1024"),
-+        arg_lit0(NULL, "de", "De-obfuscate dump data (xor with MCC)"),
-         arg_param_end
-     };
-     CLIExecWithReturn(ctx, Cmd, argtable, true);
-@@ -1066,27 +1116,27 @@ static int CmdLegicESave(const char *Cmd) {
-     char filename[FILE_PATH_SIZE] = {0};
-     CLIParamStrToBuf(arg_get_str(ctx, 1), (uint8_t *)filename, FILE_PATH_SIZE, &fnlen);
- 
--    size_t numofbytes = 0;
-+    bool m1 = arg_get_lit(ctx, 2);
-+    bool m2 = arg_get_lit(ctx, 3);
-+    bool m3 = arg_get_lit(ctx, 4);
-+    bool shall_deobsfuscate = arg_get_lit(ctx, 5);
-+    CLIParserFree(ctx);
- 
--    switch (arg_get_int_def(ctx, 2, 1)) {
--        case 0:
--            numofbytes = 22;
--            break;
--        case 1:
--            numofbytes = 256;
--            break;
--        case 2:
--            numofbytes = 1024;
--            break;
--        default:
--            PrintAndLogEx(ERR, "Unknown tag type");
--            CLIParserFree(ctx);
--            return PM3_EINVARG;
-+    // validations
-+    if (m1 + m2 + m3 > 1) {
-+        PrintAndLogEx(WARNING, "Only specify one LEGIC Prime Type");
-+        return PM3_EINVARG;
-+    } else if (m1 + m2 + m3 == 0) {
-+        m2 = true;
+ static command_t CommandTable[] =  {
+-    {"-----------", CmdHelp,      AlwaysAvailable, "--------------------- " _CYAN_("operations") " ---------------------"},    
++    {"-----------", CmdHelp,      AlwaysAvailable, "--------------------- " _CYAN_("operations") " ---------------------"},
+     {"help",    CmdHelp,          AlwaysAvailable, "This help"},
+     {"dump",    CmdLegicDump,     IfPm3Legicrf,    "Dump LEGIC Prime tag to binary file"},
+     {"info",    CmdLegicInfo,     IfPm3Legicrf,    "Display deobfuscated and decoded LEGIC Prime tag data"},
+diff --git a/client/src/pm3line_vocabulory.h b/client/src/pm3line_vocabulory.h
+index a54adb525..8590b0b26 100644
+--- a/client/src/pm3line_vocabulory.h
++++ b/client/src/pm3line_vocabulory.h
+@@ -262,18 +262,20 @@ const static vocabulory_t vocabulory[] = {
+     { 1, "hf iclass permutekey" }, 
+     { 1, "hf iclass view" }, 
+     { 1, "hf legic help" }, 
++    { 0, "hf legic dump" }, 
++    { 0, "hf legic info" }, 
+     { 1, "hf legic list" }, 
++    { 0, "hf legic rdbl" }, 
+     { 0, "hf legic reader" }, 
+-    { 0, "hf legic info" }, 
+-    { 0, "hf legic dump" }, 
+     { 0, "hf legic restore" }, 
+-    { 0, "hf legic rdbl" }, 
+-    { 0, "hf legic sim" }, 
++    { 0, "hf legic wipe" }, 
+     { 0, "hf legic wrbl" }, 
++    { 0, "hf legic sim" }, 
++    { 0, "hf legic eload" }, 
++    { 0, "hf legic esave" }, 
++    { 0, "hf legic eview" }, 
+     { 1, "hf legic crc" }, 
+-    { 1, "hf legic eload" }, 
+-    { 1, "hf legic esave" }, 
+-    { 0, "hf legic wipe" }, 
++    { 1, "hf legic view" }, 
+     { 1, "hf lto help" }, 
+     { 0, "hf lto dump" }, 
+     { 0, "hf lto restore" }, 
+diff --git a/doc/commands.json b/doc/commands.json
+index d4b576162..dc72eb427 100644
+--- a/doc/commands.json
++++ b/doc/commands.json
+@@ -3165,77 +3165,71 @@
+             ],
+             "usage": "hf legic crc [-h] -d <hex> [--mcc <hex>] [-t <dec>]"
+         },
+-        "hf legic dump": {
+-            "command": "hf legic dump",
+-            "description": "read all memory from legic prime mim22, mim256, mim1024 and saves bin/eml/json dump file it autodetects card type.",
+-            "notes": [
+-                "hf legic dump -> use uid as filename",
+-                "hf legic dump -f myfile -> use user specified filename",
+-                "hf legic dump --de -> use uid as filename and deobfuscate data"
+-            ],
+-            "offline": false,
+-            "options": [
+-                "-h, --help this help",
+-                "-f, --file <fn> dump filename",
+-                "--de deobfuscate dump data (xor with mcc)"
+-            ],
+-            "usage": "hf legic dump [-h] [-f <fn>] [--de]"
+-        },
+         "hf legic eload": {
+             "command": "hf legic eload",
+-            "description": "loads a legic binary dump into emulator memory",
++            "description": "loads a legic prime dump file into emulator memory",
+             "notes": [
+-                "hf legic eload -f myfile -t 0 -> simulate type mim22",
+-                "hf legic eload -f myfile -t 1 -> simulate type mim256 (default)",
+-                "hf legic eload -f myfile -t 2 -> simulate type mim1024"
++                "hf legic eload -f myfile",
++                "hf legic eload -f myfile --obfuscate"
+             ],
+-            "offline": true,
++            "offline": false,
+             "options": [
+                 "-h, --help this help",
+-                "-f, --file <fn> filename to restore",
+-                "-t, --type <dec> tag type to simulate.",
++                "-f, --file <fn> filename to load",
+                 "--obfuscate obfuscate dump data (xor with mcc)"
+             ],
+-            "usage": "hf legic eload [-h] -f <fn> [-t <dec>] [--obfuscate]"
++            "usage": "hf legic eload [-h] -f <fn> [--obfuscate]"
+         },
+         "hf legic esave": {
+             "command": "hf legic esave",
+-            "description": "saves bin/eml/json dump file of emulator memory",
++            "description": "saves a (bin/eml/json) dump file of emulator memory",
+             "notes": [
+                 "hf legic esave -> uses uid as filename",
+-                "hf legic esave -f myfile -t 0 -> type mim22",
+-                "hf legic esave -f myfile -t 1 -> type mim256 (default)",
+-                "hf legic esave -f myfile -t 2 -> type mim1024"
++                "hf legic esave -f myfile --22",
++                "hf legic esave -f myfile --22 --de"
+             ],
+-            "offline": true,
++            "offline": false,
+             "options": [
+                 "-h, --help this help",
+                 "-f, --file <fn> filename to save",
+-                "-t, --type <dec> tag type",
+-                "--deobfuscate de-obfuscate dump data (xor with mcc)"
++                "--22 legic prime mim22",
++                "--256 legic prime mim256 (def)",
++                "--1024 legic prime mim1024",
++                "--de de-obfuscate dump data (xor with mcc)"
+             ],
+-            "usage": "hf legic esave [-h] [-f <fn>] [-t <dec>] [--deobfuscate]"
++            "usage": "hf legic esave [-h] [-f <fn>] [--22] [--256] [--1024] [--de]"
++        },
++        "hf legic eview": {
++            "command": "hf legic eview",
++            "description": "it displays emulator memory",
++            "notes": [
++                "hf legic eview",
++                "hf legic eview --22"
++            ],
++            "offline": false,
++            "options": [
++                "-h, --help this help",
++                "--22 legic prime mim22",
++                "--256 legic prime mim256 (def)",
++                "--1024 legic prime mim1024"
++            ],
++            "usage": "hf legic eview [-h] [--22] [--256] [--1024]"
+         },
+         "hf legic help": {
+             "command": "hf legic help",
+-            "description": "help this help list list legic history crc calculate legic crc over given bytes eload load binary dump to emulator memory esave save emulator memory to binary file --------------------------------------------------------------------------------------- hf legic list available offline: yes alias of `trace list -t legic` with selected protocol data to annotate trace buffer you can load a trace from file (see `trace load -h`) or it be downloaded from device by default it accepts all other arguments of `trace list`. note that some might not be relevant for this specific protocol",
++            "description": "----------- --------------------- operations --------------------- help this help list list legic history ----------- --------------------- simulation --------------------- ----------- --------------------- utils --------------------- crc calculate legic crc over given bytes view display content from tag dump file --------------------------------------------------------------------------------------- hf legic dump available offline: no read all memory from legic prime tags and saves to (bin/eml/json) dump file it autodetects card type (mim22, mim256, mim1024)",
+             "notes": [
+-                "hf legic list -f -> show frame delay times",
+-                "hf legic list -1 -> use trace buffer"
++                "hf legic dump -> use uid as filename",
++                "hf legic dump -f myfile",
++                "hf legic dump --de -> use uid as filename and deobfuscate data"
+             ],
+             "offline": true,
+             "options": [
+                 "-h, --help this help",
+-                "-1, --buffer use data from trace buffer",
+-                "-f show frame delay times",
+-                "-c mark crc bytes",
+-                "-r show relative times (gap and duration)",
+-                "-u display times in microseconds instead of clock cycles",
+-                "-x show hexdump to convert to pcap(ng)",
+-                "or to import into wireshark using encapsulation type \"iso 14443\"",
+-                "--dict <file> use dictionary keys file"
++                "-f, --file <fn> dump filename",
++                "--de deobfuscate dump data (xor with mcc)"
+             ],
+-            "usage": "hf legic list [-h1fcrux] [--dict <file>]"
++            "usage": "hf legic dump [-h] [-f <fn>] [--de]"
+         },
+         "hf legic info": {
+             "command": "hf legic info",
+@@ -3249,13 +3243,34 @@
+             ],
+             "usage": "hf legic info [-h]"
+         },
++        "hf legic list": {
++            "command": "hf legic list",
++            "description": "alias of `trace list -t legic` with selected protocol data to annotate trace buffer you can load a trace from file (see `trace load -h`) or it be downloaded from device by default it accepts all other arguments of `trace list`. note that some might not be relevant for this specific protocol",
++            "notes": [
++                "hf legic list -f -> show frame delay times",
++                "hf legic list -1 -> use trace buffer"
++            ],
++            "offline": true,
++            "options": [
++                "-h, --help this help",
++                "-1, --buffer use data from trace buffer",
++                "-f show frame delay times",
++                "-c mark crc bytes",
++                "-r show relative times (gap and duration)",
++                "-u display times in microseconds instead of clock cycles",
++                "-x show hexdump to convert to pcap(ng)",
++                "or to import into wireshark using encapsulation type \"iso 14443\"",
++                "--dict <file> use dictionary keys file"
++            ],
++            "usage": "hf legic list [-h1fcrux] [--dict <file>]"
++        },
+         "hf legic rdbl": {
+             "command": "hf legic rdbl",
+             "description": "read data from a legic prime tag",
+             "notes": [
+-                "hf legic rdbl -o 0 -l 16 -> reads from byte[0] 16 bytes(system header)",
+-                "hf legic rdbl -o 0 -l 4 --iv 55 -> reads from byte[0] 4 bytes with iv 0x55",
+-                "hf legic rdbl -o 0 -l 256 --iv 55 -> reads from byte[0] 256 bytes with iv 0x55"
++                "hf legic rdbl -o 0 -l 16 -> read 16 bytes from offset 0 (system header)",
++                "hf legic rdbl -o 0 -l 4 --iv 55 -> read 4 bytes from offset 0",
++                "hf legic rdbl -o 0 -l 256 --iv 55 -> read 256 bytes from offset 0"
+             ],
+             "offline": false,
+             "options": [
+@@ -3264,7 +3279,7 @@
+                 "-l, --length <dec> number of bytes to read",
+                 "--iv <hex> initialization vector to use. must be odd and 7bits max"
+             ],
+-            "usage": "hf legic rdbl [-h] -o <dec> -l <dec> [--iv <hex>]"
++            "usage": "hf legic rdbl [-h] [-o <dec>] [-l <dec>] [--iv <hex>]"
+         },
+         "hf legic reader": {
+             "command": "hf legic reader",
+@@ -3281,7 +3296,7 @@
+         },
+         "hf legic restore": {
+             "command": "hf legic restore",
+-            "description": "reads binary file and it autodetects card type and verifies that the file has the same size then write the data back to card. all bytes except the first 7bytes [uid(4) mcc(1) dcf(2)]",
++            "description": "reads (bin/eml/json) file and it autodetects card type and verifies that the file has the same size then write the data back to card. all bytes except the first 7bytes [uid(4) mcc(1) dcf(2)]",
+             "notes": [
+                 "hf legic restore -f myfile -> use user specified filename",
+                 "hf legic restore -f myfile --ob -> use uid as filename and obfuscate data"
+@@ -3296,18 +3311,31 @@
+         },
+         "hf legic sim": {
+             "command": "hf legic sim",
+-            "description": "simulates a legic prime tag. mim22, mim256, mim1024 types can be emulated",
++            "description": "simulates a legic prime tag. following types supported (mim22, mim256, mim1024)",
+             "notes": [
+-                "hf legic sim -t 0 -> simulate type mim22",
+-                "hf legic sim -t 1 -> simulate type mim256 (default)",
+-                "hf legic sim -t 2 -> simulate type mim1024"
++                "hf legic sim --22"
+             ],
+             "offline": false,
+             "options": [
+                 "-h, --help this help",
+-                "-t, --type <dec> tag type to simulate."
++                "--22 legic prime mim22",
++                "--256 legic prime mim256 (def)",
++                "--1024 legic prime mim1024"
++            ],
++            "usage": "hf legic sim [-h] [--22] [--256] [--1024]"
++        },
++        "hf legic view": {
++            "command": "hf legic view",
++            "description": "print a legic prime dump file (bin/eml/json)",
++            "notes": [
++                "hf legic view -f hf-legic-01020304-dump.bin"
++            ],
++            "offline": true,
++            "options": [
++                "-h, --help this help",
++                "-f, --file <fn> filename of dump"
+             ],
+-            "usage": "hf legic sim [-h] [-t <dec>]"
++            "usage": "hf legic view [-h] -f <fn>"
+         },
+         "hf legic wipe": {
+             "command": "hf legic wipe",
+@@ -6258,8 +6286,8 @@
+             "offline": false,
+             "options": [
+                 "-h, --help this help",
+-                "-l, --lf detect low frequence 125/134 khz",
+-                "-h, --hf detect high frequence 13.56 mhz"
++                "-l, --lf detect low frequency 125/134 khz",
++                "-h, --hf detect high frequency 13.56 mhz"
+             ],
+             "usage": "hw detectreader [-hlh]"
+         },
+@@ -10415,8 +10443,8 @@
+         }
+     },
+     "metadata": {
+-        "commands_extracted": 606,
++        "commands_extracted": 608,
+         "extracted_by": "PM3Help2JSON v1.00",
+-        "extracted_on": "2022-02-13T11:23:34"
++        "extracted_on": "2022-02-14T20:43:01"
      }
+ }
+\ No newline at end of file
+diff --git a/doc/commands.md b/doc/commands.md
+index b695ba5b5..cf1be550e 100644
+--- a/doc/commands.md
++++ b/doc/commands.md
+@@ -401,18 +401,20 @@ Check column "offline" for their availability.
+ |command                  |offline |description
+ |-------                  |------- |-----------
+ |`hf legic help          `|Y       |`This help`
++|`hf legic dump          `|N       |`Dump LEGIC Prime tag to binary file`
++|`hf legic info          `|N       |`Display deobfuscated and decoded LEGIC Prime tag data`
+ |`hf legic list          `|Y       |`List LEGIC history`
++|`hf legic rdbl          `|N       |`Read bytes from a LEGIC Prime tag`
+ |`hf legic reader        `|N       |`LEGIC Prime Reader UID and tag info`
+-|`hf legic info          `|N       |`Display deobfuscated and decoded LEGIC Prime tag data`
+-|`hf legic dump          `|N       |`Dump LEGIC Prime tag to binary file`
+ |`hf legic restore       `|N       |`Restore a dump file onto a LEGIC Prime tag`
+-|`hf legic rdbl          `|N       |`Read bytes from a LEGIC Prime tag`
+-|`hf legic sim           `|N       |`Start tag simulator`
++|`hf legic wipe          `|N       |`Wipe a LEGIC Prime tag`
+ |`hf legic wrbl          `|N       |`Write data to a LEGIC Prime tag`
++|`hf legic sim           `|N       |`Start tag simulator`
++|`hf legic eload         `|N       |`Load binary dump to emulator memory`
++|`hf legic esave         `|N       |`Save emulator memory to binary file`
++|`hf legic eview         `|N       |`View emulator memory`
+ |`hf legic crc           `|Y       |`Calculate Legic CRC over given bytes`
+-|`hf legic eload         `|Y       |`Load binary dump to emulator memory`
+-|`hf legic esave         `|Y       |`Save emulator memory to binary file`
+-|`hf legic wipe          `|N       |`Wipe a LEGIC Prime tag`
++|`hf legic view          `|Y       |`Display content from tag dump file`
  
--    bool shall_deobsfuscate = arg_get_lit(ctx, 3);
--
--    CLIParserFree(ctx);
-+    size_t numofbytes = LEGIC_PRIME_MIM256;
-+    if (m1)
-+        numofbytes = LEGIC_PRIME_MIM22;
-+    else if (m2)
-+        numofbytes = LEGIC_PRIME_MIM256;
-+    else if (m3)
-+        numofbytes = LEGIC_PRIME_MIM1024;
  
-     // set up buffer
-     uint8_t *data = calloc(numofbytes, sizeof(uint8_t));
-@@ -1126,38 +1176,37 @@ static int CmdLegicEView(const char *Cmd) {
-     CLIParserInit(&ctx, "hf legic eview",
-                   "It displays emulator memory",
-                   "hf legic eview\n"
--                  "hf legic eview -t 0  -> MIM22\n"
--                  "hf legic eview -t 1  -> MIM256 (def)\n"
--                  "hf legic eview -t 2  -> MIM1024"
-+                  "hf legic eview --22\n"
-                  );
-     void *argtable[] = {
-         arg_param_begin,
--        arg_int0("t", "type", "<dec>", "Tag type to simulate."),        
-+        arg_lit0(NULL, "22", "LEGIC Prime MIM22"),
-+        arg_lit0(NULL, "256", "LEGIC Prime MIM256 (def)"),
-+        arg_lit0(NULL, "1024", "LEGIC Prime MIM1024"),
-         arg_param_end
-     };
-     CLIExecWithReturn(ctx, Cmd, argtable, true);
- 
--    size_t bytes = 0;
--
--    switch (arg_get_int_def(ctx, 1, 1)) {
--        case 0:
--            bytes = 22;
--            break;
--        case 1:
--            bytes = 256;
--            break;
--        case 2:
--            bytes = LEGIC_PRIME_MAX_LENGTH;
--            break;
--        default:
--            PrintAndLogEx(ERR, "Unknown tag type");
--            CLIParserFree(ctx);
--            return PM3_EINVARG;
--    }
--
-+    bool m1 = arg_get_lit(ctx, 1);
-+    bool m2 = arg_get_lit(ctx, 2);
-+    bool m3 = arg_get_lit(ctx, 3);
-     CLIParserFree(ctx);
- 
-     // validations
-+    if (m1 + m2 + m3 > 1) {
-+        PrintAndLogEx(WARNING, "Only specify one LEGIC Prime Type");
-+        return PM3_EINVARG;
-+    } else if (m1 + m2 + m3 == 0) {
-+        m2 = true;
-+    }
-+
-+    size_t bytes = LEGIC_PRIME_MIM256;
-+    if (m1)
-+        bytes = LEGIC_PRIME_MIM22;
-+    else if (m2)
-+        bytes = LEGIC_PRIME_MIM256;
-+    else if (m3)
-+        bytes = LEGIC_PRIME_MIM1024;
- 
-     uint8_t *dump = calloc(bytes, sizeof(uint8_t));
-     if (dump == NULL) {
-@@ -1240,7 +1289,7 @@ static int CmdLegicWipe(const char *Cmd) {
-         while (WaitForResponseTimeout(CMD_HF_LEGIC_WRITER, &resp, 2000) == false) {
-             ++timeout;
-             PrintAndLogEx(NORMAL, "." NOLF);
--            if (timeout > 7) {
-+            if (timeout > 10) {
-                 PrintAndLogEx(WARNING, "\ncommand execution time out");
-                 free(data);
-                 return PM3_ETIMEOUT;
-@@ -1291,12 +1340,12 @@ static int CmdLegicView(const char *Cmd) {
-             break;
-         }
-         case JSON: {
--            dump = calloc(LEGIC_PRIME_MAX_LENGTH, sizeof(uint8_t));
-+            dump = calloc(LEGIC_PRIME_MIM1024, sizeof(uint8_t));
-             if (dump == NULL) {
-                 PrintAndLogEx(WARNING, "Fail, cannot allocate memory");
-                 return PM3_EMALLOC;
-             }
--            res = loadFileJSON(filename, (void *)dump, LEGIC_PRIME_MAX_LENGTH, &bytes_read, NULL);
-+            res = loadFileJSON(filename, (void *)dump, LEGIC_PRIME_MIM1024, &bytes_read, NULL);
-             break;
-         }
-         case EML:
+ ### hf lto
