@@ -1,24 +1,19 @@
-commit 1953cd953bca6849682a1168cf341bf83b942a52
+commit a45082e045a22aff7178282da302b1602eb2e947
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun Mar 13 03:54:37 2022 +0100
+Date:   Sun Mar 13 03:57:10 2022 +0100
 
-    codeQL fix
+    increase string line array
 
 diff --git a/client/src/cmddata.c b/client/src/cmddata.c
-index 2479752e4..1745e62da 100644
+index 1745e62da..fd48f2f1e 100644
 --- a/client/src/cmddata.c
 +++ b/client/src/cmddata.c
-@@ -2943,11 +2943,11 @@ static int CmdDiff(const char *Cmd) {
-     }
+@@ -3106,7 +3106,7 @@ static int CmdDiff(const char *Cmd) {
  
-     if (splenA > 32) {
--        PrintAndLogEx(WARNING, "SPIFFS filname A length is large than 32 bytes, got %zu", splenA);
-+        PrintAndLogEx(WARNING, "SPIFFS filname A length is large than 32 bytes, got %d", splenA);
-         return PM3_EINVARG;
-     }
-     if (splenB > 32) {
--        PrintAndLogEx(WARNING, "SPIFFS filname B length is large than 32 bytes, got %zu", splenB);
-+        PrintAndLogEx(WARNING, "SPIFFS filname B length is large than 32 bytes, got %d", splenB);
-         return PM3_EINVARG;
-     }
+     // index 4bytes, spaces, bar, bytes with ansi codes
+     // (16 * 2 * 8 ) + 32 
+-    char line[800] = {0};
++    char line[880] = {0};
  
+     // print data diff loop
+     for (int i = 0; i < n;  i += width ) {
