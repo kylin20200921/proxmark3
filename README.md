@@ -1,155 +1,372 @@
-commit 7310834b69197efdaa9302aa83a510fafb295e04
+commit 04b86073b2546c442813e3741f231eefe70971d2
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sat Feb 19 00:15:34 2022 +0100
+Date:   Mon Feb 21 15:56:49 2022 +0100
 
-    added a compact tlv decoder for ATR historical bytes in 14a info
+    ndef simple wifi record decoder
 
-diff --git a/CHANGELOG.md b/CHANGELOG.md
-index b4ec94ce5..7279766f6 100644
---- a/CHANGELOG.md
-+++ b/CHANGELOG.md
-@@ -3,16 +3,17 @@ All notable changes to this project will be documented in this file.
- This project uses the changelog in accordance with [keepchangelog](http://keepachangelog.com/). Please use this to write notable changes, which is not the same as git commit log...
+diff --git a/client/src/nfc/ndef.c b/client/src/nfc/ndef.c
+index 014e6b688..32ffe0c79 100644
+--- a/client/src/nfc/ndef.c
++++ b/client/src/nfc/ndef.c
+@@ -32,11 +32,12 @@
  
- ## [unreleased][unreleased]
-- - Added `hf mf value`  - decode a value block (@iceman1001)
-- - Changed `hf mf nested`: removed option `--single` redundant with usage of `--tblk` (@doegox)
-- - Fixed `hf mf chk` single block mode (@doegox)
-- - Fixed `hf mf fchk/chk` internal logic to load keys (@doegox)
-- - Changed `hf mf *` printKeyTable: now display sector trailer info too (@doegox)
-- - Changed `hf mf chk` option `--blk` into `--tblk` (as for nested) (@doegox)
-+ - Changed `hf 14a info` - added a ATR historical compact TLV decoder (@iceman1001)
-+ - Added `hf mf value` - decode a value block (@iceman1001)
-+ - Changed `hf mf nested` - removed option `--single` redundant with usage of `--tblk` (@doegox)
-+ - Fixed `hf mf chk` - single block mode (@doegox)
-+ - Fixed `hf mf fchk/chk` - internal logic to load keys (@doegox)
-+ - Changed `hf mf *` - printKeyTable: now display sector trailer info too (@doegox)
-+ - Changed `hf mf chk` - option `--blk` into `--tblk` (as for nested) (@doegox)
-  - Added new tool `mfd_multi_brute` - MIFARE DESfire / UL-C key recovery (@iceman1001)
-- - Fixed `hf emrtd info` segfault on some platforms (@doegox)
-- - Fixed `hf emrtd info` when offline (@doegox)
-- - Fixed `commands.json` generation (@doegox)
-+ - Fixed `hf emrtd info` - segfault on some platforms (@doegox)
-+ - Fixed `hf emrtd info` - when offline (@doegox)
-+ - Fixed `commands.json` - generation (@doegox)
-  - Added new standalone mode `hf_legicsim` (@uhei)
-  - Changed `hf legic *` - now uses NG instead (@iceman1001)
-  - Added `hf legic view` - view contents of LEGIC Prime dump files (@iceman1001)
-diff --git a/client/src/cmdhf14a.c b/client/src/cmdhf14a.c
-index ef2c3a03d..81de6b35e 100644
---- a/client/src/cmdhf14a.c
-+++ b/client/src/cmdhf14a.c
-@@ -1638,6 +1638,78 @@ static void getTagLabel(uint8_t uid0, uint8_t uid1) {
-     }
+ #define STRBOOL(p) ((p) ? "1" : "0")
+ 
+-#define NDEF_WIFIAPPL   "application/vnd.wfa"
+-#define NDEF_BLUEAPPL   "application/vnd.bluetooth"
+-#define NDEF_JSONAPPL   "application/json"
+-#define NDEF_VCARDTEXT  "text/vcard"
+-#define NDEF_XVCARDTEXT "text/x-vcard"
++#define NDEF_WIFIAPPL_WSC "application/vnd.wfa.wsc"
++#define NDEF_WIFIAPPL_P2P "application/vnd.wfa.p2p"
++#define NDEF_BLUEAPPL     "application/vnd.bluetooth"
++#define NDEF_JSONAPPL     "application/json"
++#define NDEF_VCARDTEXT    "text/vcard"
++#define NDEF_XVCARDTEXT   "text/x-vcard"
+ 
+ 
+ static const char *TypeNameFormat_s[] = {
+@@ -512,11 +513,221 @@ static int ndefDecodePayloadSmartPoster(uint8_t *ndef, size_t ndeflen, bool prin
+     return PM3_SUCCESS;
  }
  
-+static void get_compact_tlv(uint8_t* d, uint8_t n) {
-+    d++;
-+    n--;
+-static int ndefDecodeMime_wifi(NDEFHeader_t *ndef) {
+-    PrintAndLogEx(INFO, _CYAN_("WiFi details"));
+-    if (ndef->PayloadLen > 1) {
+-        PrintAndLogEx(INFO, ">>> decorder, to be implemented <<<");
 +
-+    while (n > 0) {
-+        uint8_t tag = NIBBLE_HIGH(d[0]);
-+        uint8_t len = NIBBLE_LOW(d[0]);
++typedef struct ndef_wifi_type_s {
++    const char* description;
++    uint8_t bytes[2];
++} ndef_wifi_type_t;
 +
-+        switch(tag) {
-+            case 1:
-+                PrintAndLogEx(INFO, "    %1x%1x  " _YELLOW_("%s") "   Country code in (ISO 3166-1)", tag, len, sprint_hex_inrow(d + 1, len));
-+                // iso3166 script in cmdlffdb.c is buggy,  Åland, Australia not showing.  getline issues
-+                break;
-+            case 2:
-+                PrintAndLogEx(INFO, "    %1x%1x  " _YELLOW_("%s") "   Issuer identification number (ISO 7812-1)", tag, len, sprint_hex_inrow(d + 1, len));
-+                break;
-+            case 3:
-+                PrintAndLogEx(INFO, "    %1x%1x  " _YELLOW_("%s") "   Card service data byte", tag, len, sprint_hex_inrow(d + 1, len));
-+                PrintAndLogEx(INFO, "    %c.......    Application selection: by full DF name", (d[1] & 0x80) ? '1' : '0');
-+                PrintAndLogEx(INFO, "    .%c......    Application selection: by partial DF name", (d[1] & 0x40) ? '1' : '0');
-+                PrintAndLogEx(INFO, "    ..%c.....    BER-TLV data objects available in EF.DIR", (d[1] & 0x20) ? '1' : '0');
-+                PrintAndLogEx(INFO, "    ...%c....    BER-TLV data objects available in EF.ATR", (d[1] & 0x10) ? '1' : '0');
-+                PrintAndLogEx(INFO, "    ....%c...    EF.DIR and EF.ATR access services: by READ BINARY command", (d[1] & 0x08) ? '1' : '0');
-+                PrintAndLogEx(INFO, "    .....%c..    EF.DIR and EF.ATR access services: by GET DATA command", (d[1] & 0x04) ? '1' : '0');
-+                PrintAndLogEx(INFO, "    ......%c.    EF.DIR and EF.ATR access services: by GET RECORD(s) command", (d[1] & 0x02) ? '1' : '0');
-+                PrintAndLogEx(INFO, "    .......%c    EF.DIR and EF.ATR access services: RFU", (d[1] & 0x01) ? '1' : '0');
-+                break;
-+            case 4:
-+                PrintAndLogEx(INFO, "    %1x%1x  " _YELLOW_("%s") "   Initial access data", tag, len, sprint_hex_inrow(d + 1, len));
-+                break;
-+            case 5:
-+                PrintAndLogEx(INFO, "    %1x%1x  " _YELLOW_("%s") "   Card issuer data", tag, len, sprint_hex_inrow(d + 1, len));
-+                break;
-+            case 6:
-+                PrintAndLogEx(INFO, "    %1x%1x  " _YELLOW_("%s") "   Pre-issuing data", tag, len, sprint_hex_inrow(d + 1, len));
-+                break;
-+            case 7:
-+                PrintAndLogEx(INFO, "    %1x%1x " _YELLOW_("%s") "   Card capabilities", tag, len, sprint_hex_inrow(d + 1, len));
++static const ndef_wifi_type_t wifi_crypt_types[] = {
++    {"NONE",  {0x00, 0x01}},
++    {"WEP", {0x00, 0x02}},
++    {"TKIP", {0x00, 0x04}},
++    {"AES", {0x00, 0x08}},
++    {"AES/TKIP", {0x00, 0x0C}}
++};
 +
-+                PrintAndLogEx(INFO, "    " _YELLOW_("%02X") " - Selection methods", d[1]);
-+                PrintAndLogEx(INFO, "    %c.......    DF selection by full DF name", (d[1] & 0x80) ? '1' : '0');
-+                PrintAndLogEx(INFO, "    .%c......    DF selection by partial DF name", (d[1] & 0x40) ? '1' : '0');
-+                PrintAndLogEx(INFO, "    ..%c.....    DF selection by path", (d[1] & 0x20) ? '1' : '0');
-+                PrintAndLogEx(INFO, "    ...%c....    DF selection by file identifier", (d[1] & 0x10) ? '1' : '0');
-+                PrintAndLogEx(INFO, "    ....%c...    Implicit DF selection", (d[1] & 0x08) ? '1' : '0');
-+                PrintAndLogEx(INFO, "    .....%c..    Short EF identifier supported", (d[1] & 0x04) ? '1' : '0');
-+                PrintAndLogEx(INFO, "    ......%c.    Record number supported", (d[1] & 0x02) ? '1' : '0');
-+                PrintAndLogEx(INFO, "    .......%c    Record identifier supported", (d[1] & 0x01) ? '1' : '0');
-+
-+                if (len > 1) {
-+                    PrintAndLogEx(INFO, "    " _YELLOW_("%02X") " - Data coding byte", d[2]);
-+                }
-+                if (len > 2) {
-+                    PrintAndLogEx(INFO, "    " _YELLOW_("%02X") " - Command chaining, length fields and logical channels", d[3]);
-+                }
-+                break;
-+            case 8:
-+                PrintAndLogEx(INFO, "    %1x%1x ... " _YELLOW_("%s") "   Status indicator", tag, len, sprint_hex_inrow(d + 1, len));
-+                break;
-+            case 0xE:
-+                PrintAndLogEx(INFO, "    %1x%1x ... " _YELLOW_("%s") "   Application identifier", tag, len, sprint_hex_inrow(d + 1, len));
-+                break;
++static const char* ndef_wifi_crypt_lookup(uint8_t *d) {
++    for (int i = 0; i < ARRAYLEN(wifi_crypt_types); ++i) {
++        if ( memcmp(d, wifi_crypt_types[i].bytes, 2) == 0) {
++            return wifi_crypt_types[i].description;
 +        }
-+
-+        if (len > n)
-+            break;
-+
-+        n -= (1 + len);
-+        d += (1 + len);
 +    }
++    return "";
 +}
 +
- int infoHF14A(bool verbose, bool do_nack_test, bool do_aid_search) {
-     clearCommandBuffer();
-     SendCommandMIX(CMD_HF_ISO14443A_READER, ISO14A_CONNECT | ISO14A_NO_DISCONNECT, 0, 0, NULL, 0);
-@@ -2034,10 +2106,12 @@ int infoHF14A(bool verbose, bool do_nack_test, bool do_aid_search) {
-                 }
-             } else {
++static const ndef_wifi_type_t wifi_auth_types[] = {
++    {"OPEN", {0x00, 0x01}},
++    {"WPA PERSONAL", {0x00, 0x02}},
++    {"SHARED", {0x00, 0x04}},
++    {"WPA ENTERPRISE", {0x00, 0x08}},
++    {"WPA2 ENTERPRISE", {0x00, 0x10}},
++    {"WPA2 PERSONAL", {0x00, 0x20}},
++    {"WPA/WPA2 PERSONAL", {0x00, 0x22}}
++};
++
++static const char* ndef_wifi_auth_lookup(uint8_t *d) {
++    for (int i = 0; i < ARRAYLEN(wifi_auth_types); ++i) {
++        if ( memcmp(d, wifi_auth_types[i].bytes, 2) == 0) {
++            return wifi_auth_types[i].description;
++        }
+     }
++    return "";
++}
++
++static int ndefDecodeMime_wifi_wsc(NDEFHeader_t *ndef) {
++    if (ndef->PayloadLen == 0) {
++        PrintAndLogEx(INFO, "no payload");
++        return PM3_SUCCESS;
++    }
++
++    PrintAndLogEx(INFO, _CYAN_("NDEF Wifi Simple Config Record"));
++    PrintAndLogEx(INFO, "Type............ " _YELLOW_("%.*s"), (int)ndef->TypeLen, ndef->Type);
++
++    size_t n = ndef->PayloadLen;
++    size_t pos = 0;
++    while (n) {
++
++        if ( ndef->Payload[pos] != 0x10 ) {
++            n -= 1;
++            pos -= 1;
++            continue;
++        }
++
++        // VERSION 
++        if (memcmp(&ndef->Payload[pos], "\x10\x4A", 2) == 0) {
++            uint8_t len = 1;
++            PrintAndLogEx(INFO, "Version......... %s", sprint_hex(&ndef->Payload[pos + 2], len) );
++            n -= 2;
++            n -= len;
++            pos += 2;
++            pos += len;
++        }
++
++        // CREDENTIAL
++        if (memcmp(&ndef->Payload[pos], "\x10\x0E", 2) == 0) {
++            //  10 0E 00 39
++            uint8_t len = 2;
++            PrintAndLogEx(INFO, "Credential...... %s", sprint_hex(&ndef->Payload[pos + 2], len) );
++            n -= 2;
++            n -= len;
++            pos += 2;
++            pos += len;
++        }
++
++        // AUTH_TYPE 
++        if (memcmp(&ndef->Payload[pos], "\x10\x03", 2) == 0) {
++            // 10 03 00 02 00 20 
++            uint8_t len = 4;
++            PrintAndLogEx(INFO, "Auth type....... %s ( " _YELLOW_("%s")" )",
++                sprint_hex(&ndef->Payload[pos + 2], len),
++                ndef_wifi_auth_lookup(&ndef->Payload[pos + 2])
++                );
++            n -= 2;
++            n -= len;
++            pos += 2;
++            pos += len;
++        }
++
++        // CRYPT_TYPE
++        if (memcmp(&ndef->Payload[pos], "\x10\x0F", 2) == 0) {
++            // 10 0F 00 02 00 04
++            uint8_t len = 4;
++            PrintAndLogEx(INFO, "Crypt type...... %s ( " _YELLOW_("%s")" )",
++                sprint_hex(&ndef->Payload[pos + 2], len),
++                ndef_wifi_crypt_lookup(&ndef->Payload[pos + 2])
++                );
++            n -= 2;
++            n -= len;
++            pos += 2;
++            pos += len;
++        }
++
++        // MAC_ADDRESS
++        if (memcmp(&ndef->Payload[pos], "\x10\x20", 2) == 0) {
++            // 10 20 00 06 FF FF FF FF FF FF
++            uint8_t len = ndef->Payload[pos + 3];
++            PrintAndLogEx(INFO, "MAC Address..... %s", sprint_hex_ascii(&ndef->Payload[pos + 4], len) );
++            n -= 4;
++            n -= len;
++            pos += 4;
++            pos += len;
++        }
++
++        // NETWORK_IDX
++        if (memcmp(&ndef->Payload[pos], "\x10\x26", 2) == 0) {
++            // 10 26 00 01 01 
++            uint8_t len = 3;
++            PrintAndLogEx(INFO, "Network Index... %s", sprint_hex(&ndef->Payload[pos + 2], len) );
++            n -= 2;
++            n -= len;
++            pos += 2;
++            pos += len;
++        }
++
++        // NETWORK_KEY
++        if (memcmp(&ndef->Payload[pos], "\x10\x27", 2) == 0) {
++            // 10 27 00 10 74 72 69 73 74 61 6E 2D 73 70 72 69 6E 67 65 72 
++            uint8_t len = ndef->Payload[pos + 3];
++            PrintAndLogEx(INFO, "Network key..... %s", sprint_hex_ascii(&ndef->Payload[pos + 4], len) );
++            n -= 4;
++            n -= len;
++            pos += 4;
++            pos += len;
++        }
++        // NETWORK_NAME
++        if (memcmp(&ndef->Payload[pos], "\x10\x45", 2) == 0) {
++        // 10 45 00 06 69 63 65 73 71 6C
++            uint8_t len = ndef->Payload[pos + 3];
++            PrintAndLogEx(INFO, "Network Name.... %s", sprint_hex_ascii(&ndef->Payload[pos + 4], len) );
++            n -= 4;
++            n -= len;
++            pos += 4;
++            pos += len;
++        }
++
++        // OOB_PASSWORD
++        // unknown the length.
++        if (memcmp(&ndef->Payload[pos], "\x10\x2C", 2) == 0) {
++            uint8_t len = 1;
++            PrintAndLogEx(INFO, "OOB Password......... %s", sprint_hex(&ndef->Payload[pos + 2], len) );
++            n -= 2;
++            n -= len;
++            pos += 2;
++            pos += len;
++        }
++        // VENDOR_EXT
++        // unknown the length.        
++        if (memcmp(&ndef->Payload[pos], "\x10\x49", 2) == 0) {
++            uint8_t len = 1;
++            PrintAndLogEx(INFO, "Vendor Ext......... %s", sprint_hex(&ndef->Payload[pos + 2], len) );
++            n -= 2;
++            n -= len;
++            pos += 2;
++            pos += len;
++        }
++        // VENDOR_WFA
++        // unknown the length.        
++        if (memcmp(&ndef->Payload[pos], "\x10\x30\x2A", 3) == 0) {
++            uint8_t len = 1;
++            PrintAndLogEx(INFO, "Vendor WFA......... %s", sprint_hex(&ndef->Payload[pos + 2], len) );
++            n -= 2;
++            n -= len;
++            pos += 2;
++            pos += len;
++        }
++    }
++
++    /*
++        ap-channel   0,  6  
+++        credential
++        device-name
++        mac-address
++        manufacturer
++        model-name
++        model-number
+++        oob-password
++        primary-device-type
++        rf-bands
++        secondary-device-type-list
++        serial-number
++        ssid
++        uuid-enrollee
++        uuid-registrar
+++        vendor-extension
++        version-1
++     */
++
++    return PM3_SUCCESS;
++}
++static int ndefDecodeMime_wifi_p2p(NDEFHeader_t *ndef) {
++    if (ndef->PayloadLen == 0) {
++        PrintAndLogEx(INFO, "no payload");
++        return PM3_SUCCESS;
++    }
++
++    PrintAndLogEx(INFO, _CYAN_("NDEF Wifi Peer To Peer Record"));
++    PrintAndLogEx(INFO, "Type............ " _YELLOW_("%.*s"), (int)ndef->TypeLen, ndef->Type);
+     return PM3_SUCCESS;
+ }
  
--                if (card.ats[pos] == 0x80)
--                    PrintAndLogEx(SUCCESS, "   %s  (compact TLV data object)", sprint_hex_inrow(card.ats + pos, calen));
--                else
--                    PrintAndLogEx(SUCCESS, "   %s", sprint_hex_inrow(card.ats + pos, calen));
-+                if (card.ats[pos] == 0x80 || card.ats[pos] == 0x00) {
-+                    PrintAndLogEx(SUCCESS, "  %s  (compact TLV data object)", sprint_hex_inrow(&card.ats[pos], calen));
-+                    get_compact_tlv(card.ats + pos, calen);
-+                } else {
-+                    PrintAndLogEx(SUCCESS, "  %s", sprint_hex_inrow(card.ats + pos, calen));
-+                }
+@@ -554,55 +765,62 @@ static int ndefDecodeMime_vcard(NDEFHeader_t *ndef) {
+     }
+     return PM3_SUCCESS;
+ }
++
+ static int ndefDecodeMime_json(NDEFHeader_t *ndef) {
+-    PrintAndLogEx(INFO, _CYAN_("JSON details"));
+-    if (ndef->PayloadLen > 1) {
+-        PrintAndLogEx(INFO, "");
+-        PrintAndLogEx(INFO, _GREEN_("%.*s"), (int)ndef->PayloadLen, ndef->Payload);
++    if (ndef->PayloadLen == 0) {
++        PrintAndLogEx(INFO, "no payload");
++        return PM3_SUCCESS;
+     }
++
++    PrintAndLogEx(INFO, _CYAN_("JSON details"));
++    PrintAndLogEx(INFO, "Type............ " _YELLOW_("%.*s"), (int)ndef->TypeLen, ndef->Type);
++    PrintAndLogEx(INFO, "");
++    PrintAndLogEx(INFO, _GREEN_("%.*s"), (int)ndef->PayloadLen, ndef->Payload);
+     return PM3_SUCCESS;
+ }
  
-                 PrintAndLogEx(NORMAL, "");
+ static int ndefDecodeMime_bt(NDEFHeader_t *ndef) {
++    if (ndef->PayloadLen == 0) {
++        PrintAndLogEx(INFO, "no payload");
++        return PM3_SUCCESS;
++    }
+     PrintAndLogEx(INFO, "Type............ " _YELLOW_("%.*s"), (int)ndef->TypeLen, ndef->Type);
+-    if (ndef->PayloadLen > 1) {
+-        uint16_t ooblen = (ndef->Payload[1] << 8 | ndef->Payload[0]);
+-        PrintAndLogEx(INFO, "OOB data len.... %u", ooblen);
+-        PrintAndLogEx(INFO, "BT MAC.......... " _YELLOW_("%s"), sprint_hex(ndef->Payload + 2, 6));
+-        // Let's check payload[8]. Tells us a bit about the UUID's. If 0x07 then it tells us a service UUID is 128bit
+-        switch (ndef->Payload[8]) {
+-            case 0x02:
+-                PrintAndLogEx(INFO, "Optional Data... incomplete list 16-bit UUID's");
+-                break;
+-            case 0x03:
+-                PrintAndLogEx(INFO, "Optional Data... complete list 16-bit UUID's");
+-                break;
+-            case 0x04:
+-                PrintAndLogEx(INFO, "Optional Data... incomplete list 32-bit UUID's");
+-                break;
+-            case 0x05:
+-                PrintAndLogEx(INFO, "Optional Data... complete list 32-bit UUID's");
+-                break;
+-            case 0x06:
+-                PrintAndLogEx(INFO, "Optional Data... incomplete list 128-bit UUID's");
+-                break;
+-            case 0x07:
+-                PrintAndLogEx(INFO, "Optional Data... complete list 128-bit UUID's");
+-                break;
+-            default:
+-                PrintAndLogEx(INFO, "Optional Data... [ %02x ]", ndef->Payload[8]);
+-                break;
+-        }
+-        // Let's check payload[9]. If 0x08 then SHORT_NAME or if 0x09 then COMPLETE_NAME
+-        if (ndef->Payload[9] == 0x08) {
+-            PrintAndLogEx(INFO, "Short name...... " _YELLOW_("%.*s"), (int)(ndef->PayloadLen - 10), ndef->Payload + 10);
+-        } else if (ndef->Payload[9] == 0x09) {
+-            PrintAndLogEx(INFO, "Complete name... " _YELLOW_("%.*s"), (int)(ndef->PayloadLen - 10), ndef->Payload + 10);
+-        } else {
+-            PrintAndLogEx(INFO, "[ %02x ]", ndef->Payload[9]);
+-        }
+-        PrintAndLogEx(NORMAL, "");
++    uint16_t ooblen = (ndef->Payload[1] << 8 | ndef->Payload[0]);
++    PrintAndLogEx(INFO, "OOB data len.... %u", ooblen);
++    PrintAndLogEx(INFO, "BT MAC.......... " _YELLOW_("%s"), sprint_hex(ndef->Payload + 2, 6));
++    // Let's check payload[8]. Tells us a bit about the UUID's. If 0x07 then it tells us a service UUID is 128bit
++    switch (ndef->Payload[8]) {
++        case 0x02:
++            PrintAndLogEx(INFO, "Optional Data... incomplete list 16-bit UUID's");
++            break;
++        case 0x03:
++            PrintAndLogEx(INFO, "Optional Data... complete list 16-bit UUID's");
++            break;
++        case 0x04:
++            PrintAndLogEx(INFO, "Optional Data... incomplete list 32-bit UUID's");
++            break;
++        case 0x05:
++            PrintAndLogEx(INFO, "Optional Data... complete list 32-bit UUID's");
++            break;
++        case 0x06:
++            PrintAndLogEx(INFO, "Optional Data... incomplete list 128-bit UUID's");
++            break;
++        case 0x07:
++            PrintAndLogEx(INFO, "Optional Data... complete list 128-bit UUID's");
++            break;
++        default:
++            PrintAndLogEx(INFO, "Optional Data... [ %02x ]", ndef->Payload[8]);
++            break;
++    }
++    // Let's check payload[9]. If 0x08 then SHORT_NAME or if 0x09 then COMPLETE_NAME
++    if (ndef->Payload[9] == 0x08) {
++        PrintAndLogEx(INFO, "Short name...... " _YELLOW_("%.*s"), (int)(ndef->PayloadLen - 10), ndef->Payload + 10);
++    } else if (ndef->Payload[9] == 0x09) {
++        PrintAndLogEx(INFO, "Complete name... " _YELLOW_("%.*s"), (int)(ndef->PayloadLen - 10), ndef->Payload + 10);
++    } else {
++        PrintAndLogEx(INFO, "[ %02x ]", ndef->Payload[9]);
+     }
++    PrintAndLogEx(NORMAL, "");
+     return PM3_SUCCESS;
+ }
+ 
+@@ -687,8 +905,11 @@ static int ndefDecodePayload(NDEFHeader_t *ndef) {
+             memcpy(begin, ndef->Type, ndef->TypeLen);
+             str_lower(begin);
+ 
+-            if (str_startswith(begin, NDEF_WIFIAPPL)) {
+-                ndefDecodeMime_wifi(ndef);
++            if (str_startswith(begin, NDEF_WIFIAPPL_WSC)) {
++                ndefDecodeMime_wifi_wsc(ndef);
++            }
++            if (str_startswith(begin, NDEF_WIFIAPPL_P2P)) {
++                ndefDecodeMime_wifi_p2p(ndef);
              }
-diff --git a/include/common.h b/include/common.h
-index 314b67b57..2e245da43 100644
---- a/include/common.h
-+++ b/include/common.h
-@@ -158,11 +158,11 @@ extern bool g_tearoff_enabled;
- 
- // Nibble logic
- #ifndef NIBBLE_HIGH
--# define NIBBLE_HIGH(b) ( (b & 0xF0) >> 4 )
-+# define NIBBLE_HIGH(b) ( ((b) & 0xF0) >> 4 )
- #endif
- 
- #ifndef NIBBLE_LOW
--# define NIBBLE_LOW(b)  ( b & 0x0F )
-+# define NIBBLE_LOW(b)  ((b) & 0x0F )
- #endif
- 
- #ifndef CRUMB
+             if (str_startswith(begin, NDEF_VCARDTEXT) || str_startswith(begin, NDEF_XVCARDTEXT)) {
+                 ndefDecodeMime_vcard(ndef);
