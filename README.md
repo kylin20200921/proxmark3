@@ -1,9 +1,9 @@
-commit 5a9432f78afb76cf7fd7ccd0f22fc4cd19a265cb
-Merge: 1b0bac566 6bc37bb33
+commit 8ccda0ea91d924fe456af5170603db3445bc4d59
+Merge: 5a9432f78 b2e701d3f
 Author: iceman1001 <iceman@iuse.se>
-Date:   Wed Mar 30 18:03:20 2022 +0200
+Date:   Wed Mar 30 18:04:00 2022 +0200
 
-    Merge pull request #1646 from lnv42/master
+    Merge pull request #1645 from Doridian/fix/no-lowercase-commands-json
     
-    Fix USB communications when receiving empty frames
+    Remove force lowercasing of commands.json
 
