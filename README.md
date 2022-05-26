@@ -1,19 +1,19 @@
-commit 732a47944cd18b6cac28281db70fc4b51a62ce47
+commit 77e6626c9c3c86e25b5ea0902bbc4114ebc08757
 Author: iceman1001 <iceman@iuse.se>
-Date:   Wed Mar 23 22:39:36 2022 +0100
+Date:   Wed Mar 23 22:40:53 2022 +0100
 
-    remove verbose output.  less crap on lf search
+    textual
 
-diff --git a/client/src/cmdlfmotorola.c b/client/src/cmdlfmotorola.c
-index 8897eff16..f57b96079 100644
---- a/client/src/cmdlfmotorola.c
-+++ b/client/src/cmdlfmotorola.c
-@@ -37,7 +37,7 @@ static int CmdHelp(const char *Cmd);
- int demodMotorola(bool verbose) {
-     (void) verbose; // unused so far
-     //PSK1
--    if (PSKDemod(32, 1, 100, true) != PM3_SUCCESS) {
-+    if (PSKDemod(32, 1, 100, false) != PM3_SUCCESS) {
-         PrintAndLogEx(DEBUG, "DEBUG: Error - Motorola: PSK Demod failed");
-         return PM3_ESOFT;
-     }
+diff --git a/client/src/cmdlf.c b/client/src/cmdlf.c
+index 0252c4736..e8b14e611 100644
+--- a/client/src/cmdlf.c
++++ b/client/src/cmdlf.c
+@@ -1506,7 +1506,7 @@ int CmdLFfind(const char *Cmd) {
+                 }
+             }
+ 
+-            PrintAndLogEx(INPLACE, "Searching for COTAG tag...");
++            PrintAndLogEx(INPLACE, "Searching for COTAG tag...    ");
+             if (readCOTAGUid()) {
+                 PrintAndLogEx(SUCCESS, "\nValid " _GREEN_("COTAG ID") " found!");
+                 if (search_cont) {
