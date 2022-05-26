@@ -1,9 +1,9 @@
-commit 85441aeceb26be71782d208f013c13fd4c619498
-Merge: a8175a0f5 b7c6d07ee
+commit 4a017bc9d908268a7c12ad3f5c6b4b786d610c3d
+Merge: 85441aece 12ed4f1fd
 Author: iceman1001 <iceman@iuse.se>
-Date:   Tue Feb 15 20:10:55 2022 +0100
+Date:   Tue Feb 15 20:12:04 2022 +0100
 
-    Merge pull request #1603 from c-barron/master
+    Merge pull request #1602 from uhei/hf_legicsim
     
-    Bugfix for NXP GET_SYSTEM_INFO command
+    Standalone mode hf_legicsim
 
