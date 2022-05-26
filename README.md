@@ -1,9 +1,9 @@
-commit 84e49a5bff5170dcca910cf6fae84fda052ab861
-Merge: 42498fd75 9aee8e9cc
+commit d851152fe075a5fc59b65ae244669fd7fddb744b
+Merge: 84e49a5bf 42f4888f1
 Author: iceman1001 <iceman@iuse.se>
-Date:   Tue Mar 22 18:00:09 2022 +0100
+Date:   Tue Mar 22 18:19:22 2022 +0100
 
-    Merge pull request #1634 from nemanjan00/patch-2
+    Merge pull request #1633 from Giraut/master
     
-    Add `tools/mfd_aes_brute/mfd_multi_brute` to `.gitignore`
+    Encode ISO15693 response as tag byte by byte, instead of 2 bytes by 2…
 
