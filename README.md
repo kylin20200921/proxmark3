@@ -1,9 +1,9 @@
-commit 40eba164afa50a35dfc15faab9a21145a924b05b
-Merge: 9ad9afbb6 35fc7c2ab
+commit 50c521f8589eda6f403d5db4db041dec8d7eeb93
+Merge: 40eba164a 8457ccd49
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun May 8 07:31:32 2022 +0200
+Date:   Sun May 8 07:32:08 2022 +0200
 
-    Merge pull request #1670 from Vital7/patch-2
+    Merge pull request #1669 from Vital7/patch-1
     
-    Add podorozhnik keys
+    Add 2 social card keys
 
