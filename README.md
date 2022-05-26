@@ -1,9 +1,9 @@
-commit 75a814d8b899dcbfbbb03b881c47039a734b0fa3
-Merge: 248cc83aa 568236b26
+commit d5bbb54c8650f7b769c3fc01eba3dd294198cb73
+Merge: 75a814d8b c79cba4bc
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sun Mar 20 21:01:00 2022 +0100
+Date:   Sun Mar 20 21:02:23 2022 +0100
 
-    Merge pull request #1631 from gentilkiwi/patch-2
+    Merge pull request #1630 from equipter/master
     
-    Minor fix for EV2 XL Signature
+    Create hf_i2c_recovery.lua
 
