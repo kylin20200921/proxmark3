@@ -1,32 +1,27 @@
-commit 65b9a9fb769541f5d3e255ccf2c17d1cb77ac126
+commit a5b5b2f08a498770f26544b106dc3d320de198fe
 Author: iceman1001 <iceman@iuse.se>
-Date:   Sat May 21 09:28:38 2022 +0200
+Date:   Mon May 30 22:35:33 2022 +0200
 
-    widen mfp detection to include 0004
+    fix alway defaulting to freq even if divisor was applied.  Will still have issue when addressing both standard values..
 
-diff --git a/client/src/cmdhf14a.c b/client/src/cmdhf14a.c
-index 26e0d5d22..0a9f3d22c 100644
---- a/client/src/cmdhf14a.c
-+++ b/client/src/cmdhf14a.c
-@@ -1579,9 +1579,6 @@ static int detect_nxp_card(uint8_t sak, uint16_t atqa, uint64_t select_status) {
-                     if ((atqa & 0x0001) == 0x0001) {
-                         printTag("HID SEOS (smartmx / javacard)");
-                         type |= HID_SEOS;
--                    } else if ((atqa & 0x0004) == 0x0004) {
--                        printTag("EMV");
--                        type |= MTEMV;
-                     } else {
-                         printTag("MIFARE Plus EV1 2K/4K in SL3");
-                         printTag("MIFARE Plus S 2K/4K in SL3");
-@@ -1589,6 +1586,11 @@ static int detect_nxp_card(uint8_t sak, uint16_t atqa, uint64_t select_status) {
-                         printTag("MIFARE Plus SE 1K");
-                         type |= MTPLUS;
-                     }
+diff --git a/client/src/cmdlf.c b/client/src/cmdlf.c
+index 39167163f..986d15cc1 100644
+--- a/client/src/cmdlf.c
++++ b/client/src/cmdlf.c
+@@ -137,7 +137,15 @@ static int CmdLFTune(const char *Cmd) {
+         PrintAndLogEx(ERR, "freq must be between 47 and 600");
+         return PM3_EINVARG;
+     }
+-    divisor = LF_FREQ2DIV(freq);
 +
-+                    if ((atqa & 0x0004) == 0x0004) {
-+                        printTag("EMV");
-+                        type |= MTEMV;
-+                    }
-                 }
++    if (divisor != LF_DIVISOR_125 && freq != 125) {
++        PrintAndLogEx(ERR, "Select either `divisor` or `frequency`");
++        return PM3_EINVARG;
++    }
++
++    if (freq != 125)
++        divisor = LF_FREQ2DIV(freq);
++
  
-                 printTag("NTAG 4xx");
+     if ((is_bar + is_mix + is_value) > 1) {
+         PrintAndLogEx(ERR, "Select only one output style");
