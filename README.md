@@ -1,4 +1,4 @@
 # RRG256
 下载地址：http://www.wangk.cn/2022/04/23/RRG256
-代码日期：2022-07-06 20:57:12
-代码地址：https://github.com/RfidResearchGroup/proxmark3/tree/346b929c4df682474906d882adbd3709b715b34c
+代码日期：2022-07-07 21:28:03
+代码地址：https://github.com/RfidResearchGroup/proxmark3/tree/6ff336759f87ed1e3369d816694aeba8378a217d
